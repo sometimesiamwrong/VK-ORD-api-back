@@ -1,0 +1,16 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkOrdApiWrapper", "VkOrdApiWrapper.csproj", "{B1E6C696-7905-4156-B58D-7ABB7531A592}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
