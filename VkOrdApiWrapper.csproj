@@ -22,4 +22,8 @@
         <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="VkOrdApiWrapper.http" />
+    </ItemGroup>
+
 </Project>
