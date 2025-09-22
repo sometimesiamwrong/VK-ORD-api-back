@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using VkOrdApiWrapper.Models.Requests;
 using VkOrdApiWrapper.Models.Responses;
 using VkOrdApiWrapper.Services.Interfaces;
+using VkOrdApiWrapper.Data;
+using VkOrdApiWrapper.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace VkOrdApiWrapper.Controllers
 {
@@ -11,11 +14,13 @@ namespace VkOrdApiWrapper.Controllers
     public class CreativesController : BaseApiController
     {
         private readonly IVkOrdService _vkOrdService;
+        private readonly AppDbContext _db;
         private readonly ILogger<CreativesController> _logger;
 
-        public CreativesController(IVkOrdService vkOrdService, ILogger<CreativesController> logger)
+        public CreativesController(IVkOrdService vkOrdService, AppDbContext db, ILogger<CreativesController> logger)
         {
             _vkOrdService = vkOrdService;
+            _db = db;
             _logger = logger;
         }
 
@@ -92,6 +97,56 @@ namespace VkOrdApiWrapper.Controllers
                 HttpContext.Response.StatusCode = 404;
                 return Error("Creative not found or could not be deleted");
             }
+        }
+
+        /// <summary>
+        /// Получить креатив из локальной БД по Id
+        /// </summary>
+        [HttpGet("by-id/{id:int}")]
+        public async Task<ApiResponse<CreativeEntity>> GetById(int id)
+        {
+            var entity = await _db.Creatives.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+            {
+                HttpContext.Response.StatusCode = 404;
+                return Error<CreativeEntity>("Not found");
+            }
+            return Ok(entity, "Found");
+        }
+
+        /// <summary>
+        /// Получить список креативов (пагинация)
+        /// </summary>
+        [HttpGet]
+        public async Task<ApiResponse<List<CreativeEntity>>> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+        {
+            page = page < 1 ? 1 : page;
+            pageSize = pageSize <= 0 || pageSize > 200 ? 20 : pageSize;
+
+            var items = await _db.Creatives
+                .AsNoTracking()
+                .OrderByDescending(x => x.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+            return Ok(items, "Ok");
+        }
+
+        /// <summary>
+        /// Удалить креатив из локальной БД по Id
+        /// </summary>
+        [HttpDelete("local/{id:int}")]
+        public async Task<ApiResponse> DeleteLocal(int id)
+        {
+            var entity = await _db.Creatives.FirstOrDefaultAsync(x => x.Id == id);
+            if (entity == null)
+            {
+                HttpContext.Response.StatusCode = 404;
+                return Error("Not found");
+            }
+            _db.Creatives.Remove(entity);
+            await _db.SaveChangesAsync();
+            return Ok("Deleted");
         }
 
         /// <summary>

@@ -67,9 +67,9 @@ namespace VkOrdApiWrapper.Services.Implementations
 					Okogu = item.Data.Okogu,
 					Okfs = item.Data.Okfs,
 					Okved = item.Data.Okved,
-					Phone = item.Data.Phones.FirstOrDefault(),
+					Phone = item.Data.Phones?.FirstOrDefault(),
 					Kpp = item.Data.Kpp,
-					Email = item.Data.Emails.FirstOrDefault(),
+					Email = item.Data.Emails?.FirstOrDefault(),
 					Fio = item.Data.Fio == null ? null : new DaDataFioShort
 					{
 						Surname = item.Data.Fio.Surname,

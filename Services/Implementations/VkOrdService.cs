@@ -7,6 +7,9 @@ using VkOrdApiWrapper.Models.VkOrd;
 using VkOrdApiWrapper.Services.Interfaces;
 using VkOrdApiWrapper.Models.DaData;
 using System.Text.Json;
+using VkOrdApiWrapper.Data;
+using VkOrdApiWrapper.Models.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace VkOrdApiWrapper.Services.Implementations
 {
@@ -19,6 +22,7 @@ namespace VkOrdApiWrapper.Services.Implementations
         private readonly VkOrdConfiguration _config;
         private readonly ILogger<VkOrdService> _logger;
         private readonly IDistributedCache _cache;
+        private readonly AppDbContext _db;
         private readonly IDaDataService _daDataService;
 
         public VkOrdService(
@@ -26,12 +30,14 @@ namespace VkOrdApiWrapper.Services.Implementations
             IOptions<VkOrdConfiguration> config,
             ILogger<VkOrdService> logger,
             IDistributedCache cache,
+            AppDbContext db,
             IDaDataService daDataService)
         {
             _vkOrdClient = vkOrdClient;
             _config = config.Value;
             _logger = logger;
             _cache = cache;
+            _db = db;
             _daDataService = daDataService;
         }
 
@@ -48,9 +54,9 @@ namespace VkOrdApiWrapper.Services.Implementations
                     ContractorExternalId = request.ContractorExternalId,
                     Date = DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     DateEnd = request.PayDateEnd ?? DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                    Serial = "2025-09-21-0002",
+                    Serial = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss"),
                     ActionType = "distribution",
-                    SubjectType = "org_distribution",
+                    SubjectType = "distribution",
                     ParentContractExternalId = null,
                     Flags = new List<string> { VkContactFlags.vat_included.ToString() },
                     Amount = request.PaySum.ToString()
@@ -70,6 +76,30 @@ namespace VkOrdApiWrapper.Services.Implementations
                         Success = true,
                         CreatedAt = DateTime.UtcNow
                     };
+
+                    // Persist locally (upsert by ExternalId)
+                    var existing = await _db.Contracts.FirstOrDefaultAsync(x => x.ExternalId == request.ExternalId);
+                    if (existing == null)
+                    {
+                        var entity = new ContractEntity
+                        {
+                            ExternalId = request.ExternalId,
+                            ClientExternalId = request.ClientExternalId,
+                            ContractorExternalId = request.ContractorExternalId,
+                            PaySum = request.PaySum,
+                            PayDateEnd = request.PayDateEnd,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        await _db.Contracts.AddAsync(entity);
+                    }
+                    else
+                    {
+                        existing.ClientExternalId = request.ClientExternalId;
+                        existing.ContractorExternalId = request.ContractorExternalId;
+                        existing.PaySum = request.PaySum;
+                        existing.PayDateEnd = request.PayDateEnd;
+                    }
+                    await _db.SaveChangesAsync();
 
                     await _cache.SetStringAsync(
                         $"contract_{request.ExternalId}",
@@ -178,6 +208,36 @@ namespace VkOrdApiWrapper.Services.Implementations
                         Erid = response.Erid,
                         Success = true,
                     };
+
+                    // Persist locally (upsert by ExternalId)
+                    var existing = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == vkOrdCreative.ExternalId);
+                    if (existing == null)
+                    {
+                        var entity = new CreativeEntity
+                        {
+                            ExternalId = vkOrdCreative.ExternalId,
+                            Name = vkOrdCreative.Name,
+                            ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>(),
+                            KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>(),
+                            Format = vkOrdCreative.Form,
+                            ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>(),
+                            TargetAudience = vkOrdCreative.Targeting,
+                            Text = request.Text,
+                            CreatedAt = DateTime.UtcNow
+                        };
+                        await _db.Creatives.AddAsync(entity);
+                    }
+                    else
+                    {
+                        existing.Name = vkOrdCreative.Name;
+                        existing.ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>();
+                        existing.KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>();
+                        existing.Format = vkOrdCreative.Form;
+                        existing.ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>();
+                        existing.TargetAudience = vkOrdCreative.Targeting;
+                        existing.Text = request.Text;
+                    }
+                    await _db.SaveChangesAsync();
 
                     var createdJson = JsonSerializer.Serialize(result);
                     await _cache.SetStringAsync(
@@ -302,6 +362,13 @@ namespace VkOrdApiWrapper.Services.Implementations
                 if (response.IsSuccessStatusCode)
                 {
                     await _cache.RemoveAsync($"creative_{externalId}");
+                    // Remove from local storage too
+                    var entity = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == externalId);
+                    if (entity != null)
+                    {
+                        _db.Creatives.Remove(entity);
+                        await _db.SaveChangesAsync();
+                    }
                     return true;
                 }
                 return false;
