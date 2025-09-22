@@ -13,6 +13,8 @@ using VkOrdApiWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.EntityFrameworkCore;
+using VkOrdApiWrapper.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -170,6 +172,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+// EF Core: SQLite local database
+var connectionString = builder.Configuration.GetConnectionString("Default") ??
+                       "Data Source=vkord.db";
+builder.Services.AddDbContext<AppDbContext>(options =>
+{
+    options.UseSqlite(connectionString);
+});
+
 var app = builder.Build();
 
 // Middleware pipeline
@@ -196,5 +206,12 @@ app.MapControllers();
 
 // Добавляем health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
+
+// Ensure database created
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 app.Run();
