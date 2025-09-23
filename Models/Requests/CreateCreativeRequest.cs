@@ -46,5 +46,10 @@ namespace VkOrdApiWrapper.Models.Requests
         /// Текст креатива
         /// </summary>
         public string Text { get; set; }
+        
+        /// <summary>
+        /// Название креатива
+        /// </summary>
+        public string Name { get; set; }
     }
 }

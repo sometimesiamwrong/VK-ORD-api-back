@@ -157,7 +157,7 @@ namespace VkOrdApiWrapper.Services.Implementations
                 var vkOrdCreative = new VkOrdCreative()
                 {
                     ExternalId = request.ExternalId,
-                    Name = request.Text,
+                    Name = request.Name.Substring(0,254),
                     ContractExternalIds = request.ContractExternalIds,
                     Form = request.Format.ToString(),
                     TargetUrls = request.ContentUrls,
