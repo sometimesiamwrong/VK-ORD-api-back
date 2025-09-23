@@ -103,7 +103,7 @@ matched_items_in_subcategory: Список названий наиболее п�
                        {
                            content = content.Substring(7); // Убираем "```json"
                        }
-                       if (content.EndsWith("```"))
+                       if (content.EndsWith("```") && content.Length >= 3)
                        {
                            content = content.Substring(0, content.Length - 3); // Убираем "```"
                        }
