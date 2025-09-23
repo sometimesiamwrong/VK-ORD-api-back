@@ -274,11 +274,11 @@ run_application() {
 
     # Определение порта (по умолчанию 5000)
     PORT=${PORT:-5000}
-    ASPNETCORE_URLS="http://*:$PORT"
+    ASPNETCORE_URLS="https://*:$PORT"
 
     log_info "Приложение будет доступно на порту: $PORT"
-    log_info "Swagger UI: http://localhost:$PORT/swagger"
-    log_info "Health check: http://localhost:$PORT/health"
+    log_info "Swagger UI: https://localhost:$PORT/swagger"
+    log_info "Health check: https://localhost:$PORT/health"
 
     # Установка переменных окружения для продакшена
     export ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
@@ -305,7 +305,7 @@ setup_environment() {
         cat << EOF
 # Пример содержимого .env файла:
 ASPNETCORE_ENVIRONMENT=Production
-ASPNETCORE_URLS=http://*:5000
+ASPNETCORE_URLS=https://*:5000
 JWT_SECRET_KEY=your_secure_jwt_secret_key_here_min_32_chars
 OPENROUTER_API_KEY=sk-or-v1-your_openrouter_api_key
 DADATA_API_TOKEN=your_dadata_api_token
