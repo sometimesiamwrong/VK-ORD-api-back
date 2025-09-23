@@ -12,3 +12,4 @@ public interface IVkOrdApiClientFactory
     /// </summary>
     IVkOrdApiClient CreateClient(VkApiContext apiContext);
 }
+

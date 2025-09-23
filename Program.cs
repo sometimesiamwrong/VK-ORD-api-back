@@ -191,9 +191,20 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
+app.UseCors("AllowFrontend");
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {

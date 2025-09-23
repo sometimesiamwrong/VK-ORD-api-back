@@ -44,3 +44,4 @@ public class VkApiContext
         return !string.IsNullOrWhiteSpace(ApiKey) && !string.IsNullOrWhiteSpace(Route);
     }
 }
+
