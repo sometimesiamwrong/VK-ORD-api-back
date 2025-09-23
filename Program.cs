@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Polly;
@@ -41,13 +44,6 @@ if (vkOrdConfig == null)
 {
     throw new InvalidOperationException("VK ORD configuration is missing");
 }
-builder.Services.AddRefitClient<IVkOrdApiClient>()
-    .ConfigureHttpClient(client =>
-    {
-        client.BaseAddress = new Uri(vkOrdConfig.GetApiUrl());
-        client.Timeout = TimeSpan.FromSeconds(vkOrdConfig.TimeoutSeconds);
-        client.DefaultRequestHeaders.Add("User-Agent", "VkOrdApiWrapper/1.0");
-    });
 
 // DaData Refit client
 var dadataConfig = builder.Configuration.GetSection(DaDataConfiguration.SectionName).Get<DaDataConfiguration>();
@@ -83,8 +79,12 @@ builder.Services.AddRefitClient<IOpenRouterApiClient>()
 
 // Регистрация сервисов
 builder.Services.AddScoped<IVkOrdService, VkOrdService>();
+builder.Services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
 builder.Services.AddScoped<IAiService, AiService>();
+
+// Регистрация фильтров
+builder.Services.AddScoped<VkOrdApiWrapper.Controllers.Filters.VkApiHeadersFilter>();
 
 // Настройка кэширования
 builder.Services.AddMemoryCache();
@@ -219,5 +219,23 @@ app.MapControllers();
 // Добавляем health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
 
+// Логируем адреса при запуске приложения
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStarted.Register(() =>
+{
+    var serverAddressesFeature = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>();
+    if (serverAddressesFeature != null)
+    {
+        Log.Information("Приложение запущено и слушает на следующих адресах:");
+        foreach (var address in serverAddressesFeature.Addresses)
+        {
+            Log.Information("  {Address}", address);
+        }
+    }
+    else
+    {
+        Log.Warning("Не удалось получить информацию об адресах сервера");
+    }
+});
 
 app.Run();
