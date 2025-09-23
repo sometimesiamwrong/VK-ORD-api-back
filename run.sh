@@ -140,8 +140,12 @@ check_and_install_dotnet() {
             sudo apt-get install -y dotnet-runtime-8.0
 
             # Проверка установки
-            if ! dotnet --version &> /dev/null; then
-                log_error "Установка .NET 8 завершилась с ошибкой"
+            if dotnet --list-runtimes | grep -q "Microsoft.NETCore.App 8.0"; then
+                DOTNET_VERSION=$(dotnet --version 2>/dev/null || echo "Unknown")
+                log_success ".NET 8 Runtime успешно установлен (текущая версия хоста/SDK: $DOTNET_VERSION)"
+                return 0
+            else
+                log_error "Установка .NET 8 Runtime завершилась с ошибкой или .NET 8 Runtime не найден после установки."
                 return 1
             fi
             ;;
@@ -166,8 +170,12 @@ check_and_install_dotnet() {
             sudo apt-get install -y dotnet-runtime-8.0
 
             # Проверка установки
-            if ! dotnet --version &> /dev/null; then
-                log_error "Установка .NET 8 завершилась с ошибкой"
+            if dotnet --list-runtimes | grep -q "Microsoft.NETCore.App 8.0"; then
+                DOTNET_VERSION=$(dotnet --version 2>/dev/null || echo "Unknown")
+                log_success ".NET 8 Runtime успешно установлен (текущая версия хоста/SDK: $DOTNET_VERSION)"
+                return 0
+            else
+                log_error "Установка .NET 8 Runtime завершилась с ошибкой или .NET 8 Runtime не найден после установки."
                 return 1
             fi
             ;;
