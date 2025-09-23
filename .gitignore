@@ -40,6 +40,23 @@ _ReSharper*/
 .idea/
 *.sln.iml
 
+# Production/Deployment files
+publish/
+.env
+.env.local
+.env.production
+ssl/
+*.pem
+*.key
+
+# Docker volumes (local development)
+postgres_data/
+redis_data/
+
+# Logs (additional patterns)
+logs/*.log
+*.log
+
 # User-specific files
 *.rsuser
 *.suo
@@ -256,3 +273,20 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# Production/Deployment files
+publish/
+.env
+.env.local
+.env.production
+ssl/
+*.pem
+*.key
+
+# Docker volumes (local development)
+postgres_data/
+redis_data/
+
+# Logs (additional patterns)
+logs/*.log
+*.log

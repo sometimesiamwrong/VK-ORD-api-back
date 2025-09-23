@@ -62,7 +62,7 @@ namespace VkOrdApiWrapper.Services.Interfaces
         /// <summary>
         /// Создать контрагента в VK ОРД из данных DaData по ИНН
         /// </summary>
-        Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn);
+        Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn, List<string> types);
 
         #endregion
     }

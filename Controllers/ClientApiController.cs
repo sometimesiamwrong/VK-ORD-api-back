@@ -55,7 +55,7 @@ namespace VkOrdApiWrapper.Controllers
                 return Error("Некорректный ИНН");
             }
 
-            var result = await _vkOrdService.CreateCounterpartyFromInnAsync(request.Inn);
+            var result = await _vkOrdService.CreateCounterpartyFromInnAsync(request.Inn, request.Types);
             if (result.Status == "success")
             {
                 return Ok(result.Message);

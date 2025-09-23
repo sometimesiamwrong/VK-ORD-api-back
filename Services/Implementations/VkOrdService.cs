@@ -7,9 +7,6 @@ using VkOrdApiWrapper.Models.VkOrd;
 using VkOrdApiWrapper.Services.Interfaces;
 using VkOrdApiWrapper.Models.DaData;
 using System.Text.Json;
-using VkOrdApiWrapper.Data;
-using VkOrdApiWrapper.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace VkOrdApiWrapper.Services.Implementations
 {
@@ -22,7 +19,6 @@ namespace VkOrdApiWrapper.Services.Implementations
         private readonly VkOrdConfiguration _config;
         private readonly ILogger<VkOrdService> _logger;
         private readonly IDistributedCache _cache;
-        private readonly AppDbContext _db;
         private readonly IDaDataService _daDataService;
 
         public VkOrdService(
@@ -30,14 +26,12 @@ namespace VkOrdApiWrapper.Services.Implementations
             IOptions<VkOrdConfiguration> config,
             ILogger<VkOrdService> logger,
             IDistributedCache cache,
-            AppDbContext db,
             IDaDataService daDataService)
         {
             _vkOrdClient = vkOrdClient;
             _config = config.Value;
             _logger = logger;
             _cache = cache;
-            _db = db;
             _daDataService = daDataService;
         }
 
@@ -77,29 +71,6 @@ namespace VkOrdApiWrapper.Services.Implementations
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    // Persist locally (upsert by ExternalId)
-                    var existing = await _db.Contracts.FirstOrDefaultAsync(x => x.ExternalId == request.ExternalId);
-                    if (existing == null)
-                    {
-                        var entity = new ContractEntity
-                        {
-                            ExternalId = request.ExternalId,
-                            ClientExternalId = request.ClientExternalId,
-                            ContractorExternalId = request.ContractorExternalId,
-                            PaySum = request.PaySum,
-                            PayDateEnd = request.PayDateEnd,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        await _db.Contracts.AddAsync(entity);
-                    }
-                    else
-                    {
-                        existing.ClientExternalId = request.ClientExternalId;
-                        existing.ContractorExternalId = request.ContractorExternalId;
-                        existing.PaySum = request.PaySum;
-                        existing.PayDateEnd = request.PayDateEnd;
-                    }
-                    await _db.SaveChangesAsync();
 
                     await _cache.SetStringAsync(
                         $"contract_{request.ExternalId}",
@@ -209,35 +180,6 @@ namespace VkOrdApiWrapper.Services.Implementations
                         Success = true,
                     };
 
-                    // Persist locally (upsert by ExternalId)
-                    var existing = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == vkOrdCreative.ExternalId);
-                    if (existing == null)
-                    {
-                        var entity = new CreativeEntity
-                        {
-                            ExternalId = vkOrdCreative.ExternalId,
-                            Name = vkOrdCreative.Name,
-                            ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>(),
-                            KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>(),
-                            Format = vkOrdCreative.Form,
-                            ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>(),
-                            TargetAudience = vkOrdCreative.Targeting,
-                            Text = request.Text,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        await _db.Creatives.AddAsync(entity);
-                    }
-                    else
-                    {
-                        existing.Name = vkOrdCreative.Name;
-                        existing.ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>();
-                        existing.KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>();
-                        existing.Format = vkOrdCreative.Form;
-                        existing.ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>();
-                        existing.TargetAudience = vkOrdCreative.Targeting;
-                        existing.Text = request.Text;
-                    }
-                    await _db.SaveChangesAsync();
 
                     var createdJson = JsonSerializer.Serialize(result);
                     await _cache.SetStringAsync(
@@ -362,13 +304,6 @@ namespace VkOrdApiWrapper.Services.Implementations
                 if (response.IsSuccessStatusCode)
                 {
                     await _cache.RemoveAsync($"creative_{externalId}");
-                    // Remove from local storage too
-                    var entity = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == externalId);
-                    if (entity != null)
-                    {
-                        _db.Creatives.Remove(entity);
-                        await _db.SaveChangesAsync();
-                    }
                     return true;
                 }
                 return false;
@@ -433,7 +368,7 @@ namespace VkOrdApiWrapper.Services.Implementations
             return $"creative_{DateTime.UtcNow:yyyyMMdd}_{Guid.NewGuid():N}";
         }
 
-        public async Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn)
+        public async Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn, List<string> types)
         {
             if (string.IsNullOrWhiteSpace(inn))
             {
@@ -448,7 +383,7 @@ namespace VkOrdApiWrapper.Services.Implementations
                     return StatusResponse.Error("Контрагент по ИНН не найден в DaData");
                 }
 
-                var roles = new List<string> { VkPersonRoles.advertiser.ToString() };
+                var roles = types.Select(type => type.ToString()).ToList();
                 VkPersonType type;
                 // dadata.Type:  LEGAL — юридическое лицо, INDIVIDUAL — индивидуальный предприниматель
                 type = dadata.Type == "LEGAL" ? VkPersonType.juridical : VkPersonType.ip;
