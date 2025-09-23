@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using VkOrdApiWrapper.Models.Requests;
 using VkOrdApiWrapper.Models.Responses;
 using VkOrdApiWrapper.Services.Interfaces;
+using VkOrdApiWrapper.Models.VkOrd;
 
 namespace VkOrdApiWrapper.Controllers
 {
@@ -20,6 +21,26 @@ namespace VkOrdApiWrapper.Controllers
         }
 
         /// <summary>
+        /// Извлекает контекст VK API из заголовков запроса
+        /// </summary>
+        private VkApiContext GetVkApiContext()
+        {
+            var apiKey = Request.Headers["x-api-vk-key"].FirstOrDefault();
+            var route = Request.Headers["x-api-vk-route"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(route))
+            {
+                throw new BadHttpRequestException("Missing required headers: x-api-vk-key and x-api-vk-route");
+            }
+
+            return new VkApiContext
+            {
+                ApiKey = apiKey,
+                Route = route
+            };
+        }
+
+        /// <summary>
         /// Создать или обновить контракт в VK ОРД
         /// </summary>
         [HttpPut("{externalId}")]
@@ -34,7 +55,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error<CreateContractResponse>("Invalid request data");
             }
 
-            var result = await _vkOrdService.CreateOrUpdateContractAsync(request);
+            var apiContext = GetVkApiContext();
+            var result = await _vkOrdService.CreateOrUpdateContractAsync(request, apiContext);
 
             if (result.Success)
             {
@@ -53,7 +75,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpGet("{externalId}")]
         public async Task<ApiResponse<ContractResponse>> GetContract(string externalId)
         {
-            var result = await _vkOrdService.GetContractAsync(externalId);
+            var apiContext = GetVkApiContext();
+            var result = await _vkOrdService.GetContractAsync(externalId, apiContext);
 
             if (result.Success)
             {

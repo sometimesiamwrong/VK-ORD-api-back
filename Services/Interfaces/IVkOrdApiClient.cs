@@ -14,16 +14,14 @@ namespace VkOrdApiWrapper.Services.Interfaces
         [Put("/v1/contract/{externalId}")]
         Task<VkOrdResponse<VkOrdContract>> CreateOrUpdateContractAsync(
             string externalId,
-            [Body] VkOrdContract contract,
-            [Header("Authorization")] string authorization);
+            [Body] VkOrdContract contract);
 
         /// <summary>
         /// Получить контракт
         /// </summary>
         [Get("/v1/contract/{externalId}")]
         Task<VkOrdResponse<VkOrdContract>> GetContractAsync(
-            string externalId,
-            [Header("Authorization")] string authorization);
+            string externalId);
 
         /// <summary>
         /// Создать или обновить креатив
@@ -31,32 +29,28 @@ namespace VkOrdApiWrapper.Services.Interfaces
         [Put("/v3/creative/{externalId}")]
         Task<VkOrdResponse<VkOrdCreative>> CreateOrUpdateCreativeAsync(
             string externalId,
-            [Body] VkOrdCreative creative,
-            [Header("Authorization")] string authorization);
+            [Body] VkOrdCreative creative);
 
         /// <summary>
         /// Получить креатив
         /// </summary>
         [Get("/v3/creative/{externalId}")]
         Task<VkOrdResponse<VkOrdCreative>> GetCreativeAsync(
-            string externalId,
-            [Header("Authorization")] string authorization);
+            string externalId);
 
         /// <summary>
         /// Получить статус креатива
         /// </summary>
         [Get("/v1/status/creative/{externalId}")]
         Task<VkOrdStatusResponse> GetCreativeStatusAsync(
-            string externalId,
-            [Header("Authorization")] string authorization);
+            string externalId);
 
         /// <summary>
         /// Удалить креатив
         /// </summary>
         [Delete("/v1/creative/{externalId}")]
         Task<ApiResponse<object>> DeleteCreativeAsync(
-            string externalId,
-            [Header("Authorization")] string authorization);
+            string externalId);
 
         /// <summary>
         /// Создать/обновить контрагента (person)
@@ -64,7 +58,6 @@ namespace VkOrdApiWrapper.Services.Interfaces
         [Put("/v1/person/{externalId}")]
         Task<VkOrdResponse<object>> CreateOrUpdatePersonAsync(
             string externalId,
-            [Body] VkOrdPerson person,
-            [Header("Authorization")] string authorization);
+            [Body] VkOrdPerson person);
     }
 }
