@@ -7,9 +7,6 @@ using VkOrdApiWrapper.Models.VkOrd;
 using VkOrdApiWrapper.Services.Interfaces;
 using VkOrdApiWrapper.Models.DaData;
 using System.Text.Json;
-using VkOrdApiWrapper.Data;
-using VkOrdApiWrapper.Models.Entities;
-using Microsoft.EntityFrameworkCore;
 
 namespace VkOrdApiWrapper.Services.Implementations
 {
@@ -18,35 +15,34 @@ namespace VkOrdApiWrapper.Services.Implementations
     /// </summary>
     public class VkOrdService : IVkOrdService
     {
-        private readonly IVkOrdApiClient _vkOrdClient;
+        private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly VkOrdConfiguration _config;
         private readonly ILogger<VkOrdService> _logger;
         private readonly IDistributedCache _cache;
-        private readonly AppDbContext _db;
         private readonly IDaDataService _daDataService;
 
         public VkOrdService(
-            IVkOrdApiClient vkOrdClient,
+            IVkOrdApiClientFactory vkOrdClientFactory,
             IOptions<VkOrdConfiguration> config,
             ILogger<VkOrdService> logger,
             IDistributedCache cache,
-            AppDbContext db,
             IDaDataService daDataService)
         {
-            _vkOrdClient = vkOrdClient;
+            _vkOrdClientFactory = vkOrdClientFactory;
             _config = config.Value;
             _logger = logger;
             _cache = cache;
-            _db = db;
             _daDataService = daDataService;
         }
 
         #region Контракты
 
-        public async Task<CreateContractResponse> CreateOrUpdateContractAsync(CreateContractRequest request)
+        public async Task<CreateContractResponse> CreateOrUpdateContractAsync(CreateContractRequest request, VkApiContext apiContext)
         {
             try
             {
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+
                 var vkOrdContract = new VkOrdContract
                 {
                     Type = "service",
@@ -61,12 +57,11 @@ namespace VkOrdApiWrapper.Services.Implementations
                     Flags = new List<string> { VkContactFlags.vat_included.ToString() },
                     Amount = request.PaySum.ToString()
                 };
-                var authHeader = $"Bearer {_config.ApiToken}";
 
-                _logger.LogInformation($"Creating/updating contract with external_id: {request.ExternalId}");
-                
-                var response = await _vkOrdClient.CreateOrUpdateContractAsync(
-                    request.ExternalId, vkOrdContract, authHeader);
+                _logger.LogInformation($"Creating/updating contract with external_id: {request.ExternalId} using route: {apiContext.Route}");
+
+                var response = await vkOrdClient.CreateOrUpdateContractAsync(
+                    request.ExternalId, vkOrdContract);
 
                 if (response?.IsSuccess ?? true)
                 {
@@ -77,29 +72,6 @@ namespace VkOrdApiWrapper.Services.Implementations
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    // Persist locally (upsert by ExternalId)
-                    var existing = await _db.Contracts.FirstOrDefaultAsync(x => x.ExternalId == request.ExternalId);
-                    if (existing == null)
-                    {
-                        var entity = new ContractEntity
-                        {
-                            ExternalId = request.ExternalId,
-                            ClientExternalId = request.ClientExternalId,
-                            ContractorExternalId = request.ContractorExternalId,
-                            PaySum = request.PaySum,
-                            PayDateEnd = request.PayDateEnd,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        await _db.Contracts.AddAsync(entity);
-                    }
-                    else
-                    {
-                        existing.ClientExternalId = request.ClientExternalId;
-                        existing.ContractorExternalId = request.ContractorExternalId;
-                        existing.PaySum = request.PaySum;
-                        existing.PayDateEnd = request.PayDateEnd;
-                    }
-                    await _db.SaveChangesAsync();
 
                     await _cache.SetStringAsync(
                         $"contract_{request.ExternalId}",
@@ -142,7 +114,7 @@ namespace VkOrdApiWrapper.Services.Implementations
             }
         }
 
-        public async Task<ContractResponse> GetContractAsync(string externalId)
+        public async Task<ContractResponse> GetContractAsync(string externalId, VkApiContext apiContext)
         {
             try
             {
@@ -157,8 +129,8 @@ namespace VkOrdApiWrapper.Services.Implementations
                         }, externalId);
                 }
 
-                var authHeader = $"Bearer {_config.ApiToken}";
-                var response = await _vkOrdClient.GetContractAsync(externalId, authHeader);
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+                var response = await vkOrdClient.GetContractAsync(externalId);
 
                 return ContractResponse.FromVkOrdResponse(response, externalId);
             }
@@ -176,16 +148,18 @@ namespace VkOrdApiWrapper.Services.Implementations
 
         #endregion
 
-        public async Task<CreateCreativeResponse> CreateCreativeAsync(CreateCreativeRequest request)
+        public async Task<CreateCreativeResponse> CreateCreativeAsync(CreateCreativeRequest request, VkApiContext apiContext)
         {
             try
             {
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+
                 var vkOrdCreative = new VkOrdCreative()
                 {
                     ExternalId = request.ExternalId,
                     Name = request.Text,
                     ContractExternalIds = request.ContractExternalIds,
-                    Form = request.Format.ToString(),   
+                    Form = request.Format.ToString(),
                     TargetUrls = request.ContentUrls,
                     Targeting = request.TargetAudience,
                     KKTYCodes = request.KKTYCodes,
@@ -193,12 +167,11 @@ namespace VkOrdApiWrapper.Services.Implementations
                     Texts = new List<string> { request.Text },
                     Flags = new List<string> { "native" }
                 };
-                var authHeader = $"Bearer {_config.ApiToken}";
 
-                _logger.LogInformation($"Creating creative with external_id: {vkOrdCreative.ExternalId}");
+                _logger.LogInformation($"Creating creative with external_id: {vkOrdCreative.ExternalId} using route: {apiContext.Route}");
 
-                var response = await _vkOrdClient.CreateOrUpdateCreativeAsync(
-                    vkOrdCreative.ExternalId, vkOrdCreative, authHeader);
+                var response = await vkOrdClient.CreateOrUpdateCreativeAsync(
+                    vkOrdCreative.ExternalId, vkOrdCreative);
 
                 if (response.IsSuccess)
                 {
@@ -209,35 +182,6 @@ namespace VkOrdApiWrapper.Services.Implementations
                         Success = true,
                     };
 
-                    // Persist locally (upsert by ExternalId)
-                    var existing = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == vkOrdCreative.ExternalId);
-                    if (existing == null)
-                    {
-                        var entity = new CreativeEntity
-                        {
-                            ExternalId = vkOrdCreative.ExternalId,
-                            Name = vkOrdCreative.Name,
-                            ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>(),
-                            KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>(),
-                            Format = vkOrdCreative.Form,
-                            ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>(),
-                            TargetAudience = vkOrdCreative.Targeting,
-                            Text = request.Text,
-                            CreatedAt = DateTime.UtcNow
-                        };
-                        await _db.Creatives.AddAsync(entity);
-                    }
-                    else
-                    {
-                        existing.Name = vkOrdCreative.Name;
-                        existing.ContractExternalIds = vkOrdCreative.ContractExternalIds ?? new List<string>();
-                        existing.KKTYCodes = vkOrdCreative.KKTYCodes ?? new List<string>();
-                        existing.Format = vkOrdCreative.Form;
-                        existing.ContentUrls = vkOrdCreative.TargetUrls ?? new List<string>();
-                        existing.TargetAudience = vkOrdCreative.Targeting;
-                        existing.Text = request.Text;
-                    }
-                    await _db.SaveChangesAsync();
 
                     var createdJson = JsonSerializer.Serialize(result);
                     await _cache.SetStringAsync(
@@ -280,7 +224,7 @@ namespace VkOrdApiWrapper.Services.Implementations
             }
         }
 
-        public async Task<CreateCreativeResponse> GetCreativeAsync(string externalId)
+        public async Task<CreateCreativeResponse> GetCreativeAsync(string externalId, VkApiContext apiContext)
         {
             try
             {
@@ -292,8 +236,8 @@ namespace VkOrdApiWrapper.Services.Implementations
                     if (cached != null) return cached;
                 }
 
-                var authHeader = $"Bearer {_config.ApiToken}";
-                var response = await _vkOrdClient.GetCreativeAsync(externalId, authHeader);
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+                var response = await vkOrdClient.GetCreativeAsync(externalId);
 
                 if (response.IsSuccess)
                 {
@@ -334,12 +278,12 @@ namespace VkOrdApiWrapper.Services.Implementations
             }
         }
 
-        public async Task<VkOrdStatusResponse> GetCreativeStatusAsync(string externalId)
+        public async Task<VkOrdStatusResponse> GetCreativeStatusAsync(string externalId, VkApiContext apiContext)
         {
             try
             {
-                var authHeader = $"Bearer {_config.ApiToken}";
-                return await _vkOrdClient.GetCreativeStatusAsync(externalId, authHeader);
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+                return await vkOrdClient.GetCreativeStatusAsync(externalId);
             }
             catch (Exception ex)
             {
@@ -352,23 +296,16 @@ namespace VkOrdApiWrapper.Services.Implementations
             }
         }
 
-        public async Task<bool> DeleteCreativeAsync(string externalId)
+        public async Task<bool> DeleteCreativeAsync(string externalId, VkApiContext apiContext)
         {
             try
             {
-                var authHeader = $"Bearer {_config.ApiToken}";
-                var response = await _vkOrdClient.DeleteCreativeAsync(externalId, authHeader);
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+                var response = await vkOrdClient.DeleteCreativeAsync(externalId);
 
                 if (response.IsSuccessStatusCode)
                 {
                     await _cache.RemoveAsync($"creative_{externalId}");
-                    // Remove from local storage too
-                    var entity = await _db.Creatives.FirstOrDefaultAsync(x => x.ExternalId == externalId);
-                    if (entity != null)
-                    {
-                        _db.Creatives.Remove(entity);
-                        await _db.SaveChangesAsync();
-                    }
                     return true;
                 }
                 return false;
@@ -380,7 +317,7 @@ namespace VkOrdApiWrapper.Services.Implementations
             }
         }
 
-        public async Task<List<CreateCreativeResponse>> CreateBulkCreativesAsync(List<CreateCreativeRequest> requests)
+        public async Task<List<CreateCreativeResponse>> CreateBulkCreativesAsync(List<CreateCreativeRequest> requests, VkApiContext apiContext)
         {
             var results = new List<CreateCreativeResponse>();
             var semaphore = new SemaphoreSlim(_config.MaxConcurrentRequests, _config.MaxConcurrentRequests);
@@ -389,7 +326,7 @@ namespace VkOrdApiWrapper.Services.Implementations
                 await semaphore.WaitAsync();
                 try
                 {
-                    return await CreateCreativeAsync(request);
+                    return await CreateCreativeAsync(request, apiContext);
                 }
                 finally
                 {
@@ -401,14 +338,14 @@ namespace VkOrdApiWrapper.Services.Implementations
             return results;
         }
 
-        public async Task<bool> IsCreativeVerifiedAsync(string externalId, int maxWaitTimeMinutes = 120)
+        public async Task<bool> IsCreativeVerifiedAsync(string externalId, VkApiContext apiContext, int maxWaitTimeMinutes = 120)
         {
             var startTime = DateTime.UtcNow;
             var maxWaitTime = TimeSpan.FromMinutes(maxWaitTimeMinutes);
 
             while (DateTime.UtcNow - startTime < maxWaitTime)
             {
-                var status = await GetCreativeStatusAsync(externalId);
+                var status = await GetCreativeStatusAsync(externalId, apiContext);
 
                 if (status.Status == "verified")
                 {
@@ -433,7 +370,7 @@ namespace VkOrdApiWrapper.Services.Implementations
             return $"creative_{DateTime.UtcNow:yyyyMMdd}_{Guid.NewGuid():N}";
         }
 
-        public async Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn)
+        public async Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn, List<string> types, VkApiContext apiContext)
         {
             if (string.IsNullOrWhiteSpace(inn))
             {
@@ -448,7 +385,7 @@ namespace VkOrdApiWrapper.Services.Implementations
                     return StatusResponse.Error("Контрагент по ИНН не найден в DaData");
                 }
 
-                var roles = new List<string> { VkPersonRoles.advertiser.ToString() };
+                var roles = types.Select(type => type.ToString()).ToList();
                 VkPersonType type;
                 // dadata.Type:  LEGAL — юридическое лицо, INDIVIDUAL — индивидуальный предприниматель
                 type = dadata.Type == "LEGAL" ? VkPersonType.juridical : VkPersonType.ip;
@@ -480,10 +417,10 @@ namespace VkOrdApiWrapper.Services.Implementations
                 };
 
                 var externalId = dadata.Inn ?? inn;
-                var authHeader = $"Bearer {_config.ApiToken}";
+                var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
                 try
                 {
-                    var response = await _vkOrdClient.CreateOrUpdatePersonAsync(externalId, person, authHeader);
+                    var response = await vkOrdClient.CreateOrUpdatePersonAsync(externalId, person);
                     if (response.IsSuccess)
                     {
                         return StatusResponse.Success("Контрагент создан");

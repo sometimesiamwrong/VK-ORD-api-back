@@ -14,12 +14,12 @@ namespace VkOrdApiWrapper.Services.Interfaces
         /// <summary>
         /// Создать или обновить контракт
         /// </summary>
-        Task<CreateContractResponse> CreateOrUpdateContractAsync(CreateContractRequest request);
+        Task<CreateContractResponse> CreateOrUpdateContractAsync(CreateContractRequest request, VkApiContext apiContext);
 
         /// <summary>
         /// Получить информацию о контракте по external_id
         /// </summary>
-        Task<ContractResponse> GetContractAsync(string externalId);
+        Task<ContractResponse> GetContractAsync(string externalId, VkApiContext apiContext);
 
         #endregion
 
@@ -28,32 +28,32 @@ namespace VkOrdApiWrapper.Services.Interfaces
         /// <summary>
         /// Создать креатив
         /// </summary>
-        Task<CreateCreativeResponse> CreateCreativeAsync(CreateCreativeRequest request);
+        Task<CreateCreativeResponse> CreateCreativeAsync(CreateCreativeRequest request, VkApiContext apiContext);
 
         /// <summary>
         /// Получить информацию о креативе по external_id
         /// </summary>
-        Task<CreateCreativeResponse> GetCreativeAsync(string externalId);
+        Task<CreateCreativeResponse> GetCreativeAsync(string externalId, VkApiContext apiContext);
 
         /// <summary>
         /// Получить статус креатива
         /// </summary>
-        Task<VkOrdStatusResponse> GetCreativeStatusAsync(string externalId);
+        Task<VkOrdStatusResponse> GetCreativeStatusAsync(string externalId, VkApiContext apiContext);
 
         /// <summary>
         /// Удалить креатив
         /// </summary>
-        Task<bool> DeleteCreativeAsync(string externalId);
+        Task<bool> DeleteCreativeAsync(string externalId, VkApiContext apiContext);
 
         /// <summary>
         /// Создать пакет креативов
         /// </summary>
-        Task<List<CreateCreativeResponse>> CreateBulkCreativesAsync(List<CreateCreativeRequest> requests);
+        Task<List<CreateCreativeResponse>> CreateBulkCreativesAsync(List<CreateCreativeRequest> requests, VkApiContext apiContext);
 
         /// <summary>
         /// Проверить, что креатив прошел верификацию в ЕРИР
         /// </summary>
-        Task<bool> IsCreativeVerifiedAsync(string externalId, int maxWaitTimeMinutes = 120);
+        Task<bool> IsCreativeVerifiedAsync(string externalId, VkApiContext apiContext, int maxWaitTimeMinutes = 120);
 
         #endregion
 
@@ -62,7 +62,7 @@ namespace VkOrdApiWrapper.Services.Interfaces
         /// <summary>
         /// Создать контрагента в VK ОРД из данных DaData по ИНН
         /// </summary>
-        Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn);
+        Task<StatusResponse> CreateCounterpartyFromInnAsync(string inn, List<string> types, VkApiContext apiContext);
 
         #endregion
     }

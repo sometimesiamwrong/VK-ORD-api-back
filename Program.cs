@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Hosting.Server;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Polly;
@@ -13,8 +16,6 @@ using VkOrdApiWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.EntityFrameworkCore;
-using VkOrdApiWrapper.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,6 +33,8 @@ builder.Services.Configure<JwtConfiguration>(
     builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<DaDataConfiguration>(
     builder.Configuration.GetSection(DaDataConfiguration.SectionName));
+builder.Services.Configure<OpenRouterConfiguration>(
+    builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
 builder.Services.Configure<RedisConfiguration>(
     builder.Configuration.GetSection(RedisConfiguration.SectionName));
 
@@ -41,13 +44,6 @@ if (vkOrdConfig == null)
 {
     throw new InvalidOperationException("VK ORD configuration is missing");
 }
-builder.Services.AddRefitClient<IVkOrdApiClient>()
-    .ConfigureHttpClient(client =>
-    {
-        client.BaseAddress = new Uri(vkOrdConfig.GetApiUrl());
-        client.Timeout = TimeSpan.FromSeconds(vkOrdConfig.TimeoutSeconds);
-        client.DefaultRequestHeaders.Add("User-Agent", "VkOrdApiWrapper/1.0");
-    });
 
 // DaData Refit client
 var dadataConfig = builder.Configuration.GetSection(DaDataConfiguration.SectionName).Get<DaDataConfiguration>();
@@ -63,9 +59,32 @@ builder.Services.AddRefitClient<IDaDataApiClient>()
         }
     });
 
+// OpenRouter Refit client
+var openRouterConfig = builder.Configuration.GetSection(OpenRouterConfiguration.SectionName).Get<OpenRouterConfiguration>();
+builder.Services.AddRefitClient<IOpenRouterApiClient>()
+    .ConfigureHttpClient(client =>
+    {
+        client.BaseAddress = new Uri("https://openrouter.ai");
+        client.Timeout = TimeSpan.FromSeconds(openRouterConfig?.TimeoutSeconds ?? 30);
+        client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY") ??
+                    openRouterConfig?.ApiKey;
+        if (!string.IsNullOrWhiteSpace(apiKey))
+        {
+            client.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+        }
+        client.DefaultRequestHeaders.Add("HTTP-Referer", "https://vkord-api-wrapper.com");
+        client.DefaultRequestHeaders.Add("X-Title", "VK ORD API Wrapper");
+    });
+
 // Регистрация сервисов
 builder.Services.AddScoped<IVkOrdService, VkOrdService>();
+builder.Services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
+builder.Services.AddScoped<IAiService, AiService>();
+
+// Регистрация фильтров
+builder.Services.AddScoped<VkOrdApiWrapper.Controllers.Filters.VkApiHeadersFilter>();
 
 // Настройка кэширования
 builder.Services.AddMemoryCache();
@@ -172,13 +191,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-// EF Core: SQLite local database
-var connectionString = builder.Configuration.GetConnectionString("Default") ??
-                       "Data Source=vkord.db";
-builder.Services.AddDbContext<AppDbContext>(options =>
-{
-    options.UseSqlite(connectionString);
-});
 
 var app = builder.Build();
 
@@ -207,11 +219,23 @@ app.MapControllers();
 // Добавляем health check endpoint
 app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
 
-// Ensure database created
-using (var scope = app.Services.CreateScope())
+// Логируем адреса при запуске приложения
+var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+lifetime.ApplicationStarted.Register(() =>
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
-}
+    var serverAddressesFeature = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>();
+    if (serverAddressesFeature != null)
+    {
+        Log.Information("Приложение запущено и слушает на следующих адресах:");
+        foreach (var address in serverAddressesFeature.Addresses)
+        {
+            Log.Information("  {Address}", address);
+        }
+    }
+    else
+    {
+        Log.Warning("Не удалось получить информацию об адресах сервера");
+    }
+});
 
 app.Run();

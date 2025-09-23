@@ -1,13 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VkOrdApiWrapper.Controllers.Filters;
 using VkOrdApiWrapper.Models.Requests;
 using VkOrdApiWrapper.Models.Responses;
 using VkOrdApiWrapper.Services.Interfaces;
+using VkOrdApiWrapper.Models.VkOrd;
 
 namespace VkOrdApiWrapper.Controllers
 {
     [Route("api/[controller]")]
     [AllowAnonymous]
+    [ServiceFilter(typeof(VkApiHeadersFilter))]
     public class ClientController : BaseApiController
     {
         private readonly IDaDataService _daDataService;
@@ -19,6 +22,26 @@ namespace VkOrdApiWrapper.Controllers
             _daDataService = daDataService;
             _vkOrdService = vkOrdService;
             _logger = logger;
+        }
+
+        /// <summary>
+        /// Извлекает контекст VK API из заголовков запроса
+        /// </summary>
+        private VkApiContext GetVkApiContext()
+        {
+            var apiKey = Request.Headers["x-api-vk-key"].FirstOrDefault();
+            var route = Request.Headers["x-api-vk-route"].FirstOrDefault();
+
+            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(route))
+            {
+                throw new BadHttpRequestException("Missing required headers: x-api-vk-key and x-api-vk-route");
+            }
+
+            return new VkApiContext
+            {
+                ApiKey = apiKey,
+                Route = route
+            };
         }
 
         /// <summary>
@@ -55,7 +78,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error("Некорректный ИНН");
             }
 
-            var result = await _vkOrdService.CreateCounterpartyFromInnAsync(request.Inn);
+            var apiContext = GetVkApiContext();
+            var result = await _vkOrdService.CreateCounterpartyFromInnAsync(request.Inn, request.Types, apiContext);
             if (result.Status == "success")
             {
                 return Ok(result.Message);
@@ -80,7 +104,8 @@ namespace VkOrdApiWrapper.Controllers
             }
 
 
-            var result = await _vkOrdService.CreateOrUpdateContractAsync(request);
+            var apiContext = GetVkApiContext();
+            var result = await _vkOrdService.CreateOrUpdateContractAsync(request, apiContext);
             if (result.Success)
             {
                 return Ok(result, "Contract created successfully");
@@ -104,7 +129,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error<CreateCreativeResponse>("Invalid request data");
             }
 
-            var result = await _vkOrdService.CreateCreativeAsync(request);
+            var apiContext = GetVkApiContext();
+            var result = await _vkOrdService.CreateCreativeAsync(request, apiContext);
             if (result.Success)
             {
                 return Ok(result, "Creative created successfully");
