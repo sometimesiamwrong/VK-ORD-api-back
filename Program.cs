@@ -195,7 +195,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru")
+        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru", "http://ad-lawyer.ru")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -204,7 +204,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-app.UseCors("AllowFrontend");
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -216,11 +215,11 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+app.UseCors("AllowFrontend");
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseResultWrapper();
 
 app.UseHttpsRedirection();
-app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
