@@ -127,8 +127,8 @@ if [ "$choice" = "1" ] || [ "$choice" = "2" ]; then
     echo "  • Access database: docker-compose exec postgres psql -U vkord_user -d vkord"
     echo ""
     echo -e "${YELLOW}Application URLs:${NC}"
-    echo "  • API: http://localhost:8080"
-    echo "  • Health check: http://localhost:8080/health"
+    echo "  • API: http://localhost:5000"
+    echo "  • Health check: http://localhost:5000/health"
     if docker_compose_cmd ps | grep -q nginx; then
         echo "  • Nginx proxy: http://localhost"
     fi

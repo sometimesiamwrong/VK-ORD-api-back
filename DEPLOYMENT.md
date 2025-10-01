@@ -73,9 +73,9 @@ docker-compose ps
 
 После успешного развертывания приложение будет доступно по адресам:
 
-- **API**: http://localhost:8080
-- **Health Check**: http://localhost:8080/health
-- **Документация API**: http://localhost:8080/swagger (если включена)
+- **API**: http://localhost:5000
+- **Health Check**: http://localhost:5000/health
+- **Документация API**: http://localhost:5000/swagger (если включена)
 
 ## Управление приложением
 
@@ -164,7 +164,7 @@ docker-compose down -v
 ```
 ┌─────────────────┐    ┌─────────────────┐
 │   Nginx Proxy   │    │   VK ORD API    │
-│     (Port 80)   │◄──►│   (Port 8080)   │
+│     (Port 80)   │◄──►│   (Port 5000)   │
 └─────────────────┘    └─────────────────┘
                               │
                               ▼
@@ -184,7 +184,7 @@ docker-compose down -v
 
 ### Проблемы с запуском
 
-1. **Порт уже занят**: Проверьте, что порты 8080, 5432, 6379 свободны
+1. **Порт уже занят**: Проверьте, что порты 5000, 5432, 6379 свободны
 2. **Ошибка подключения к БД**: Проверьте переменную `DB_PASSWORD`
 3. **Ошибка API ключей**: Проверьте переменные `OPENROUTER_API_KEY` и `DADATA_API_TOKEN`
 
@@ -208,7 +208,7 @@ docker-compose logs redis
 docker-compose exec postgres psql -U vkord_user -d vkord
 
 # Проверка подключения из приложения
-docker-compose exec vkord-api curl -f http://localhost:8080/health
+docker-compose exec vkord-api curl -f http://localhost:5000/health
 ```
 
 ## Производительность

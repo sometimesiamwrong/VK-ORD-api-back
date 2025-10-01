@@ -272,8 +272,8 @@ build_project() {
 run_application() {
     log_info "Запуск VK ORD API Wrapper..."
 
-    # Определение порта (по умолчанию 8080)
-    PORT=${PORT:-8080}
+    # Определение порта (по умолчанию 5000)
+    PORT=${PORT:-5000}
     ASPNETCORE_URLS="http://*:$PORT"
 
     log_info "Приложение будет доступно на порту: $PORT"
@@ -305,7 +305,7 @@ setup_environment() {
         cat << EOF
 # Пример содержимого .env файла:
 ASPNETCORE_ENVIRONMENT=Production
-ASPNETCORE_URLS=http://*:8080
+ASPNETCORE_URLS=http://*:5000
 JWT_SECRET_KEY=your_secure_jwt_secret_key_here_min_32_chars
 OPENROUTER_API_KEY=sk-or-v1-your_openrouter_api_key
 DADATA_API_TOKEN=your_dadata_api_token
@@ -367,7 +367,7 @@ case "${1:-}" in
         echo "  Любая Unix система  Локальная установка .NET без sudo"
         echo ""
         echo "Переменные окружения:"
-        echo "  PORT                Порт для запуска (по умолчанию: 8080)"
+        echo "  PORT                Порт для запуска (по умолчанию: 5000)"
         echo "  ASPNETCORE_ENVIRONMENT  Среда выполнения (Development/Production)"
         echo ""
         exit 0
