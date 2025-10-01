@@ -222,7 +222,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru", "http://ad-lawyer.ru", "http://localhost", "http://localhost:5173")
+        policy.WithOrigins("https://criminally-astute-kangaroo.cloudpub.ru","https://ad-layer.ru", "https://server273.hosting.reg.ru", "http://ad-lawyer.ru", "http://localhost", "http://localhost:5173")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
