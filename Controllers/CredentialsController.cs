@@ -11,12 +11,12 @@ namespace VkOrdApiWrapper.Controllers
 {
     [Route("api/[controller]")]
     [Authorize]
-    public class ApiCredentialsController : BaseApiController
+    public class CredentialsController : BaseApiController
     {
         private readonly ApplicationDbContext _db;
         private readonly ISecretProtector _protector;
 
-        public ApiCredentialsController(ApplicationDbContext db, ISecretProtector protector)
+        public CredentialsController(ApplicationDbContext db, ISecretProtector protector)
         {
             _db = db;
             _protector = protector;
@@ -36,6 +36,26 @@ namespace VkOrdApiWrapper.Controllers
                 UpdatedAt = x.UpdatedAt
             }).ToList();
             return Ok(data);
+        }
+
+        [HttpGet("{id}")]
+        public async Task<ApiResponse<ApiCredentialResponse>> GetById(Guid id)
+        {
+            var userId = HttpContext.User.GetUserId();
+            var item = await _db.ApiCredentials.FirstOrDefaultAsync(c => c.UserId == userId && c.Id == id);
+            if (item is not null)
+            {
+                return Ok(new ApiCredentialResponse
+                {
+                    Id = item.Id,
+                    Environment = item.Environment,
+                    DisplayName = item.DisplayName,
+                    CreatedAt = item.CreatedAt,
+                    UpdatedAt = item.UpdatedAt
+                });
+            }
+
+            return null;
         }
 
         [HttpPost]

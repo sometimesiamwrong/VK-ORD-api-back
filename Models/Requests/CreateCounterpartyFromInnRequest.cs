@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VkOrdApiWrapper.Models.Requests
 {
-	public sealed class CreateCounterpartyFromInnRequest
+	public sealed class CreateCounterpartyFromInnRequest : AuthorizedRequestBase
 	{
 		[Required]
 		[StringLength(12, MinimumLength = 10)]

@@ -24,5 +24,15 @@ namespace VkOrdApiWrapper.Configuration
         /// Время жизни JWT токена в минутах
         /// </summary>
         public int ExpiryInMinutes { get; set; }
+
+        /// <summary>
+        /// Время жизни refresh токена в днях
+        /// </summary>
+        public int RefreshTokenDays { get; set; } = 30;
+
+        /// <summary>
+        /// Имя cookie для refresh токена
+        /// </summary>
+        public string RefreshCookieName { get; set; } = "refresh_token";
     }
 }

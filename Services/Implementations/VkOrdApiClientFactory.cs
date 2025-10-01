@@ -3,6 +3,10 @@ using Refit;
 using VkOrdApiWrapper.Configuration;
 using VkOrdApiWrapper.Models.VkOrd;
 using VkOrdApiWrapper.Services.Interfaces;
+using VkOrdApiWrapper.Data;
+using Microsoft.EntityFrameworkCore;
+using VkOrdApiWrapper.Extensions;
+using VkOrdApiWrapper.Security;
 
 namespace VkOrdApiWrapper.Services.Implementations;
 
@@ -13,13 +17,19 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
 {
     private readonly VkOrdConfiguration _defaultConfig;
     private readonly ILogger<VkOrdApiClientFactory> _logger;
+    private readonly ApplicationDbContext _db;
+    private readonly ISecretProtector _protector;
 
     public VkOrdApiClientFactory(
         IOptions<VkOrdConfiguration> config,
-        ILogger<VkOrdApiClientFactory> logger)
+        ILogger<VkOrdApiClientFactory> logger,
+        ApplicationDbContext db,
+        ISecretProtector protector)
     {
         _defaultConfig = config.Value;
         _logger = logger;
+        _db = db;
+        _protector = protector;
     }
 
     /// <summary>

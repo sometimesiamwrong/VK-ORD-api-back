@@ -22,9 +22,10 @@ namespace VkOrdApiWrapper.Data
                 .HasIndex(u => u.UserName)
                 .IsUnique();
 
-            // Настройка RowVersion для PostgreSQL (integer с автоинкрементом)
+            // Настройка RowVersion для PostgreSQL (integer с триггерами)
             modelBuilder.Entity<User>()
                 .Property(u => u.RowVersion)
+                .HasDefaultValue(1)
                 .ValueGeneratedOnAddOrUpdate()
                 .IsConcurrencyToken()
                 .HasColumnType("integer");
@@ -37,6 +38,7 @@ namespace VkOrdApiWrapper.Data
 
             modelBuilder.Entity<ApiCredential>()
                 .Property(a => a.RowVersion)
+                .HasDefaultValue(1)
                 .ValueGeneratedOnAddOrUpdate()
                 .IsConcurrencyToken()
                 .HasColumnType("integer");

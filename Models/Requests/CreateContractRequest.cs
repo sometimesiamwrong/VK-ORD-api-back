@@ -5,7 +5,7 @@ namespace VkOrdApiWrapper.Models.Requests
     /// <summary> 
     /// Запрос на создание/обновление контракта (от заказчика к исполнителю) VK ОРД
     /// </summary>
-    public class CreateContractRequest
+    public class CreateContractRequest : AuthorizedRequestBase
     {
         /// <summary>
         /// Внешний ID контракта

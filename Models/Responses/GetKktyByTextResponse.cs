@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace VkOrdApiWrapper.Models.Responses;
 
 public class GetKktyByTextResponse
@@ -11,6 +13,7 @@ public class KktyItem
     public string Code { get; set; } = string.Empty;
     public string Reason { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    public double RelevanceScore { get; set; }
 }
 
 public class MatchedCategory

@@ -14,6 +14,7 @@ namespace VkOrdApiWrapper.Security
             {
                 throw new InvalidOperationException("Encryption key is missing. Set Secrets:EncryptionKey in configuration.");
             }
+
             _key = Convert.FromBase64String(keyBase64);
             if (_key.Length != 32)
             {

@@ -16,6 +16,10 @@ using VkOrdApiWrapper.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc.NewtonsoftJson;
 using System.Net.Http.Headers;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
+using Microsoft.EntityFrameworkCore;
+using VkOrdApiWrapper.Data;
+using VkOrdApiWrapper.Security;
+using VkOrdApiWrapper.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -82,9 +86,11 @@ builder.Services.AddScoped<IVkOrdService, VkOrdService>();
 builder.Services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
 builder.Services.AddScoped<IAiService, AiService>();
+builder.Services.AddScoped<IDatabaseScriptService, DatabaseScriptService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkOrdApiWrapper.Controllers.Filters.VkApiHeadersFilter>();
+builder.Services.AddScoped<EnsureAuthorizedRequestFilter>();
 
 // Настройка кэширования
 builder.Services.AddMemoryCache();
@@ -127,12 +133,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// DbContext (PostgreSQL)
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? builder.Configuration["ConnectionStrings:DefaultConnection"];
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    Log.Warning("Database connection string is missing. Set ConnectionStrings:DefaultConnection.");
+}
+else
+{
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseNpgsql(connectionString));
+}
+
+// Security services
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ISecretProtector, SecretProtector>();
+
 // Добавление контроллеров
 builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
         options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+    })
+    .AddMvcOptions(o =>
+    {
+        o.Filters.AddService<EnsureAuthorizedRequestFilter>();
     });
 
 // Настройка Swagger
@@ -195,7 +222,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru", "http://ad-lawyer.ru")
+        policy.WithOrigins("https://ad-layer.ru", "https://server273.hosting.reg.ru", "http://ad-lawyer.ru", "http://localhost", "http://localhost:5173")
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
@@ -203,6 +230,22 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Выполнение SQL-скриптов при запуске приложения
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var scriptService = scope.ServiceProvider.GetRequiredService<IDatabaseScriptService>();
+        var executedCount = await scriptService.ExecutePendingScriptsAsync();
+        Log.Information("Database scripts execution completed. Executed {Count} scripts.", executedCount);
+    }
+    catch (Exception ex)
+    {
+        Log.Error(ex, "Error executing database scripts during startup");
+        // Не останавливаем приложение из-за ошибок в скриптах
+    }
+}
 
 // Middleware pipeline
 if (app.Environment.IsDevelopment())
@@ -227,7 +270,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 // Добавляем health check endpoint
-app.MapGet("/health", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
+app.MapGet("/", () => new { Status = "Healthy", Timestamp = DateTime.UtcNow });
 
 // Логируем адреса при запуске приложения
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();

@@ -4,6 +4,7 @@ using VkOrdApiWrapper.Models.Requests;
 using VkOrdApiWrapper.Models.Responses;
 using VkOrdApiWrapper.Services.Interfaces;
 using VkOrdApiWrapper.Models.VkOrd;
+using VkOrdApiWrapper.Extensions;
 
 namespace VkOrdApiWrapper.Controllers
 {
@@ -23,22 +24,7 @@ namespace VkOrdApiWrapper.Controllers
         /// <summary>
         /// Извлекает контекст VK API из заголовков запроса
         /// </summary>
-        private VkApiContext GetVkApiContext()
-        {
-            var apiKey = Request.Headers["x-api-vk-key"].FirstOrDefault();
-            var route = Request.Headers["x-api-vk-route"].FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(route))
-            {
-                throw new BadHttpRequestException("Missing required headers: x-api-vk-key and x-api-vk-route");
-            }
-
-            return new VkApiContext
-            {
-                ApiKey = apiKey,
-                Route = route
-            };
-        }
+        private (Guid userId, string? env) GetContext() => (HttpContext.User.GetUserId(), Request.Headers["x-api-vk-env"].FirstOrDefault());
 
         /// <summary>
         /// Создать новый креатив в VK ОРД
@@ -52,8 +38,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error<CreateCreativeResponse>("Invalid request data");
             }
 
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.CreateCreativeAsync(request, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.CreateCreativeAsync(request, userId, env);
 
             if (result.Success)
             {
@@ -72,8 +58,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpGet("{externalId}")]
         public async Task<ApiResponse<CreateCreativeResponse>> GetCreative(string externalId)
         {
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.GetCreativeAsync(externalId, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.GetCreativeAsync(externalId, userId, env);
 
             if (result.Success)
             {
@@ -92,8 +78,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpGet("{externalId}/status")]
         public async Task<ApiResponse<CreativeStatusResponse>> GetCreativeStatus(string externalId)
         {
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.GetCreativeStatusAsync(externalId, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.GetCreativeStatusAsync(externalId, userId, env);
             var statusResponse = CreativeStatusResponse.Create(externalId, result);
             return Ok(statusResponse, "Status retrieved successfully");
         }
@@ -104,8 +90,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpDelete("{externalId}")]
         public async Task<ApiResponse> DeleteCreative(string externalId)
         {
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.DeleteCreativeAsync(externalId, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.DeleteCreativeAsync(externalId, userId, env);
 
             if (result)
             {
@@ -138,8 +124,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error<BulkCreativeResponse>("Maximum 50 creatives per request");
             }
 
-            var apiContext = GetVkApiContext();
-            var results = await _vkOrdService.CreateBulkCreativesAsync(requests, apiContext);
+            var (userId, env) = GetContext();
+            var results = await _vkOrdService.CreateBulkCreativesAsync(requests, userId, env);
             var bulkResponse = BulkCreativeResponse.Create(results, requests.Count);
             return Ok(bulkResponse, "Bulk operation completed");
         }
@@ -150,8 +136,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpGet("{externalId}/verify")]
         public async Task<ApiResponse<CreativeVerificationResponse>> VerifyCreative(string externalId, [FromQuery] int maxWaitMinutes = 120)
         {
-            var apiContext = GetVkApiContext();
-            var isVerified = await _vkOrdService.IsCreativeVerifiedAsync(externalId, apiContext, maxWaitMinutes);
+            var (userId, env) = GetContext();
+            var isVerified = await _vkOrdService.IsCreativeVerifiedAsync(externalId, userId, env, maxWaitMinutes);
             var verificationResponse = CreativeVerificationResponse.Create(externalId, isVerified);
 
             return Ok(verificationResponse,

@@ -31,15 +31,21 @@ namespace VkOrdApiWrapper.Models.Responses
         public DateTime ExpiresAt { get; set; }
 
         /// <summary>
+        /// Refresh токен
+        /// </summary>
+        public string RefreshToken { get; set; }
+
+        /// <summary>
         /// Создать ответ с токеном
         /// </summary>
-        public static AuthResponse Create(string token, int expiresInSeconds)
+        public static AuthResponse Create(string token, int expiresInSeconds, string refreshToken)
         {
             return new AuthResponse
             {
                 Token = token,
                 ExpiresIn = expiresInSeconds,
-                ExpiresAt = DateTime.UtcNow.AddSeconds(expiresInSeconds)
+                ExpiresAt = DateTime.UtcNow.AddSeconds(expiresInSeconds),
+                RefreshToken = refreshToken
             };
         }
     }

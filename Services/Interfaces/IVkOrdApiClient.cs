@@ -59,5 +59,44 @@ namespace VkOrdApiWrapper.Services.Interfaces
         Task<VkOrdResponse<object>> CreateOrUpdatePersonAsync(
             string externalId,
             [Body] VkOrdPerson person);
+
+        /// <summary>
+        /// Получить список всех контрагентов (persons) - возвращает external_ids с пагинацией
+        /// </summary>
+        [Get("/v1/person")]
+        Task<VkOrdPersonListResponse> GetPersonsAsync([Query] int? offset = null, [Query] int? limit = null);
+
+        /// <summary>
+        /// Получить контрагента (person) по external_id
+        /// </summary>
+        [Get("/v1/person/{externalId}")]
+        Task<VkOrdPerson> GetPersonAsync(string externalId);
+
+        #region Медиа файлы
+
+        /// <summary>
+        /// Загрузить медиа файл
+        /// </summary>
+        [Put("/v1/media/{externalId}")]
+        [Multipart]
+        Task<VkOrdResponse<VkOrdMedia>> UploadMediaAsync(
+            string externalId,
+            [AliasAs("file")] StreamPart file);
+
+        /// <summary>
+        /// Получить информацию о медиа файле
+        /// </summary>
+        [Get("/v1/media/{externalId}")]
+        Task<VkOrdResponse<VkOrdMedia>> GetMediaAsync(
+            string externalId);
+
+        /// <summary>
+        /// Удалить медиа файл
+        /// </summary>
+        [Delete("/v1/media/{externalId}")]
+        Task<ApiResponse<object>> DeleteMediaAsync(
+            string externalId);
+
+        #endregion
     }
 }

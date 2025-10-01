@@ -20,6 +20,12 @@ namespace VkOrdApiWrapper.Models.VkOrd
         public List<string> ContractExternalIds { get; set; }
 
         /// <summary>
+        /// Внешний ID медиа
+        /// </summary>
+        [JsonPropertyName("media_external_ids")]
+        public List<string> MediaExternalIds { get; set; }
+
+        /// <summary>
         /// Название креатива
         /// </summary>
         [JsonPropertyName("name")]

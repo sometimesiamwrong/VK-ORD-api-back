@@ -70,6 +70,7 @@ namespace VkOrdApiWrapper.Services.Implementations
                     catch (Exception ex)
                     {
                         _logger.LogError(ex, "Error executing script {ScriptName}", scriptName);
+                        throw;
                     }
                 }
 
@@ -87,12 +88,17 @@ namespace VkOrdApiWrapper.Services.Implementations
         {
             try
             {
-                return await _context.DatabaseScripts
-                    .AnyAsync(s => s.ScriptName == scriptName && s.IsSuccessful);
+                // Проверяем только успешно выполненные скрипты
+                var script = await _context.DatabaseScripts
+                    .FirstOrDefaultAsync(s => s.ScriptName == scriptName);
+                
+                // Если скрипт не найден или выполнен неуспешно - считаем что не выполнен
+                return script != null && script.IsSuccessful;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error checking if script {ScriptName} was executed", scriptName);
+                // В случае ошибки доступа к БД считаем скрипт невыполненным
                 return false;
             }
         }
@@ -110,19 +116,25 @@ namespace VkOrdApiWrapper.Services.Implementations
                 var existingScript = await _context.DatabaseScripts
                     .FirstOrDefaultAsync(s => s.ScriptName == scriptName);
 
-                if (existingScript != null && existingScript.IsSuccessful)
+                if (existingScript != null)
                 {
-                    // Проверяем, изменился ли скрипт
-                    if (existingScript.ScriptHash == scriptHash)
+                    if (existingScript.IsSuccessful && existingScript.ScriptHash == scriptHash)
                     {
-                        _logger.LogDebug("Script '{ScriptName}' already executed with same hash", scriptName);
+                        _logger.LogDebug("Script '{ScriptName}' already executed successfully with same hash", scriptName);
                         await transaction.RollbackAsync();
                         return true;
                     }
-                    else
+                    
+                    if (existingScript.IsSuccessful && existingScript.ScriptHash != scriptHash)
                     {
                         _logger.LogWarning("Script '{ScriptName}' content has changed! Original hash: {OriginalHash}, New hash: {NewHash}", 
                             scriptName, existingScript.ScriptHash, scriptHash);
+                        _logger.LogInformation("Re-executing script '{ScriptName}' due to content change", scriptName);
+                    }
+                    
+                    if (!existingScript.IsSuccessful)
+                    {
+                        _logger.LogInformation("Retrying previously failed script '{ScriptName}'", scriptName);
                     }
                 }
 

@@ -4,6 +4,7 @@ using VkOrdApiWrapper.Models.Requests;
 using VkOrdApiWrapper.Models.Responses;
 using VkOrdApiWrapper.Services.Interfaces;
 using VkOrdApiWrapper.Models.VkOrd;
+using VkOrdApiWrapper.Extensions;
 
 namespace VkOrdApiWrapper.Controllers
 {
@@ -23,22 +24,7 @@ namespace VkOrdApiWrapper.Controllers
         /// <summary>
         /// Извлекает контекст VK API из заголовков запроса
         /// </summary>
-        private VkApiContext GetVkApiContext()
-        {
-            var apiKey = Request.Headers["x-api-vk-key"].FirstOrDefault();
-            var route = Request.Headers["x-api-vk-route"].FirstOrDefault();
-
-            if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(route))
-            {
-                throw new BadHttpRequestException("Missing required headers: x-api-vk-key and x-api-vk-route");
-            }
-
-            return new VkApiContext
-            {
-                ApiKey = apiKey,
-                Route = route
-            };
-        }
+        private (Guid userId, string? env) GetContext() => (HttpContext.User.GetUserId(), Request.Headers["x-api-vk-env"].FirstOrDefault());
 
         /// <summary>
         /// Создать или обновить контракт в VK ОРД
@@ -55,8 +41,8 @@ namespace VkOrdApiWrapper.Controllers
                 return Error<CreateContractResponse>("Invalid request data");
             }
 
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.CreateOrUpdateContractAsync(request, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.CreateOrUpdateContractAsync(request, userId, env);
 
             if (result.Success)
             {
@@ -75,8 +61,8 @@ namespace VkOrdApiWrapper.Controllers
         [HttpGet("{externalId}")]
         public async Task<ApiResponse<ContractResponse>> GetContract(string externalId)
         {
-            var apiContext = GetVkApiContext();
-            var result = await _vkOrdService.GetContractAsync(externalId, apiContext);
+            var (userId, env) = GetContext();
+            var result = await _vkOrdService.GetContractAsync(externalId, userId, env);
 
             if (result.Success)
             {

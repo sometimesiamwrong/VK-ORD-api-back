@@ -35,7 +35,7 @@ namespace VkOrdApiWrapper.Models.VkOrd
         public List<string> Flags { get; set; } = new();
 
         [JsonPropertyName("parent_contract_external_id")]
-        public string ParentContractExternalId { get; set; } = null;
+        public string? ParentContractExternalId { get; set; }
 
         [JsonPropertyName("amount")]
         public string Amount { get; set; } = string.Empty;

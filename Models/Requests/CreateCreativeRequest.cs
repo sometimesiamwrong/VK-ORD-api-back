@@ -6,7 +6,7 @@ namespace VkOrdApiWrapper.Models.Requests
     /// <summary>
     /// Запрос на создание креатива
     /// </summary>
-    public class CreateCreativeRequest
+    public class CreateCreativeRequest : AuthorizedRequestBase
     {
         /// <summary>
         /// Внешний ID креатива
@@ -19,6 +19,11 @@ namespace VkOrdApiWrapper.Models.Requests
         /// </summary>
         [Required]
         public List<string> ContractExternalIds { get; set; }
+    
+        /// <summary>
+        /// Внешний ID медиа
+        /// </summary>
+        public List<string> MediaExternalIds { get; set; }
 
         /// <summary>
         /// Код ККТУ
