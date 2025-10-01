@@ -10,9 +10,10 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+      - "5001:5001"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:8080
+      - ASPNETCORE_URLS=http://+:8080;https://+:5001
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=vkord;Username=vkord_user;Password=${DB_PASSWORD}
       - OpenRouterSettings__ApiKey=${OPENROUTER_API_KEY}
       - JwtSettings__SecretKey=${JWT_SECRET_KEY}
@@ -27,8 +28,9 @@ services:
       - vkord-network
     volumes:
       - logs:/app/logs
+      - ./ssl:/app/ssl:ro
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:5001/health"]
       interval: 30s
       timeout: 10s
       retries: 3
