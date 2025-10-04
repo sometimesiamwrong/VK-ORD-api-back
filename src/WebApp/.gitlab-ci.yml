@@ -1,0 +1,35 @@
+deploy_to_hosting:
+  # 1. Используем официальный образ .NET SDK, так как у вас .NET проект.
+  # Это гарантирует, что все необходимые инструменты (dotnet CLI) уже установлены.
+  # Укажите вашу версию .NET, например, 8.0, 7.0 или 6.0.
+  image: mcr.microsoft.com/dotnet/sdk:8.0
+
+  stage: deploy
+
+  before_script:
+    - 'echo "Starting deployment setup..."'
+    # 2. Устанавливаем OpenSSH-клиент внутри Docker-образа
+    - 'apt-get update -y && apt-get install -y openssh-client'
+    # Запускаем ssh-agent для управления ключами
+    - 'eval $(ssh-agent -s)'
+    # 3. Добавляем приватный ключ из переменной GitLab в ssh-agent
+    # Эта команда не изменилась, но теперь она должна работать с корректным ключом
+    - 'echo "$SSH_PRIVATE_KEY" | tr -d "\r" | ssh-add -'
+    # 4. Создаем директорию .ssh и автоматически добавляем ключ вашего сервера в known_hosts
+    # Это необходимо для избежания ручного подтверждения "Are you sure you want to continue connecting (yes/no)?"
+    - 'mkdir -p ~/.ssh'
+    - 'chmod 700 ~/.ssh'
+    # Обязательно убедитесь, что у вас есть переменная $SSH_HOST с адресом вашего сервера
+    - 'ssh-keyscan $SSH_HOST >> ~/.ssh/known_hosts'
+    - 'chmod 644 ~/.ssh/known_hosts'
+
+  script:
+    - 'echo "Connecting to host and deploying..."'
+    - 'ssh -v $SSH_USER@$SSH_HOST "echo Connection successful"'
+    # 5. Ваша команда для деплоя, исправлена ошибка с двойным '&&'
+    - 'ssh -v $SSH_USER@$SSH_HOST "cd /root/vkoridapiwrapper/ && git pull origin main && dotnet publish -c Release -o ./publish && chmod +x shs/add-service.sh && cd shs && ./add-service.sh"'
+    - 'echo "Deployment successful!"'
+
+  only:
+    # Запускать пайплайн только при изменениях в ветке 'main'
+    - main

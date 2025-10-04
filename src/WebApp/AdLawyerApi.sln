@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp.csproj", "{B1E6C696-7905-4156-B58D-7ABB7531A592}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VkOrdApi", "../../src/VkOrdApi/VkOrdApi.csproj", "{5FC5AF46-65A9-4F37-AE6F-FB8A21D355E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "../../src/Domain/Domain.csproj", "{EEE890AD-E6EB-483D-BD24-204ABD26F050}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1E6C696-7905-4156-B58D-7ABB7531A592}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5FC5AF46-65A9-4F37-AE6F-FB8A21D355E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5FC5AF46-65A9-4F37-AE6F-FB8A21D355E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5FC5AF46-65A9-4F37-AE6F-FB8A21D355E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5FC5AF46-65A9-4F37-AE6F-FB8A21D355E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

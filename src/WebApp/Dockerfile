@@ -2,22 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution and project files
-COPY ["src/WebApp/AdLawyerApi.sln", "src/WebApp/"]
-COPY ["src/WebApp/WebApp.csproj", "src/WebApp/"]
-COPY ["src/Domain/Domain.csproj", "src/Domain/"]
-COPY ["src/VkOrdApi/VkOrdApi.csproj", "src/VkOrdApi/"]
-
-# Restore dependencies
-RUN dotnet restore "src/WebApp/AdLawyerApi.sln"
+# Copy csproj and restore dependencies
+COPY ["VkOrdApiWrapper.csproj", "./"]
+RUN dotnet restore "./VkOrdApiWrapper.csproj"
 
 # Copy everything else and build
 COPY . .
-RUN dotnet build "src/WebApp/WebApp.csproj" -c Release -o /app/build
+RUN dotnet build "VkOrdApiWrapper.csproj" -c Release -o /app/build
 
 # Publish stage
 FROM build AS publish
-RUN dotnet publish "src/WebApp/WebApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "VkOrdApiWrapper.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
