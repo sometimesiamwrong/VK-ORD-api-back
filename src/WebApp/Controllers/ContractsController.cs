@@ -19,31 +19,24 @@ namespace WebApp.Controllers
         }
 
         /// <summary>
-        /// Извлекает контекст VK API из заголовков запроса
-        /// </summary>
-        private (Guid userId, string? env) GetContext() => (HttpContext.User.GetUserId(), Request.Headers["x-api-vk-env"].FirstOrDefault());
-
-        /// <summary>
         /// Создать или обновить контракт в VK ОРД
         /// </summary>
         [HttpPut("{externalId}")]
-        public async Task<CreateContractResponse> CreateOrUpdateContract(string externalId, [FromBody] CreateContractRequest request)
+        public Task CreateOrUpdateContract(string externalId, [FromBody] CreateContractRequest request, CancellationToken cancellationToken)
         {
             // Устанавливаем externalId из маршрута
             request.ExternalId = externalId;
 
-            var (userId, env) = GetContext();
-            return await _vkOrdService.CreateOrUpdateContractAsync(request, userId, env);
+            return _vkOrdService.CreateOrUpdateContract(request, cancellationToken);
         }
 
         /// <summary>
         /// Получить информацию о контракте по external_id
         /// </summary>
         [HttpGet("{externalId}")]
-        public async Task<ContractResponse> GetContract(string externalId)
+        public async Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken)
         {
-            var (userId, env) = GetContext();
-            return await _vkOrdService.GetContractAsync(externalId, userId, env);
+            return await _vkOrdService.GetContract(externalId, cancellationToken);
         }
 
     }

@@ -26,7 +26,7 @@ public sealed class VkOrdCreativeResponse
     /// Тип креатива
     /// </summary>
     [JsonPropertyName("type")]
-    public VkOrdCreativeType Type { get; set; }
+    public VkOrdCreativeForm Type { get; set; }
 
     /// <summary>
     /// URL файла креатива

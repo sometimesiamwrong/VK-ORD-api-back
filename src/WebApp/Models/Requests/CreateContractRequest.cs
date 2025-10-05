@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Domain;
 using MediatR;
 using VkOrdApi.Contract;
 
@@ -7,7 +8,7 @@ namespace WebApp.Models.Requests
     /// <summary> 
     /// Запрос на создание/обновление контракта (от заказчика к исполнителю) VK ОРД
     /// </summary>
-    public class CreateContractRequest : IRequestWithVkOrdKey, IRequest
+    public class CreateContractRequest : IRequestWithVkOrdKey, ICommand<Unit>
     {
         /// <summary>
         /// Внешний ID контракта

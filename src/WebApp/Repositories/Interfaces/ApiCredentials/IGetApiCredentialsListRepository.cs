@@ -11,6 +11,6 @@ namespace WebApp.Repositories.Interfaces.ApiCredentials
         /// <summary>
         /// Получить список ApiCredentials для пользователя
         /// </summary>
-        Task<List<ApiCredential>> GetListAsync(long userId, VkOrdEnvironmentCode? environment = null);
+        Task<List<ApiCredential>> GetListAsync(long userId, CancellationToken cancellationToken, VkOrdEnvironmentCode? environment = null);
     }
 }

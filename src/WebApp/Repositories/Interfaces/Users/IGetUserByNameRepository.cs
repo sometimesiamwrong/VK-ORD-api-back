@@ -10,6 +10,6 @@ namespace WebApp.Repositories.Interfaces.Users
         /// <summary>
         /// Получить пользователя по имени
         /// </summary>
-        Task<User?> GetByNameAsync(string name);
+        Task<User?> GetByName(string name, CancellationToken cancellationToken);
     }
 }

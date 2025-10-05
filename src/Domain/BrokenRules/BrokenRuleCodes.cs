@@ -49,4 +49,18 @@ public enum BrokenRuleCodes : long
     [Description("Пользователь не авторизован")]
     [Domain("User")]
     UserNotAuthorized = 5,
+    
+    /// <summary>
+    /// Ошибка VK ОРД API
+    /// </summary>
+    [Description("Ошибка VK ОРД API")]
+    [Domain("ExternalApi")]
+    VkOrdApiError = 6,
+
+    /// <summary>
+    /// Контрагент не найден
+    /// </summary>
+    [Description("Контрагент не найден")]
+    [Domain("ExternalApi")]
+    CounterpartyNotFound = 7
 }

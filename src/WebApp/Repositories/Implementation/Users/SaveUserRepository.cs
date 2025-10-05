@@ -16,19 +16,19 @@ namespace WebApp.Repositories.Implementation.Users
             _db = db;
         }
 
-        public async Task<User?> SaveAsync(User user)
+        public async Task<User?> Save(User user, CancellationToken cancellationToken)
         {
             if (user.IsNewOrUpdate())
             {
                 // Создание новой сущности
                 _db.Users.Add(user);
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(cancellationToken);
                 return user;
             }
             else
             {
                 // Обновление существующей сущности
-                var existingUser = await _db.Users.FindAsync(user.Id);
+                var existingUser = await _db.Users.FindAsync(user.Id, cancellationToken);
                 if (existingUser == null)
                     return null;
 
@@ -38,7 +38,7 @@ namespace WebApp.Repositories.Implementation.Users
                 existingUser.IsActive = user.IsActive;
                 existingUser.UpdatedAt = DateTimeOffset.UtcNow;
 
-                await _db.SaveChangesAsync();
+                await _db.SaveChangesAsync(cancellationToken);
                 return existingUser;
             }
         }

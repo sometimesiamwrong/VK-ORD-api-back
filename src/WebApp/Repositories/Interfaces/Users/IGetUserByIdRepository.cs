@@ -10,6 +10,6 @@ namespace WebApp.Repositories.Interfaces.Users
         /// <summary>
         /// Получить пользователя по ID
         /// </summary>
-        Task<User?> GetByIdAsync(long id);
+        Task<User?> GetById(long id, CancellationToken cancellationToken);
     }
 }

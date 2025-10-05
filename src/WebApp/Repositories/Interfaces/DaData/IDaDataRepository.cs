@@ -1,4 +1,5 @@
 using WebApp.Models.DaData;
+using WebApp.Models.Responses;
 
 namespace WebApp.Repositories.Interfaces.DaData
 {
@@ -10,6 +11,6 @@ namespace WebApp.Repositories.Interfaces.DaData
         /// <summary>
         /// Найти контрагента по ИНН
         /// </summary>
-        Task<DaDataPartyResponse?> FindCounterpartyByInnAsync(string inn, CancellationToken cancellationToken);
+        Task<DaDataPartyShortResponse?> FindCounterpartyByInnAsync(string inn, CancellationToken cancellationToken);
     }
 }

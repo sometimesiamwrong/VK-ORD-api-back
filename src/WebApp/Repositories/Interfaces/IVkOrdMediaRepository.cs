@@ -1,4 +1,6 @@
+using Domain;
 using Domain.Entities;
+using VkOrdApi.Media;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 
@@ -10,8 +12,9 @@ namespace WebApp.Repositories.Interfaces
     public interface IVkOrdMediaRepository
     {
         // Медиа файлы
-        Task<UploadMediaResponse> UploadMediaAsync(UploadMediaRequest request, VkApiContext apiContext, CancellationToken cancellationToken);
-        Task<GetMediaResponse> GetMediaAsync(string externalId, VkApiContext apiContext, CancellationToken cancellationToken);
-        Task<bool> DeleteMediaAsync(string externalId, VkApiContext apiContext, CancellationToken cancellationToken);
+        Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken);
+        Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken);
+        //Task<byte[]> GetMediaFile(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdMediaListResponse> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken);
     }
 }

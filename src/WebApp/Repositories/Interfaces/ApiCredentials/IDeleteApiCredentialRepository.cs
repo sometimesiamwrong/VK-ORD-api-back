@@ -8,6 +8,6 @@ namespace WebApp.Repositories.Interfaces.ApiCredentials
         /// <summary>
         /// Удалить ApiCredential по ID
         /// </summary>
-        Task<bool> DeleteAsync(long id);
+        Task<bool> Delete(Guid id, CancellationToken cancellationToken);
     }
 }

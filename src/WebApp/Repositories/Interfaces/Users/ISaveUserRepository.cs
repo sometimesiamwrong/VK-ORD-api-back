@@ -10,6 +10,6 @@ namespace WebApp.Repositories.Interfaces.Users
         /// <summary>
         /// Сохранить пользователя (создать или обновить)
         /// </summary>
-        Task<User?> SaveAsync(User user);
+        Task<User?> Save(User user, CancellationToken cancellationToken);
     }
 }

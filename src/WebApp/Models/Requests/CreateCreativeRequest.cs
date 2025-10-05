@@ -1,13 +1,14 @@
 using System.ComponentModel.DataAnnotations;
 using MediatR;
 using VkOrdApi.Creative;
+using VkOrdApi.Statistics;
 
 namespace WebApp.Models.Requests
 {
     /// <summary>
     /// Запрос на создание креатива
     /// </summary>
-    public class CreateCreativeRequest : IRequestWithVkOrdKey, IRequest
+    public class CreateCreativeRequest : IRequestWithVkOrdKey, IRequest<string>
     {
         /// <summary>
         /// Внешний ID креатива
@@ -30,18 +31,18 @@ namespace WebApp.Models.Requests
         /// Код ККТУ
         /// </summary>
         [Required]
-        public List<string> KKTYCodes { get; set; } = new();
+        public List<string> Kktus { get; set; } = new();
 
         /// <summary>
         /// Формат
         /// </summary>
         [Required]
-        public VkOrdCreativeType Format { get; set; }
+        public VkOrdCreativeForm Type { get; set; }
 
         /// <summary>
-        /// URL контента
+        /// Целевые URL
         /// </summary>
-        public List<string> ContentUrls { get; set; } = new();
+        public List<string> TargetUrls { get; set; } = new();
 
         /// <summary>
         /// Целевая аудитория
@@ -49,13 +50,48 @@ namespace WebApp.Models.Requests
         public string TargetAudience { get; set; } = string.Empty;
 
         /// <summary>
-        /// Текст креатива
+        /// Тексты креатива
         /// </summary>
-        public string Text { get; set; } = string.Empty;
+        public List<string> Texts { get; set; } = new List<string>();
         
         /// <summary>
         /// Название креатива
         /// </summary>
         public string Name { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Внешний ID персоны
+        /// </summary>
+        public string? PersonExternalId { get; set; }
+
+        /// <summary>
+        /// Бренд
+        /// </summary>
+        public string? Brand { get; set; }
+
+        /// <summary>
+        /// Категория
+        /// </summary>
+        public string? Category { get; set; }
+
+        /// <summary>
+        /// Описание
+        /// </summary>
+        public string? Description { get; set; }
+
+        /// <summary>
+        /// Тип оплаты
+        /// </summary>
+        public VkOrdPayType PayType { get; set; }
+
+        /// <summary>
+        /// Форма
+        /// </summary>
+        public string? Form { get; set; }
+
+        /// <summary>
+        /// Флаги
+        /// </summary>
+        public List<VkOrdCreativeFlag> Flags { get; set; } = new List<VkOrdCreativeFlag>();
     }
 }

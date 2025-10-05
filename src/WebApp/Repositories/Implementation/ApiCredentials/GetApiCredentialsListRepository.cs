@@ -18,7 +18,7 @@ namespace WebApp.Repositories.Implementation.ApiCredentials
             _db = db;
         }
 
-        public async Task<List<ApiCredential>> GetListAsync(long userId, VkOrdEnvironmentCode? environment = null)
+        public async Task<List<ApiCredential>> GetListAsync(long userId, CancellationToken cancellationToken, VkOrdEnvironmentCode? environment = null) 
         {
             var query = _db.ApiCredentials.Where(c => c.UserId == userId);
             

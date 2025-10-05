@@ -5,26 +5,26 @@ namespace VkOrdApi.Statistics;
 public enum VkOrdPayType
 {
     /// <summary>
-    /// За тысячу показов (CPM)
+    /// Cost Per Millennium, цена за 1 000 показов.
     /// </summary>
     [EnumMember(Value = "cpm")]
     Cpm,
 
     /// <summary>
-    /// За клик (CPC)
+    /// Cost Per Click, цена за клик.
     /// </summary>
     [EnumMember(Value = "cpc")]
     Cpc,
 
     /// <summary>
-    /// За действие (CPA)
+    /// Cost Per Action, цена за действие.
     /// </summary>
     [EnumMember(Value = "cpa")]
     Cpa,
 
     /// <summary>
-    /// Фиксированная (flat)
+    /// Иное
     /// </summary>
-    [EnumMember(Value = "flat")]
-    Flat
+    [EnumMember(Value = "other")]
+    Other,
 }

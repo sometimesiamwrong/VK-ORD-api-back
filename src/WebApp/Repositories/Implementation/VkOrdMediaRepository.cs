@@ -1,9 +1,9 @@
-using VkOrdApi.Services.Interfaces;
 using Refit;
 using WebApp.Models.Requests;
-using WebApp.Models.Responses;
 using WebApp.Repositories.Interfaces;
-using Domain.Entities;
+using WebApp.Services.Interfaces;
+using Domain;
+using VkOrdApi.Media;
 
 namespace WebApp.Repositories.Implementation
 {
@@ -23,76 +23,35 @@ namespace WebApp.Repositories.Implementation
             _logger = logger;
         }
 
-        #region Медиа файлы
-
-        public async Task<UploadMediaResponse> UploadMediaAsync(UploadMediaRequest request, VkApiContext apiContext, CancellationToken cancellationToken = default)
+        public async Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken)
         {
-            var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
+            var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
             var streamPart = new StreamPart(request.FileStream, request.FileName, request.ContentType ?? "application/octet-stream");
 
-            _logger.LogInformation($"Uploading media file with external_id: {request.ExternalId} using route: {apiContext.Route}");
+            _logger.LogInformation($"Uploading media file with external_id: {request.ExternalId}");
 
-            var response = await vkOrdClient.UploadMediaAsync(request.ExternalId, streamPart, cancellationToken);
-
-            if (response.IsSuccess)
-            {
-                var result = new UploadMediaResponse
-                {
-                    Success = true,
-                    ExternalId = request.ExternalId,
-                    Erid = response.Erid,
-                    Url = response.Data?.Url ?? string.Empty
-                };
-
-                _logger.LogInformation($"Media file uploaded successfully. ERID: {response.Erid}");
-                return result;
-            }
-            else
-            {
-                _logger.LogError($"Failed to upload media file: {response.Error}");
-                return new UploadMediaResponse
-                {
-                    Success = false,
-                    ExternalId = request.ExternalId,
-                    ErrorMessage = response.Error
-                };
-            }
+            await vkOrdClient.UploadMedia(request.ExternalId, streamPart, cancellationToken);
         }
 
-        public async Task<GetMediaResponse> GetMediaAsync(string externalId, VkApiContext apiContext, CancellationToken cancellationToken = default)
+        public async Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
         {
-            var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
-            var response = await vkOrdClient.GetMediaAsync(externalId, cancellationToken);
-
-            if (response.IsSuccess)
-            {
-                var result = new GetMediaResponse
-                {
-                    Success = true,
-                    ExternalId = externalId,
-                    Media = response.Data
-                };
-                return result;
-            }
-            else
-            {
-                return new GetMediaResponse
-                {
-                    Success = false,
-                    ExternalId = externalId,
-                    ErrorMessage = response.Error
-                };
-            }
+            var vkOrdClient = await _vkOrdClientFactory.CreateClient();
+            return await vkOrdClient.GetMediaInfo(externalId, cancellationToken);
         }
 
-        public async Task<bool> DeleteMediaAsync(string externalId, VkApiContext apiContext, CancellationToken cancellationToken = default)
+        //public async Task<byte[]> GetMediaFile(string externalId, CancellationToken cancellationToken)
+        //{
+        //    var vkOrdClient = await _vkOrdClientFactory.CreateClient();
+        //    return await vkOrdClient.GetMediaFile(externalId, cancellationToken);
+//
+        //    //TODO: Скачивать на стороне клиента
+        //}
+
+        public async Task<VkOrdMediaListResponse> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken)
         {
-            var vkOrdClient = _vkOrdClientFactory.CreateClient(apiContext);
-            var response = await vkOrdClient.DeleteMediaAsync(externalId, cancellationToken);
-            return response.IsSuccessStatusCode;
+            var vkOrdClient = await _vkOrdClientFactory.CreateClient();
+            return await vkOrdClient.GetPageMedia(pageRequest, cancellationToken);
         }
-
-        #endregion
     }
 }

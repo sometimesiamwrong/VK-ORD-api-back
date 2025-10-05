@@ -1,5 +1,4 @@
-using Domain.Entities;
-using VkOrdApi.Contract;
+using VkOrdApi;
 
 namespace WebApp.Services.Interfaces;
 
@@ -11,7 +10,7 @@ public interface IVkOrdApiClientFactory
     /// <summary>
     /// Создать клиент для работы с VK ОРД API
     /// </summary>
-    Task<IVkOrdApiClient> CreateClientAsync();
+    Task<IVkOrdApiClient> CreateClient();
 }
 
 

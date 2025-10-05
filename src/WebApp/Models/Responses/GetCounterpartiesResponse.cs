@@ -2,13 +2,10 @@ using VkOrdApi.Person;
 
 namespace WebApp.Models.Responses
 {
-    /// <summary>
-    /// Ответ при получении списка контрагентов с полными данными
-    /// </summary>
-    public class GetCounterpartiesResponse
+    public class GetCounterpartiesResponseDto
     {
-        public List<VkOrdPersonResponse> Counterparties { get; set; } = new();
-        public int TotalCount => Counterparties?.Count ?? 0;
+        public List<VkOrdPersonResponse> Data { get; set; } = new();
+        public int TotalCount => Data?.Count ?? 0;
         public int TotalItemsCount { get; set; } // Общее количество элементов в VK ORD
         public int Limit { get; set; } // Лимит элементов за запрос
     }
@@ -19,7 +16,7 @@ namespace WebApp.Models.Responses
     public class GetCounterpartyResponse
     {
         public string ExternalId { get; set; } = string.Empty;
-        public VkOrdPersonResponse? Person { get; set; }
+        public VkOrdPersonResponse? Data { get; set; }
     }
 }
 

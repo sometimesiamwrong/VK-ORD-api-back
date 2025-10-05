@@ -12,13 +12,11 @@ using System.Text;
 using Domain.Data;
 using WebApp.Configuration;
 using WebApp.Controllers.Filters;
-using WebApp.Filters;
 using WebApp.Middleware;
 using WebApp.Security;
 using WebApp.Services.Implementations;
 using WebApp.Services.Interfaces;
 using WebApp.Startup;
-using WebApp.Behaviors;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -92,10 +90,11 @@ builder.Services.AddRepositories();
 // Регистрация сервисов
 builder.Services.AddScoped<IAiService, AiService>();
 builder.Services.AddScoped<IDatabaseScriptService, DatabaseScriptService>();
+builder.Services.AddScoped<IApiCredentialService, ApiCredentialService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkApiHeadersFilter>();
-builder.Services.AddScoped<EnsureAuthorizedRequestFilter>();
 
 // Настройка кэширования
 builder.Services.AddMemoryCache();
@@ -168,7 +167,6 @@ builder.Services.AddControllers()
     })
     .AddMvcOptions(o =>
     {
-        o.Filters.AddService<EnsureAuthorizedRequestFilter>();
     });
 
 // Настройка Swagger

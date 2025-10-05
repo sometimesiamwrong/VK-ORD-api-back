@@ -1,5 +1,7 @@
+using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VkOrdApi.Media;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -24,7 +26,7 @@ namespace WebApp.Controllers
         /// </summary>
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
-        public async Task<UploadMediaResponse> UploadMedia([FromForm] IFormFile file)
+        public async Task UploadMedia([FromForm] IFormFile file, CancellationToken cancellationToken)
         {
 
             var request = new UploadMediaRequest
@@ -34,25 +36,25 @@ namespace WebApp.Controllers
                 ContentType = file.ContentType
             };
 
-            return await _vkOrdService.UploadMediaAsync(request, UserId);
+            await _vkOrdService.UploadMedia(request, cancellationToken);
         }
 
         /// <summary>
         /// Получить информацию о медиа файле
         /// </summary>
         [HttpGet("{externalId}")]
-        public async Task<GetMediaResponse> GetMedia(string externalId)
+        public async Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.GetMediaAsync(externalId, UserId);
+            return await _vkOrdService.GetMedia(externalId, cancellationToken);    
         }
 
         /// <summary>
-        /// Удалить медиа файл
+        /// Получить список медиа файлов
         /// </summary>
-        [HttpDelete("{externalId}")]
-        public async Task<bool> DeleteMedia(string externalId)
+        [HttpGet("page")]
+        public async Task<VkOrdMediaInfoListResponseDto> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.DeleteMediaAsync(externalId, UserId);
+            return await _vkOrdService.GetPageMedia(pageRequest, cancellationToken);
         }
     }
 }

@@ -26,7 +26,7 @@ namespace WebApp.Handlers
 
         public async Task<TokenPair> Handle(LoginUserQuery request, CancellationToken cancellationToken)
         {
-            var user = await _getUserByNameRepository.GetByNameAsync(request.UserName);
+            var user = await _getUserByNameRepository.GetByName(request.UserName, cancellationToken);
             if (user == null || _hasher.VerifyHashedPassword(user, user.PasswordHash, request.Password) == PasswordVerificationResult.Failed)
             {
                 throw BrokenRuleCodes.InvalidCredentials.AsExn();

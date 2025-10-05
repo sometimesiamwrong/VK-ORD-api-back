@@ -26,5 +26,5 @@ public sealed class VkOrdMediaItem
     /// Тип медиа (image, video, etc.)
     /// </summary>
     [JsonPropertyName("type")]
-    public VkOrdCreativeType? Type { get; set; }
+    public VkOrdCreativeForm? Type { get; set; }
 }

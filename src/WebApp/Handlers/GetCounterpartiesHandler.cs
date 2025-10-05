@@ -5,7 +5,7 @@ using WebApp.Services.Interfaces;
 
 namespace WebApp.Handlers
 {
-    public class GetCounterpartiesHandler : IRequestHandler<GetCounterpartiesRequest, GetCounterpartiesResponse>
+    public class GetCounterpartiesHandler : IRequestHandler<GetCounterpartiesRequest, GetCounterpartiesResponseDto>
     {
         private readonly IVkOrdService _vkOrdService;
         private readonly ILogger<GetCounterpartiesHandler> _logger;
@@ -16,24 +16,10 @@ namespace WebApp.Handlers
             _logger = logger;
         }
 
-        public async Task<GetCounterpartiesResponse> Handle(GetCounterpartiesRequest request, CancellationToken cancellationToken)
+        public async Task<GetCounterpartiesResponseDto> Handle(GetCounterpartiesRequest request, CancellationToken cancellationToken)
         {
-            try
-            {
-                _logger.LogInformation("Getting counterparties for user: {UserId}", request.UserId);
-
-                var result = await _vkOrdService.GetAllCounterpartiesAsync(request.UserId, request.Environment, request.Offset, request.Limit);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting counterparties");
-                return new GetCounterpartiesResponse
-                {
-                    Success = false,
-                    ErrorMessage = "Произошла ошибка при получении контрагентов"
-                };
-            }
+            var result = await _vkOrdService.GetPageCounterparties(request.PageRequest, cancellationToken); 
+            return result;
         }
     }
 }

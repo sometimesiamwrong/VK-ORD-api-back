@@ -1,3 +1,5 @@
+using Domain.BrokenRules;
+using Domain.Extensions;
 using MediatR;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -24,7 +26,14 @@ public class GetCounterpartyHandler : IRequestHandler<GetCounterpartyQuery, GetC
     {
         _logger.LogInformation("Handling GetCounterpartyQuery for {ExternalId}", request.ExternalId);
 
-        return await _vkOrdService.GetCounterpartyByIdAsync(request.ExternalId, request.UserId, request.Environment);
+        var result = await _vkOrdService.GetCounterpartyById(request.ExternalId, cancellationToken);
+
+        if (result == null)
+        {
+            throw BrokenRuleCodes.CounterpartyNotFound.AsExn();
+        }
+
+        return result;
     }
 }
 

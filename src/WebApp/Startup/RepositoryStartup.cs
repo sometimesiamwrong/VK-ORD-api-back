@@ -1,5 +1,3 @@
-using VkOrdApi.Services.Implementations;
-using VkOrdApi.Services.Interfaces;
 using WebApp.Repositories.Implementation;
 using WebApp.Repositories.Implementation.ApiCredentials;
 using WebApp.Repositories.Implementation.DaData;
@@ -16,6 +14,7 @@ using WebApp.Security;
 using WebApp.Services.Implementations;
 using WebApp.Services.Interfaces;
 using Scrutor;
+using WebApp.Services.Implementations.VkOrd;
 
 namespace WebApp.Startup
 {
@@ -31,15 +30,10 @@ namespace WebApp.Startup
         {
             // Основные репозитории
             services.AddScoped<IDaDataRepository, DaDataRepository>();
-            services.AddScoped<IVkOrdContractRepository, VkOrdContractRepository>();
-            services.AddScoped<IVkOrdCreativeRepository, VkOrdCreativeRepository>();
-            services.AddScoped<IVkOrdCounterpartyRepository, VkOrdCounterpartyRepository>();
             services.AddScoped<IVkOrdMediaRepository, VkOrdMediaRepository>();
-            services.AddScoped<ICacheRepository, CacheRepository>();
             services.AddScoped<ISecretProtector, SecretProtector>();
             services.AddScoped<IGetApiCredentialByGuidRepository, GetApiCredentialByGuidRepository>();
             services.Decorate<IGetApiCredentialByGuidRepository, GetApiCredentialByGuidCacheRepository>();
-            services.AddScoped<IVkApiContextRepository, VkApiContextRepository>();
 
             // Users репозитории
             services.AddScoped<ISaveUserRepository, SaveUserRepository>();

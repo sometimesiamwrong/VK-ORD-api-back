@@ -1,4 +1,5 @@
 using Domain.Data;
+using Microsoft.EntityFrameworkCore;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 
 namespace WebApp.Repositories.Implementation.ApiCredentials
@@ -15,14 +16,14 @@ namespace WebApp.Repositories.Implementation.ApiCredentials
             _db = db;
         }
 
-        public async Task<bool> DeleteAsync(long id)
+        public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var credential = await _db.ApiCredentials.FindAsync(id);
+            var credential = await _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == id);
             if (credential == null)
                 return false;
 
             _db.ApiCredentials.Remove(credential);
-            await _db.SaveChangesAsync();
+            await _db.SaveChangesAsync(cancellationToken);
             return true;
         }
     }

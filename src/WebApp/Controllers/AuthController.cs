@@ -34,7 +34,7 @@ public class AuthController : BaseController
     [AllowAnonymous]
     public async Task<AuthResponse> Register([FromBody] RegisterRequest request)
     {
-        var command = new WebApp.Handlers.Requests.RegisterUserCommand 
+        var command = new RegisterUserCommand 
         { 
             UserName = request.UserName, 
             Password = request.Password, 

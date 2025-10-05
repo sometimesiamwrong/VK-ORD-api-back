@@ -17,6 +17,12 @@ public enum VkOrdMediaType
     Video,
 
     /// <summary>
+    /// Аудио
+    /// </summary>
+    [EnumMember(Value = "audio")]
+    Audio,
+
+    /// <summary>
     /// Документ
     /// </summary>
     [EnumMember(Value = "document")]

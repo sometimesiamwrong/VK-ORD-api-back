@@ -7,8 +7,20 @@ public sealed class VkOrdMediaInfoResponse
     /// <summary>
     /// Название медиафайла
     /// </summary>
-    [JsonPropertyName("name")]
-    public string Name { get; set; } = string.Empty;
+    [JsonPropertyName("filename")]
+    public string Filename { get; set; } = string.Empty;
+
+    /// <summary>
+    /// SHA-256 хеш файла
+    /// </summary>
+    [JsonPropertyName("sha256")]
+    public string Sha256 { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Дата создания файла (ISO date-time)
+    /// </summary>
+    [JsonPropertyName("create_date")]
+    public string CreateDate { get; set; } = string.Empty;
 
     /// <summary>
     /// Размер файла в байтах
@@ -19,30 +31,12 @@ public sealed class VkOrdMediaInfoResponse
     /// <summary>
     /// MIME-тип файла (e.g., image/jpeg)
     /// </summary>
-    [JsonPropertyName("mime_type")]
-    public string MimeType { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Дата загрузки (ISO date-time)
-    /// </summary>
-    [JsonPropertyName("upload_date")]
-    public string UploadDate { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Тип медиа (enum)
-    /// </summary>
-    [JsonPropertyName("type")]
-    public VkOrdMediaType Type { get; set; }
+    [JsonPropertyName("content_type")]
+    public string ContentType { get; set; } = string.Empty;
 
     /// <summary>
     /// Описание медиа (опционально)
     /// </summary>
     [JsonPropertyName("description")]
     public string? Description { get; set; }
-
-    /// <summary>
-    /// URL для скачивания (опционально)
-    /// </summary>
-    [JsonPropertyName("file_url")]
-    public string? FileUrl { get; set; }
 }

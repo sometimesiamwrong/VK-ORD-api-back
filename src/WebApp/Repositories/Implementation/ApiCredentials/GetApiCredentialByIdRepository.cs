@@ -1,5 +1,6 @@
 using Domain.Data;
 using Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 
 namespace WebApp.Repositories.Implementation.ApiCredentials
@@ -16,9 +17,14 @@ namespace WebApp.Repositories.Implementation.ApiCredentials
             _db = db;
         }
 
-        public async Task<ApiCredential?> GetByIdAsync(long id)
+        public Task<ApiCredential?> GetById(long id, CancellationToken cancellationToken)
         {
-            return await _db.ApiCredentials.FindAsync(id);
+            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public Task<ApiCredential?> GetByPublicId(Guid publicId, CancellationToken cancellationToken)
+        {
+            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == publicId);
         }
     }
 }

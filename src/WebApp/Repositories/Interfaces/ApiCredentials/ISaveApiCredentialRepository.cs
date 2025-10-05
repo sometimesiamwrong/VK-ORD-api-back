@@ -10,6 +10,6 @@ namespace WebApp.Repositories.Interfaces.ApiCredentials
         /// <summary>
         /// Сохранить ApiCredential (создать или обновить)
         /// </summary>
-        Task<ApiCredential?> SaveAsync(ApiCredential credential);
+        Task<ApiCredential?> Save(ApiCredential credential, CancellationToken cancellationToken);
     }
 }

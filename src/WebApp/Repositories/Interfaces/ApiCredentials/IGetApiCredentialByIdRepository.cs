@@ -10,6 +10,11 @@ namespace WebApp.Repositories.Interfaces.ApiCredentials
         /// <summary>
         /// Получить ApiCredential по ID
         /// </summary>
-        Task<ApiCredential?> GetByIdAsync(long id);
+        Task<ApiCredential?> GetById(long id, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Получить ApiCredential по GUID
+        /// </summary>
+        Task<ApiCredential?> GetByPublicId(Guid publicId, CancellationToken cancellationToken);
     }
 }

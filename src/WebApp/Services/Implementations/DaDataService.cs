@@ -24,8 +24,8 @@ namespace WebApp.Services.Implementations
 			{
 				return null;
 			}
-			
-			return counterparty.ToDaDataPartyShortResponse();
+
+			return counterparty;
 		}
 	}
 }

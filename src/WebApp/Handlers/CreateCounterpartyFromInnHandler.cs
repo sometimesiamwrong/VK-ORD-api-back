@@ -19,7 +19,7 @@ namespace WebApp.Handlers
 
         public Task Handle(CreateCounterpartyFromInnRequest request, CancellationToken cancellationToken)
         {
-            return _vkOrdService.CreateCounterpartyFromInnAsync(request.Inn, request.Types, cancellationToken);
+            return _vkOrdService.CreateCounterpartyFromInn(request.Inn, request.Types, cancellationToken);
         }
     }
 }

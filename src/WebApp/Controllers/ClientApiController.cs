@@ -51,7 +51,7 @@ namespace WebApp.Controllers
         /// Создать креатив в VK ОРД
         /// </summary>
         [HttpPost("create_creative")]
-        public Task CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
+        public Task<string> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             return _mediator.Send(request, cancellationToken);
         }
@@ -60,7 +60,7 @@ namespace WebApp.Controllers
         /// Получить список всех контрагентов из VK ОРД с полными данными
         /// </summary>
         [HttpGet("counterparties")]
-        public Task<GetCounterpartiesResponse> GetCounterparties([FromQuery] GetCounterpartiesRequest query, CancellationToken cancellationToken)
+        public Task<GetCounterpartiesResponseDto> GetCounterparties([FromQuery] GetCounterpartiesRequest query, CancellationToken cancellationToken)
         {
             return _mediator.Send(query, cancellationToken);
         }

@@ -1,5 +1,7 @@
+using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VkOrdApi.Creative;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -23,77 +25,36 @@ namespace WebApp.Controllers
         /// Создать новый креатив в VK ОРД
         /// </summary>
         [HttpPost]
-        public async Task<CreateCreativeResponse> CreateCreative([FromBody] CreateCreativeRequest request)
+        public Task<VkOrdCreativeV3RequestResponse> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
         {
-
-            return await _vkOrdService.CreateCreativeAsync(request, UserId);
+            return _vkOrdService.CreateCreative(request, cancellationToken);
         }
 
         /// <summary>
         /// Получить информацию о креативе по external_id
         /// </summary>
         [HttpGet("{externalId}")]
-        public async Task<CreateCreativeResponse> GetCreative(string externalId)
+        public Task<VkOrdCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.GetCreativeAsync(externalId, UserId);
+            return _vkOrdService.GetCreative(externalId, cancellationToken);
         }
 
         /// <summary>
         /// Получить список креативов (итерация external_ids и сбор полных данных)
         /// </summary>
         [HttpGet]
-        public async Task<GetCreativesResponse> GetCreatives([FromQuery] int? offset = null, [FromQuery] int? limit = null)
+        public Task<GetCreativesResponse> GetCreatives([FromQuery] PageRequest pageRequest, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.GetAllCreativesAsync(UserId, offset, limit);
+            return _vkOrdService.GetPageCreatives(pageRequest, cancellationToken);
         }
 
         /// <summary>
         /// Получить креатив по ERID
         /// </summary>
         [HttpGet("by-erid/{erid}")]
-        public async Task<CreativeResponse> GetCreativeByErid(string erid)
+        public Task<VkOrdCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.GetCreativeByEridAsync(erid, UserId);
-        }
-
-        /// <summary>
-        /// Получить статус обработки креатива в ЕРИР
-        /// </summary>
-        [HttpGet("{externalId}/status")]
-        public async Task<CreativeStatusResponse> GetCreativeStatus(string externalId)
-        {
-            var result = await _vkOrdService.GetCreativeStatusAsync(externalId, UserId);
-            return CreativeStatusResponse.Create(externalId, result);
-        }
-
-        /// <summary>
-        /// Удалить креатив
-        /// </summary>
-        [HttpDelete("{externalId}")]
-        public async Task<bool> DeleteCreative(string externalId)
-        {
-            return await _vkOrdService.DeleteCreativeAsync(externalId, UserId);
-        }
-
-
-        /// <summary>
-        /// Создать несколько креативов одновременно
-        /// </summary>
-        [HttpPost("bulk")]
-        public async Task<BulkCreativeResponse> CreateBulkCreatives([FromBody] List<CreateCreativeRequest> requests)
-        {
-            var results = await _vkOrdService.CreateBulkCreativesAsync(requests, UserId);
-            return BulkCreativeResponse.Create(results, requests.Count);
-        }
-
-        /// <summary>
-        /// Проверить, что креатив прошел верификацию в ЕРИР
-        /// </summary>
-        [HttpGet("{externalId}/verify")]
-        public async Task<CreativeVerificationResponse> VerifyCreative(string externalId, [FromQuery] int maxWaitMinutes = 120)
-        {
-            var isVerified = await _vkOrdService.IsCreativeVerifiedAsync(externalId, UserId, maxWaitMinutes);
-            return CreativeVerificationResponse.Create(externalId, isVerified);
+            return _vkOrdService.GetCreativeByErid(erid, cancellationToken);
         }
     }
 }

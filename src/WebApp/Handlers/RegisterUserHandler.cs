@@ -29,7 +29,7 @@ namespace WebApp.Handlers
 
         public async Task<TokenPair> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
         {
-            var exists = await _getUserByNameRepository.GetByNameAsync(request.UserName);
+            var exists = await _getUserByNameRepository.GetByName(request.UserName, cancellationToken);
             if (exists != null)
             {
                 throw BrokenRuleCodes.UserWithSuchNameAlreadyExists.AsExn();
@@ -45,7 +45,7 @@ namespace WebApp.Handlers
 
             user.PasswordHash = _hasher.HashPassword(user, request.Password);
 
-            await _userSaveRepository.SaveAsync(user);
+            await _userSaveRepository.Save(user, cancellationToken);
 
             return await _tokenService.GenerateTokens(user, request.Ip);
         }

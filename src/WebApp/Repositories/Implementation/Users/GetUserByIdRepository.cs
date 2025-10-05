@@ -16,9 +16,9 @@ namespace WebApp.Repositories.Implementation.Users
             _db = db;
         }
 
-        public async Task<User?> GetByIdAsync(long id)
+        public async Task<User?> GetById(long id, CancellationToken cancellationToken)
         {
-            return await _db.Users.FindAsync(id);
+            return await _db.Users.FindAsync(id, cancellationToken);
         }
     }
 }

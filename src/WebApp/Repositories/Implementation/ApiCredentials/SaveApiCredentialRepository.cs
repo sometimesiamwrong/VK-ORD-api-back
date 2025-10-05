@@ -19,7 +19,7 @@ namespace WebApp.Repositories.Implementation.ApiCredentials
             _protector = protector;
         }
 
-        public async Task<ApiCredential?> SaveAsync(ApiCredential credential)
+        public async Task<ApiCredential?> Save(ApiCredential credential, CancellationToken cancellationToken)
         {
             // Шифруем токен всегда
             var encryptedToken = _protector.Encrypt(credential.TokenEncrypted);

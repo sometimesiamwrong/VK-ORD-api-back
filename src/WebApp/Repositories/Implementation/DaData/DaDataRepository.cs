@@ -31,7 +31,7 @@ public class DaDataRepository : IDaDataRepository
         _cache = cache;
     }
 
-    public async Task<DaDataPartyShortResponse?> FindPartyByInnAsync(string inn, CancellationToken cancellationToken)
+    public async Task<DaDataPartyShortResponse?> FindCounterpartyByInnAsync(string inn, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(inn)) return null;
 

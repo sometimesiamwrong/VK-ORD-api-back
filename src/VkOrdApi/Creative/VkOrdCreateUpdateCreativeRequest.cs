@@ -20,7 +20,7 @@ public sealed class VkOrdCreateUpdateCreativeRequest
     /// Тип креатива (обязательное)
     /// </summary>
     [JsonPropertyName("type")]
-    public VkOrdCreativeType Type { get; set; }
+    public VkOrdCreativeForm Type { get; set; }
 
     /// <summary>
     /// URL файла креатива или base64 content (в зависимости от типа)

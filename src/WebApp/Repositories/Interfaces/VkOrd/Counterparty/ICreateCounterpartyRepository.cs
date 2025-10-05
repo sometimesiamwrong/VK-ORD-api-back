@@ -1,0 +1,12 @@
+using VkOrdApi.Person;
+
+namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
+{
+    /// <summary>
+    /// Репозиторий для создания контрагента VK ORD API по ИНН
+    /// </summary>
+    public interface ICreateCounterpartyRepository
+    {
+        Task Create(string externalId, VkOrdPersonResponse person, CancellationToken cancellationToken);
+    }
+}

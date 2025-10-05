@@ -2,11 +2,14 @@ using Domain.Entities;
 using Microsoft.Extensions.Logging;
 using Refit;
 using WebApp.Services.Interfaces;
-using VkOrdApi.Contract;
+using VkOrdApi;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 using WebApp.Security;
 using Microsoft.AspNetCore.Http;
 using Domain.Extensions;
+using System.Net.Http;
+using Domain.BrokenRules;
+using Domain.Exceptions;
 
 namespace WebApp.Services.Implementations;
 
@@ -35,7 +38,7 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
     /// <summary>
     /// Создать клиент для работы с VK ОРД API
     /// </summary>
-    public async Task<IVkOrdApiClient> CreateClientAsync()
+    public async Task<IVkOrdApiClient> CreateClient()
     {
         var guid = _httpContextAccessor.GetVkOrdCredentialId();
         var apiContext = await GetApiContextAsync(guid);
@@ -50,10 +53,11 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         _logger.LogInformation("Creating VK ORD API client for route: {Route}, base URL: {BaseUrl}",
             apiContext.Route, baseUrl);
 
-        var handler = new HttpClientHandler();
+        var httpClientHandler = new HttpClientHandler();
+        var errorHandler = new VkOrdApiErrorHandler();
+        errorHandler.InnerHandler = httpClientHandler;
 
-
-        var httpClient = new HttpClient(handler)
+        var httpClient = new HttpClient(errorHandler)
         {
             BaseAddress = new Uri(baseUrl),
             Timeout = TimeSpan.FromSeconds(30)
@@ -67,7 +71,7 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         return RestService.For<IVkOrdApiClient>(httpClient);
     }
 
-    private async Task<VkApiContext> GetApiContextAsync(Guid guid)
+    private async Task<VkApiContext?> GetApiContextAsync(Guid guid)
     {
         var apiCredential = await _getApiCredentialByGuidRepository.GetByGuidAsync(guid);
         if (apiCredential == null)
@@ -81,5 +85,47 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
             ApiKey = token,
             Route = apiCredential.Environment
         };
+    }
+}
+
+public class VkOrdApiErrorHandler : DelegatingHandler
+{
+    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var response = await base.SendAsync(request, cancellationToken);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return response;
+            }
+
+            string errorMessage = response.ReasonPhrase ?? response.StatusCode.ToString();
+
+            try
+            {
+                var content = await response.Content.ReadAsStringAsync(cancellationToken);
+                if (!string.IsNullOrWhiteSpace(content))
+                {
+                    errorMessage = content;
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки чтения контента (например, если тело пустое или не JSON)
+                // Можно добавить логирование здесь, если инжектировать ILogger
+            }
+
+            var brokenRule = new BrokenRule((long)BrokenRuleCodes.VkOrdApiError, errorMessage, "ExternalApi");
+            var brokenRules = new BrokenRulesCollection(brokenRule);
+            throw new BrokenRulesException(brokenRules);
+        }
+        catch (Refit.ApiException ex)
+        {
+            var brokenRule = new BrokenRule((long)BrokenRuleCodes.VkOrdApiError, ex.Content ?? "Ошибка VK ОРД API", "ExternalApi");
+            var brokenRules = new BrokenRulesCollection(brokenRule);
+            throw new BrokenRulesException(brokenRules);
+        }
     }
 }

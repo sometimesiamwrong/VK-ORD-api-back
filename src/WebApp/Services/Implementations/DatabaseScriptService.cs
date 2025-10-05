@@ -144,7 +144,6 @@ namespace WebApp.Services.Implementations
                 // Записываем информацию о выполнении
                 var scriptRecord = new DatabaseScript
                 {
-                    Id = Guid.NewGuid(),
                     ScriptName = scriptName,
                     ScriptHash = scriptHash,
                     ExecutedAt = DateTime.UtcNow,
@@ -176,7 +175,6 @@ namespace WebApp.Services.Implementations
                 {
                     var errorRecord = new DatabaseScript
                     {
-                        Id = Guid.NewGuid(),
                         ScriptName = scriptName,
                         ScriptHash = ComputeHash(scriptContent),
                         ExecutedAt = DateTime.UtcNow,
