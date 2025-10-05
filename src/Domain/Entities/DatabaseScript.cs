@@ -5,15 +5,21 @@ namespace Domain.Entities;
 /// <summary>
 /// Сущность для отслеживания выполненных SQL-скриптов
 /// </summary>
-public class DatabaseScript : EntityBase
+public class DatabaseScript
 {
+    /// <summary>
+    /// Идентификатор скрипта
+    /// </summary>
+    [Key]
+    public Guid Id { get; set; }
+
     /// <summary>
     /// Имя скрипта
     /// </summary>
     [Required]
     [MaxLength(255)]
     public string ScriptName { get; set; } = string.Empty;
-
+   
     /// <summary>
     /// Хэш скрипта
     /// </summary>
@@ -41,4 +47,9 @@ public class DatabaseScript : EntityBase
     /// Сообщение об ошибке
     /// </summary>
     public string? ErrorMessage { get; set; }
+
+    public bool IsNewOrUpdate()
+    {
+        return Id == Guid.Empty;
+    }
 }

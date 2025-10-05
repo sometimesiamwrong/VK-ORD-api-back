@@ -80,7 +80,7 @@ builder.Services.AddRefitClient<IOpenRouterApiClient>()
     });
 
 // Интеграция MediatR
-builder.Services.AddMediatR(typeof(Program).Assembly);
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(WebApp.Behaviors.VkOrdKeyBehavior<,>));
 
@@ -92,6 +92,7 @@ builder.Services.AddScoped<IAiService, AiService>();
 builder.Services.AddScoped<IDatabaseScriptService, DatabaseScriptService>();
 builder.Services.AddScoped<IApiCredentialService, ApiCredentialService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDaDataService, DaDataService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkApiHeadersFilter>();
@@ -205,6 +206,14 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 
+    // Конфигурация для поддержки загрузки файлов
+    c.UseAllOfForInheritance();
+    c.UseOneOfForPolymorphism();
+
+    // Добавляем фильтры для корректной обработки файловых загрузок
+    c.OperationFilter<FileUploadOperationFilter>();
+
+
     // Включение XML документации
     var assembly = System.Reflection.Assembly.GetExecutingAssembly();
     var xmlFile = $"{assembly.GetName().Name}.xml";
@@ -252,7 +261,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var scriptService = scope.ServiceProvider.GetRequiredService<IDatabaseScriptService>();
-        var executedCount = await scriptService.ExecutePendingScriptsAsync();
+        var executedCount = await scriptService.ExecutePendingScriptsAsync("bin/Debug/net8.0/");
         Log.Information("Database scripts execution completed. Executed {Count} scripts.", executedCount);
     }
     catch (Exception ex)
@@ -263,15 +272,12 @@ using (var scope = app.Services.CreateScope())
 }
 
 // Middleware pipeline
-if (app.Environment.IsDevelopment())
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "VK ОРД API Wrapper v1");
-        c.RoutePrefix = string.Empty; // Swagger на корневом пути
-    });
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "VK ОРД API Wrapper v1");
+    c.RoutePrefix = string.Empty; // Swagger на корневом пути
+});
 
 app.UseCors("AllowFrontend");
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();

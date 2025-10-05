@@ -17,9 +17,9 @@ namespace WebApp.Repositories.Implementation.Users
             _db = db;
         }
 
-        public async Task<User?> GetByName(string name, CancellationToken cancellationToken)
+        public async Task<User?> GetByName(string username, CancellationToken cancellationToken)
         {
-            return await _db.Users.FirstOrDefaultAsync(u => u.Name == name, cancellationToken);
+            return await _db.Users.FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
         }
     }
 }

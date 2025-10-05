@@ -38,7 +38,6 @@ namespace WebApp.Repositories.Implementation.DatabaseScripts
                 existing.Description = script.Description;
                 existing.IsSuccessful = script.IsSuccessful;
                 existing.ErrorMessage = script.ErrorMessage;
-                existing.UpdatedAt = DateTimeOffset.UtcNow;
 
                 await _db.SaveChangesAsync();
                 return existing;

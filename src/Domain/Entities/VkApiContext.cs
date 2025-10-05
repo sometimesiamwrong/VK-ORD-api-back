@@ -35,8 +35,8 @@ namespace Domain.Entities
         {
             return Route switch
             {
-                VkOrdEnvironmentCode.Production => "https://ord-api.vk.com/v1.0/",
-                VkOrdEnvironmentCode.Sandbox => "https://ord-test-api.vk.com/v1.0/",
+                VkOrdEnvironmentCode.Production => "https://api.ord.vk.com",
+                VkOrdEnvironmentCode.Sandbox => "https://api-sandbox.ord.vk.com",
                 _ => throw new ArgumentException("Invalid Route", nameof(Route))
             };
         }

@@ -14,19 +14,19 @@ namespace WebApp.Models.Requests
         /// Внешний ID контракта
         /// </summary>
         [Required]
-        public string ExternalId { get; set; }
+        public required string ExternalId { get; set; }
 
         /// <summary>
         /// Внешний Id заказчика (Id контрагента в VK ОРД)
         /// </summary>
         [Required]
-        public string ClientExternalId { get; set; }
+        public required string ClientExternalId { get; set; }
 
         /// <summary>
         /// Внешний ID Исполнителя (Id контрагента в VK ОРД)
         /// </summary>
         [Required]
-        public string ContractorExternalId { get; set; }
+        public required string ContractorExternalId { get; set; }
 
         /// <summary>
         /// Сумма оплаты

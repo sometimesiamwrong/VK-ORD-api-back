@@ -19,14 +19,14 @@ namespace WebApp.Controllers
             _service = service;
         }
 
-        [HttpGet("{userId:long}")]
-        public async Task<List<ApiCredentialResponse>> Get(long userId, CancellationToken cancellationToken)
+        [HttpGet("{userId:guid}")]
+        public async Task<List<ApiCredentialResponse>> Get(Guid userId, CancellationToken cancellationToken)
         {
             return await _service.GetAll(userId, cancellationToken);
         }
 
-        [HttpGet("{userId:long}/{credentialPublicId:guid}")]
-        public async Task<ApiCredentialResponse?> GetById(long userId, Guid credentialPublicId, CancellationToken cancellationToken)
+        [HttpGet("{userId:guid}/{credentialPublicId:guid}")]
+        public async Task<ApiCredentialResponse?> GetById(Guid userId, Guid credentialPublicId, CancellationToken cancellationToken)
         {
             return await _service.GetById(credentialPublicId, userId, cancellationToken);
         }

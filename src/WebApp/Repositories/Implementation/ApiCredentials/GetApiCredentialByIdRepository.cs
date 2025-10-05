@@ -19,12 +19,12 @@ namespace WebApp.Repositories.Implementation.ApiCredentials
 
         public Task<ApiCredential?> GetById(long id, CancellationToken cancellationToken)
         {
-            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.Id == id);
+            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
         }
 
         public Task<ApiCredential?> GetByPublicId(Guid publicId, CancellationToken cancellationToken)
         {
-            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == publicId);
+            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == publicId, cancellationToken);
         }
     }
 }

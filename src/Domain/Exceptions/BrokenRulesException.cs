@@ -42,8 +42,6 @@ public class BrokenRulesException : Exception
         : base("Broken rules validation exception.", innerException)
     {
         brokenRulesCollection = brokenRulesCollection ?? throw new ArgumentNullException(nameof(brokenRulesCollection));
-        if (string.IsNullOrWhiteSpace(brokenRulesSeparator))
-            throw new ArgumentException("Broken rules separator cannot be null or empty.", nameof(brokenRulesSeparator));
 
         _brokenRules = brokenRulesCollection.ToReadOnlyCollection();
         _brokenRulesSeparator = brokenRulesSeparator;

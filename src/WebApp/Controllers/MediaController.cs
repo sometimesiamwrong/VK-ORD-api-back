@@ -1,6 +1,7 @@
 using Domain;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 using VkOrdApi.Media;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
@@ -26,14 +27,15 @@ namespace WebApp.Controllers
         /// </summary>
         [HttpPost("upload")]
         [Consumes("multipart/form-data")]
-        public async Task UploadMedia([FromForm] IFormFile file, CancellationToken cancellationToken)
+        [SwaggerOperation(Summary = "Загрузить медиа файл", Description = "Загружает медиа файл в VK ОРД")]
+        [SwaggerResponse(200, "Файл успешно загружен")]
+        public async Task UploadMedia([FromForm] UploadFileDto uploadFile, CancellationToken cancellationToken)
         {
-
             var request = new UploadMediaRequest
             {
-                FileStream = file.OpenReadStream(),
-                FileName = file.FileName,
-                ContentType = file.ContentType
+                FileStream = uploadFile.File.OpenReadStream(),
+                FileName = uploadFile.File.FileName,
+                ContentType = uploadFile.File.ContentType
             };
 
             await _vkOrdService.UploadMedia(request, cancellationToken);

@@ -3,6 +3,7 @@ using System.Text;
 using Domain.Data;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using WebApp.Services.Interfaces;
 
 namespace WebApp.Services.Implementations
@@ -14,17 +15,22 @@ namespace WebApp.Services.Implementations
     {
         private readonly AppDbContext _context;
         private readonly ILogger<DatabaseScriptService> _logger;
+        private readonly IServiceProvider _serviceProvider;
 
-        public DatabaseScriptService(AppDbContext context, ILogger<DatabaseScriptService> logger)
+        public DatabaseScriptService(AppDbContext context, ILogger<DatabaseScriptService> logger, IServiceProvider serviceProvider)
         {
             _context = context;
             _logger = logger;
+            _serviceProvider = serviceProvider;
         }
 
         public async Task<int> ExecutePendingScriptsAsync(string scriptsPath = "Scripts/")
         {
             try
             {
+                _logger.LogInformation("Current working directory: {Cwd}", Directory.GetCurrentDirectory());
+                _logger.LogInformation("Looking for scripts in: {ScriptsPath}", Path.GetFullPath(scriptsPath));
+
                 // Убеждаемся, что таблица DatabaseScripts существует
                 await EnsureDatabaseScriptsTableExistsAsync();
 
@@ -34,7 +40,7 @@ namespace WebApp.Services.Implementations
                     return 0;
                 }
 
-                var scriptFiles = Directory.GetFiles(scriptsPath, "*.sql")
+                var scriptFiles = Directory.GetFiles(scriptsPath, "*up.sql")
                     .OrderBy(f => Path.GetFileName(f))
                     .ToList();
 
@@ -80,7 +86,7 @@ namespace WebApp.Services.Implementations
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error in ExecutePendingScriptsAsync");
-                return 0;
+                throw;
             }
         }
 
@@ -89,11 +95,10 @@ namespace WebApp.Services.Implementations
             try
             {
                 // Проверяем только успешно выполненные скрипты
-                var script = await _context.DatabaseScripts
-                    .FirstOrDefaultAsync(s => s.ScriptName == scriptName);
+                var script = await _context.DatabaseScripts.AnyAsync(s => s.ScriptName == scriptName && s.IsSuccessful);
                 
                 // Если скрипт не найден или выполнен неуспешно - считаем что не выполнен
-                return script != null && script.IsSuccessful;
+                return script;
             }
             catch (Exception ex)
             {
@@ -105,8 +110,21 @@ namespace WebApp.Services.Implementations
 
         public async Task<bool> ExecuteScriptAsync(string scriptName, string scriptContent, string? description = null)
         {
-            var transaction = await _context.Database.BeginTransactionAsync();
-            
+            // Проверяем, содержит ли скрипт собственное управление транзакциями
+            bool hasTransactionStatements = scriptContent.Contains("START TRANSACTION", StringComparison.OrdinalIgnoreCase) ||
+                                           scriptContent.Contains("BEGIN TRANSACTION", StringComparison.OrdinalIgnoreCase) ||
+                                           scriptContent.Contains("COMMIT", StringComparison.OrdinalIgnoreCase);
+
+            scriptContent.Replace("START TRANSACTION", "").Replace("BEGIN TRANSACTION", "").Replace("COMMIT", "");
+
+            Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction? transaction = null;
+
+            // Начинаем транзакцию только если скрипт не содержит собственных операторов транзакций
+            if (!hasTransactionStatements)
+            {
+                transaction = await _context.Database.BeginTransactionAsync();
+            }
+
             try
             {
                 // Вычисляем хэш содержимого скрипта
@@ -121,17 +139,20 @@ namespace WebApp.Services.Implementations
                     if (existingScript.IsSuccessful && existingScript.ScriptHash == scriptHash)
                     {
                         _logger.LogDebug("Script '{ScriptName}' already executed successfully with same hash", scriptName);
-                        await transaction.RollbackAsync();
+                        if (transaction != null)
+                        {
+                            await transaction.RollbackAsync();
+                        }
                         return true;
                     }
-                    
+
                     if (existingScript.IsSuccessful && existingScript.ScriptHash != scriptHash)
                     {
-                        _logger.LogWarning("Script '{ScriptName}' content has changed! Original hash: {OriginalHash}, New hash: {NewHash}", 
+                        _logger.LogWarning("Script '{ScriptName}' content has changed! Original hash: {OriginalHash}, New hash: {NewHash}",
                             scriptName, existingScript.ScriptHash, scriptHash);
                         _logger.LogInformation("Re-executing script '{ScriptName}' due to content change", scriptName);
                     }
-                    
+
                     if (!existingScript.IsSuccessful)
                     {
                         _logger.LogInformation("Retrying previously failed script '{ScriptName}'", scriptName);
@@ -159,39 +180,65 @@ namespace WebApp.Services.Implementations
                 _context.DatabaseScripts.Add(scriptRecord);
                 await _context.SaveChangesAsync();
 
-                await transaction.CommitAsync();
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
 
                 _logger.LogInformation("Successfully executed SQL script: {ScriptName}", scriptName);
                 return true;
             }
             catch (Exception ex)
             {
-                await transaction.RollbackAsync();
+                if (transaction != null)
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch (Exception rollbackEx)
+                    {
+                        _logger.LogWarning(rollbackEx, "Failed to rollback transaction for script {ScriptName}", scriptName);
+                    }
+                }
 
                 _logger.LogError(ex, "Error executing SQL script: {ScriptName}", scriptName);
 
-                // Записываем информацию об ошибке
-                try
-                {
-                    var errorRecord = new DatabaseScript
-                    {
-                        ScriptName = scriptName,
-                        ScriptHash = ComputeHash(scriptContent),
-                        ExecutedAt = DateTime.UtcNow,
-                        Description = description,
-                        IsSuccessful = false,
-                        ErrorMessage = ex.Message.Length > 2000 ? ex.Message[..2000] : ex.Message
-                    };
-
-                    _context.DatabaseScripts.Add(errorRecord);
-                    await _context.SaveChangesAsync();
-                }
-                catch (Exception recordEx)
-                {
-                    _logger.LogError(recordEx, "Failed to record script execution error");
-                }
+                // Записываем информацию об ошибке вне транзакции
+                await RecordScriptErrorAsync(scriptName, scriptContent, description, ex);
 
                 return false;
+            }
+        }
+
+        private async Task RecordScriptErrorAsync(string scriptName, string scriptContent, string? description, Exception ex)
+        {
+            try
+            {
+                // Создаем новый контекст для записи ошибки, чтобы избежать проблем с транзакцией
+                using var scope = _serviceProvider.CreateScope();
+                var errorContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+                // Удаляем предыдущие неудачные попытки выполнения этого скрипта
+                var existingFailedScripts = errorContext.DatabaseScripts.Where(s => s.ScriptName == scriptName && !s.IsSuccessful);
+                errorContext.DatabaseScripts.RemoveRange(existingFailedScripts);
+
+                var errorRecord = new DatabaseScript
+                {
+                    ScriptName = scriptName,
+                    ScriptHash = ComputeHash(scriptContent),
+                    ExecutedAt = DateTime.UtcNow,
+                    Description = description,
+                    IsSuccessful = false,
+                    ErrorMessage = ex.Message.Length > 2000 ? ex.Message[..2000] : ex.Message
+                };
+
+                errorContext.DatabaseScripts.Add(errorRecord);
+                await errorContext.SaveChangesAsync();
+            }
+            catch (Exception recordEx)
+            {
+                _logger.LogError(recordEx, "Failed to record script execution error");
             }
         }
 

@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Http;
 
 namespace WebApp.Models.Requests
 {
@@ -29,6 +30,18 @@ namespace WebApp.Models.Requests
         /// MIME тип файла
         /// </summary>
         public string ContentType { get; set; }
+    }
+
+    /// <summary>
+    /// DTO для загрузки файла через Swagger
+    /// </summary>
+    public class UploadFileDto
+    {
+        /// <summary>
+        /// Файл для загрузки
+        /// </summary>
+        [Required]
+        public IFormFile File { get; set; }
     }
 }
 

@@ -4,12 +4,18 @@ using WebApp.Repositories.Implementation.DaData;
 using WebApp.Repositories.Implementation.DatabaseScripts;
 using WebApp.Repositories.Implementation.RefreshTokens;
 using WebApp.Repositories.Implementation.Users;
+using WebApp.Repositories.Implementation.VkOrd.Contract;
+using WebApp.Repositories.Implementation.VkOrd.Counterparty;
+using WebApp.Repositories.Implementation.VkOrd.Creative;
 using WebApp.Repositories.Interfaces;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 using WebApp.Repositories.Interfaces.DaData;
 using WebApp.Repositories.Interfaces.DatabaseScripts;
 using WebApp.Repositories.Interfaces.RefreshTokens;
 using WebApp.Repositories.Interfaces.Users;
+using WebApp.Repositories.Interfaces.VkOrd.Contract;
+using WebApp.Repositories.Interfaces.VkOrd.Counterparty;
+using WebApp.Repositories.Interfaces.VkOrd.Creative;
 using WebApp.Security;
 using WebApp.Services.Implementations;
 using WebApp.Services.Interfaces;
@@ -38,6 +44,7 @@ namespace WebApp.Startup
             // Users репозитории
             services.AddScoped<ISaveUserRepository, SaveUserRepository>();
             services.AddScoped<IGetUserByIdRepository, GetUserByIdRepository>();
+            services.AddScoped<IGetUserByNameRepository, GetUserByNameRepository>();
             services.AddScoped<IGetUsersListRepository, GetUsersListRepository>();
             services.AddScoped<IDeleteUserRepository, DeleteUserRepository>();
 
@@ -50,6 +57,7 @@ namespace WebApp.Startup
             // RefreshTokens репозитории
             services.AddScoped<ISaveRefreshTokenRepository, SaveRefreshTokenRepository>();
             services.AddScoped<IGetRefreshTokenByIdRepository, GetRefreshTokenByIdRepository>();
+            services.AddScoped<IGetRefreshTokenByHashRepository, GetRefreshTokenByHashRepository>();
             services.AddScoped<IGetRefreshTokensListRepository, GetRefreshTokensListRepository>();
             services.AddScoped<IDeleteRefreshTokenRepository, DeleteRefreshTokenRepository>();
 
@@ -58,6 +66,21 @@ namespace WebApp.Startup
             services.AddScoped<IGetDatabaseScriptByIdRepository, GetDatabaseScriptByIdRepository>();
             services.AddScoped<IGetDatabaseScriptsListRepository, GetDatabaseScriptsListRepository>();
             services.AddScoped<IDeleteDatabaseScriptRepository, DeleteDatabaseScriptRepository>();
+
+            // VK ORD репозитории
+            services.AddScoped<ICreateOrUpdateContractRepository, CreateOrUpdateContractRepository>();
+            services.AddScoped<IGetContractRepository, GetContractRepository>();
+            services.AddScoped<IGetPageContractRepository, GetPageContractRepository>();
+            
+            services.AddScoped<ICreateCounterpartyRepository, CreateCounterpartyRepository>();
+            services.AddScoped<IGetCounterpartyByIdRepository, GetCounterpartyByIdRepository>();
+            services.Decorate<IGetCounterpartyByIdRepository, GetCounterpartyByIdCacheRepository>();
+            services.AddScoped<IGetPageCounterpartiesRepository, GetPageCounterpartiesRepository>();
+            
+            services.AddScoped<ICreateCreativeRepository, CreateCreativeRepository>();
+            services.AddScoped<IGetCreativeRepository, GetCreativeRepository>();
+            services.AddScoped<IGetAllCreativesRepository, GetAllCreativesRepository>();
+            services.AddScoped<IGetCreativeByEridRepository, GetCreativeByEridRepository>();
 
             // VK ORD сервисы
             services.AddScoped<IVkOrdService, VkOrdService>();

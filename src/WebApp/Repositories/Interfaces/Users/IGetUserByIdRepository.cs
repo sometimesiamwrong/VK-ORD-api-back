@@ -11,5 +11,10 @@ namespace WebApp.Repositories.Interfaces.Users
         /// Получить пользователя по ID
         /// </summary>
         Task<User?> GetById(long id, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Получить пользователя по GUID
+        /// </summary>
+        Task<User?> GetByGuid(Guid guid, CancellationToken cancellationToken);
     }
 }

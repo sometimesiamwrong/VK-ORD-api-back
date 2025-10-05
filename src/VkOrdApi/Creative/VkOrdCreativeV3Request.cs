@@ -14,7 +14,7 @@ public sealed class VkOrdCreativeV3Request
     /// Внешний идентификатор контрагента, для которого создаётся саморекламный креатив. Если вы передали это поле, поле contract_external_id должно отсутствовать.
     /// </remarks>
     [JsonPropertyName("person_external_id")]
-    public string PersonExternalId { get; set; }
+    public string? PersonExternalId { get; set; }
 
     /// <summary>
     /// Contract external IDs (v3)

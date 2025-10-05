@@ -3,6 +3,7 @@ using Domain.Entities.Enums;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Repositories.Interfaces.ApiCredentials;
+using WebApp.Repositories.Interfaces.Users;
 using WebApp.Services.Interfaces;
 
 namespace WebApp.Services.Implementations;
@@ -13,35 +14,41 @@ public class ApiCredentialService : IApiCredentialService
     private readonly IGetApiCredentialByIdRepository _getRepo;
     private readonly ISaveApiCredentialRepository _saveRepo;
     private readonly IDeleteApiCredentialRepository _deleteRepo;
+    private readonly IGetUserByIdRepository _getUserRepo;
 
     public ApiCredentialService(
         IGetApiCredentialsListRepository listRepo,
         IGetApiCredentialByIdRepository getRepo,
         ISaveApiCredentialRepository saveRepo,
-        IDeleteApiCredentialRepository deleteRepo)
+        IDeleteApiCredentialRepository deleteRepo,
+        IGetUserByIdRepository getUserRepo)
     {
         _listRepo = listRepo;
         _getRepo = getRepo;
         _saveRepo = saveRepo;
         _deleteRepo = deleteRepo;
+        _getUserRepo = getUserRepo;
     }
 
-    public async Task<List<ApiCredentialResponse>> GetAll(long userId, CancellationToken cancellationToken)
+    public async Task<List<ApiCredentialResponse>> GetAll(Guid userId, CancellationToken cancellationToken)
     {
-        var credentials = await _listRepo.GetListAsync(userId, cancellationToken);
+        var user = await _getUserRepo.GetByGuid(userId, cancellationToken);
+        var credentials = await _listRepo.GetListAsync(user.Id, cancellationToken);
         return credentials.Select(MapToResponse).ToList();
     }
 
-    public async Task<List<ApiCredentialResponse>> GetAllByEnvironment(long userId, VkOrdEnvironmentCode environment, CancellationToken cancellationToken)
+    public async Task<List<ApiCredentialResponse>> GetAllByEnvironment(Guid userId, VkOrdEnvironmentCode environment, CancellationToken cancellationToken)
     {
-        var credentials = await _listRepo.GetListAsync(userId, cancellationToken, environment);
+        var user = await _getUserRepo.GetByGuid(userId, cancellationToken);
+        var credentials = await _listRepo.GetListAsync(user.Id, cancellationToken, environment);
         return credentials.Select(MapToResponse).ToList();
     }
 
-    public async Task<ApiCredentialResponse?> GetById(Guid publicId, long userId, CancellationToken cancellationToken)
+    public async Task<ApiCredentialResponse?> GetById(Guid publicId, Guid userId, CancellationToken cancellationToken)
     {
+        var user = await _getUserRepo.GetByGuid(userId, cancellationToken);
         var credential = await _getRepo.GetByPublicId(publicId, cancellationToken);
-        if (credential == null || credential.UserId != userId)
+        if (credential == null || credential.UserId != user.Id)
             return null;
         return MapToResponse(credential);
     }
