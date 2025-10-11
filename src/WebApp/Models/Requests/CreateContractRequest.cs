@@ -8,7 +8,7 @@ namespace WebApp.Models.Requests
     /// <summary> 
     /// Запрос на создание/обновление контракта (от заказчика к исполнителю) VK ОРД
     /// </summary>
-    public class CreateContractRequest : IRequestWithVkOrdKey, ICommand<Unit>
+    public class CreateContractRequest : ICommand<Unit>
     {
         /// <summary>
         /// Внешний ID контракта
@@ -31,12 +31,21 @@ namespace WebApp.Models.Requests
         /// <summary>
         /// Сумма оплаты
         /// </summary>
-        [Required]
         public int PaySum { get; set; }
 
         /// <summary>
-        /// Дата оплаты
+        /// Дата заключения
         /// </summary>
-        public string? PayDateEnd { get; set; }
+        public required string Date { get; set; }
+        
+        /// <summary>
+        /// Дата окончания.
+        /// </summary>
+        public string? DateEnd { get; set; }
+
+        /// <summary>
+        /// Серийный номер договора.
+        /// </summary>
+        public required string Serial { get; set; }
     }
 }

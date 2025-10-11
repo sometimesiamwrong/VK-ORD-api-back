@@ -8,7 +8,7 @@ namespace WebApp.Models.Requests
     /// <summary>
     /// Запрос на создание креатива
     /// </summary>
-    public class CreateCreativeRequest : IRequestWithVkOrdKey, IRequest<string>
+    public class CreateCreativeRequest : IRequest<VkOrdCreativeV3RequestResponse>
     {
         /// <summary>
         /// Внешний ID креатива

@@ -4,6 +4,10 @@ using VkOrdApi.Media;
 using VkOrdApi.Person;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
+using WebApp.Models.Counterparties;
+using WebApp.Models.Contracts;
+using WebApp.Models.Statistics;
+using WebApp.Models.Common;
 
 namespace WebApp.Services.Interfaces;
 
@@ -12,8 +16,6 @@ namespace WebApp.Services.Interfaces;
 /// </summary>
 public interface IVkOrdService
 {
-    #region Контракты
-
     /// <summary>
     /// Создать или обновить контракт
     /// </summary>
@@ -28,10 +30,6 @@ public interface IVkOrdService
     /// Получить список контрактов
     /// </summary>
     Task<GetContractResponseDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken);
-
-    #endregion
-
-    #region Креативы
 
     /// <summary>
     /// Создать креатив
@@ -53,10 +51,6 @@ public interface IVkOrdService
     /// </summary>
     Task<VkOrdCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken);
     
-    #endregion
-
-    #region Контрагенты
-
     /// <summary>
     /// Создать контрагента в VK ОРД из данных DaData по ИНН
     /// </summary>
@@ -72,14 +66,10 @@ public interface IVkOrdService
     /// </summary>
     Task<GetCounterpartyResponse?> GetCounterpartyById(string externalId, CancellationToken cancellationToken);
 
-    #endregion
-
-    #region Медиа файлы
-
     /// <summary>
     /// Загрузить медиа файл
     /// </summary>
-    Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken);
+    Task<string> UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить информацию о медиа файле
@@ -90,6 +80,4 @@ public interface IVkOrdService
     /// Получить список медиа файлов
     /// </summary>
     Task<VkOrdMediaInfoListResponseDto> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken);
-    
-    #endregion
 }

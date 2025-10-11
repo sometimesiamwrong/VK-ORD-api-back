@@ -23,7 +23,7 @@ namespace WebApp.Repositories.Implementation
             _logger = logger;
         }
 
-        public async Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken)
+        public async Task<string> UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken)
         {
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
@@ -32,6 +32,8 @@ namespace WebApp.Repositories.Implementation
             _logger.LogInformation($"Uploading media file with external_id: {request.ExternalId}");
 
             await vkOrdClient.UploadMedia(request.ExternalId, streamPart, cancellationToken);
+            
+            return request.ExternalId;
         }
 
         public async Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)

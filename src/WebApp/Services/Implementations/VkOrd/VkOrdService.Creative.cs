@@ -15,7 +15,7 @@ namespace WebApp.Services.Implementations.VkOrd
         {
             var vkOrdCreative = new VkOrdCreativeV3Request
             {
-                PersonExternalId = request.PersonExternalId ?? string.Empty,
+                PersonExternalId = request.PersonExternalId ?? null,
                 ContractExternalIds = request.ContractExternalIds,
                 Kktus = request.Kktus,
                 Name = request.Name,

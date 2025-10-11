@@ -1,4 +1,5 @@
 using MediatR;
+using VkOrdApi.Creative;
 using WebApp.Handlers.Requests;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
@@ -6,7 +7,7 @@ using WebApp.Services.Interfaces;
 
 namespace WebApp.Handlers
 {
-    public class CreateCreativeHandler : IRequestHandler<CreateCreativeRequest, string>
+    public class CreateCreativeHandler : IRequestHandler<CreateCreativeRequest, VkOrdCreativeV3RequestResponse>
     {
         private readonly IVkOrdService _vkOrdService;
         private readonly ILogger<CreateCreativeHandler> _logger;
@@ -17,11 +18,11 @@ namespace WebApp.Handlers
             _logger = logger;
         }
 
-        public async Task<string> Handle(CreateCreativeRequest request, CancellationToken cancellationToken)
+        public async Task<VkOrdCreativeV3RequestResponse> Handle(CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             var result = await _vkOrdService.CreateCreative(request, cancellationToken);
             
-            return result.Erid;
+            return result;
         }
     }
 }

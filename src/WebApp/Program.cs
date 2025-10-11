@@ -9,6 +9,9 @@ using Refit;
 using Serilog;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using Domain.Data;
 using WebApp.Configuration;
 using WebApp.Controllers.Filters;
@@ -27,6 +30,17 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// Настройка JSON сериализации для всего приложения
+var jsonSerializerOptions = new JsonSerializerOptions
+{
+    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
+    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull,
+    Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
+    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+    WriteIndented = true,
+};
+builder.Services.AddSingleton(jsonSerializerOptions);
 
 // Настройка конфигурации
 builder.Services.Configure<VkOrdConfiguration>(
@@ -161,10 +175,13 @@ builder.Services.AddScoped<ITokenService, TokenService>();
 
 // Добавление контроллеров
 builder.Services.AddControllers()
-    .AddNewtonsoftJson(options =>
+    .AddJsonOptions(options =>
     {
-        options.SerializerSettings.DateFormatString = "yyyy-MM-dd";
-        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
+        options.JsonSerializerOptions.WriteIndented = true;
     })
     .AddMvcOptions(o =>
     {

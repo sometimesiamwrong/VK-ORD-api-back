@@ -12,7 +12,7 @@ namespace WebApp.Repositories.Interfaces
     public interface IVkOrdMediaRepository
     {
         // Медиа файлы
-        Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken);
+        Task<string> UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken);
         Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken);
         //Task<byte[]> GetMediaFile(string externalId, CancellationToken cancellationToken);
         Task<VkOrdMediaListResponse> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken);

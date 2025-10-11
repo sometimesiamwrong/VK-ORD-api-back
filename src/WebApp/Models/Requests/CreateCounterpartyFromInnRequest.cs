@@ -4,7 +4,7 @@ using VkOrdApi.Person;
 
 namespace WebApp.Models.Requests
 {
-	public sealed class CreateCounterpartyFromInnRequest : IRequestWithVkOrdKey, IRequest
+	public sealed class CreateCounterpartyFromInnRequest : IRequest
 	{
 		[Required]
 		[StringLength(12, MinimumLength = 10)]

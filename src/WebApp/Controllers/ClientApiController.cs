@@ -2,6 +2,7 @@ using Domain.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using VkOrdApi.Creative;
 using WebApp.Features.Counterparties.Queries.GetCounterparty;
 using WebApp.Handlers.Requests;
 using WebApp.Models.Requests;
@@ -51,7 +52,7 @@ namespace WebApp.Controllers
         /// Создать креатив в VK ОРД
         /// </summary>
         [HttpPost("create_creative")]
-        public Task<string> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
+        public Task<VkOrdCreativeV3RequestResponse> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             return _mediator.Send(request, cancellationToken);
         }

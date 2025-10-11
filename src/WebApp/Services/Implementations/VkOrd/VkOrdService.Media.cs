@@ -10,7 +10,7 @@ namespace WebApp.Services.Implementations.VkOrd
     /// </summary>
     public partial class VkOrdService : IVkOrdService
     {
-        public Task UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken)
+        public Task<string> UploadMedia(UploadMediaRequest request, CancellationToken cancellationToken)
         {
             return _mediaRepository.UploadMedia(request, cancellationToken);
         }

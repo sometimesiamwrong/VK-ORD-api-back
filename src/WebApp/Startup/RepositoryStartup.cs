@@ -7,6 +7,7 @@ using WebApp.Repositories.Implementation.Users;
 using WebApp.Repositories.Implementation.VkOrd.Contract;
 using WebApp.Repositories.Implementation.VkOrd.Counterparty;
 using WebApp.Repositories.Implementation.VkOrd.Creative;
+using WebApp.Repositories.Implementations.Unified;
 using WebApp.Repositories.Interfaces;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 using WebApp.Repositories.Interfaces.DaData;
@@ -82,9 +83,13 @@ namespace WebApp.Startup
             services.AddScoped<IGetAllCreativesRepository, GetAllCreativesRepository>();
             services.AddScoped<IGetCreativeByEridRepository, GetCreativeByEridRepository>();
 
+
             // VK ORD сервисы
             services.AddScoped<IVkOrdService, VkOrdService>();
             services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
+            
+            // ApiCredentials репозитории
+            services.AddScoped<IGetApiCredentialByIdRepository, WebApp.Repositories.Implementation.ApiCredentials.GetApiCredentialByIdRepository>();
         }
     }
 }

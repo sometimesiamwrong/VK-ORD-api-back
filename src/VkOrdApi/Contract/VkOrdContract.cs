@@ -6,6 +6,12 @@ namespace VkOrdApi.Contract
     public class VkOrdContract
     {
         /// <summary>
+        /// Внешний идентификатор договора.
+        /// </summary>
+        [JsonPropertyName("external_id")]
+        public string ExternalId { get; set; } = string.Empty;
+
+        /// <summary>
         /// Дата и время создания договора.
         /// </summary>
         [JsonPropertyName("create_date")]

@@ -1,7 +1,6 @@
 using System.Net;
 using System.Text.Json;
 using Domain.Exceptions;
-using Newtonsoft.Json;
 
 namespace WebApp.Middleware
 {
@@ -12,16 +11,19 @@ namespace WebApp.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<GlobalExceptionHandlingMiddleware> _logger;
+        private readonly JsonSerializerOptions _jsonSerializerOptions;
 
         /// <summary>
         /// Инициализирует новый экземпляр класса <see cref="GlobalExceptionHandlingMiddleware"/>.
         /// </summary>
         /// <param name="next">Следующий делегат.</param>
         /// <param name="logger">Логгер.</param>
-        public GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlingMiddleware> logger)
+        /// <param name="jsonSerializerOptions">Настройки JSON сериализации.</param>
+        public GlobalExceptionHandlingMiddleware(RequestDelegate next, ILogger<GlobalExceptionHandlingMiddleware> logger, JsonSerializerOptions jsonSerializerOptions)
         {
             _next = next;
             _logger = logger;
+            _jsonSerializerOptions = jsonSerializerOptions;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -37,9 +39,9 @@ namespace WebApp.Middleware
             }
         }
 
-        private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            context.Response.ContentType = "application/json";
+            context.Response.ContentType = "application/json; charset=utf-8";
 
             var response = new
             {
@@ -57,8 +59,8 @@ namespace WebApp.Middleware
                 case BrokenRulesException brokenRulesException:
                     var statusCode = DetermineStatusCodeFromBrokenRules(brokenRulesException);
                     context.Response.StatusCode = statusCode ?? (int)HttpStatusCode.BadRequest;
-                    context.Response.ContentType = "application/json";
-                    var brokenRulesResponse = System.Text.Json.JsonSerializer.Serialize(brokenRulesException.BrokenRules);
+                    context.Response.ContentType = "application/json; charset=utf-8";
+                    var brokenRulesResponse = JsonSerializer.Serialize(brokenRulesException.BrokenRules, _jsonSerializerOptions);
                     await context.Response.WriteAsync(brokenRulesResponse);
                     return; // Важно: выходим из метода, не переходим к общему JSON ответу
                 case ArgumentException:
@@ -79,7 +81,7 @@ namespace WebApp.Middleware
                     break;
             }
 
-            var jsonResponse = JsonConvert.SerializeObject(response);
+            var jsonResponse = JsonSerializer.Serialize(response, _jsonSerializerOptions);
             await context.Response.WriteAsync(jsonResponse);
         }
 

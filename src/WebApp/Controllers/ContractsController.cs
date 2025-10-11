@@ -34,9 +34,9 @@ namespace WebApp.Controllers
         /// Получить информацию о контракте по external_id
         /// </summary>
         [HttpGet("{externalId}")]
-        public async Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken)
+        public Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken)
         {
-            return await _vkOrdService.GetContract(externalId, cancellationToken);
+            return _vkOrdService.GetContract(externalId, cancellationToken);
         }
 
     }

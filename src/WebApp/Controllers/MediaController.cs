@@ -29,7 +29,7 @@ namespace WebApp.Controllers
         [Consumes("multipart/form-data")]
         [SwaggerOperation(Summary = "Загрузить медиа файл", Description = "Загружает медиа файл в VK ОРД")]
         [SwaggerResponse(200, "Файл успешно загружен")]
-        public async Task UploadMedia([FromForm] UploadFileDto uploadFile, CancellationToken cancellationToken)
+        public async Task<string> UploadMedia([FromForm] UploadFileDto uploadFile, CancellationToken cancellationToken)
         {
             var request = new UploadMediaRequest
             {
@@ -38,7 +38,7 @@ namespace WebApp.Controllers
                 ContentType = uploadFile.File.ContentType
             };
 
-            await _vkOrdService.UploadMedia(request, cancellationToken);
+            return await _vkOrdService.UploadMedia(request, cancellationToken);
         }
 
         /// <summary>

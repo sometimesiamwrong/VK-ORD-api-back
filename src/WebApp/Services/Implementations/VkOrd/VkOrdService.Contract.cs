@@ -19,10 +19,13 @@ namespace WebApp.Services.Implementations.VkOrd
         {
             var vkOrdContract = new VkOrdCreateUpdateContractRequest
             {
+                Serial = request.Serial,
                 ClientExternalId = request.ClientExternalId,
                 ContractorExternalId = request.ContractorExternalId,
                 Type = VkOrdContractType.Service,
                 Amount = request.PaySum.ToString(),
+                Date = request.Date,
+                DateEnd = request.DateEnd,
                 Flags = new List<VkOrdContractFlag> { VkOrdContractFlag.VatIncluded },
                 ActionType = VkOrdActionType.Other,
                 SubjectType = VkOrdSubjectType.Distribution
