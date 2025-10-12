@@ -18,4 +18,13 @@ Global
 		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EEE890AD-E6EB-483D-BD24-204ABD26F050}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {B1E6C696-7905-4156-B58D-7ABB7531A592}
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(StartupProject) = preSolution
+		{B1E6C696-7905-4156-B58D-7ABB7531A592} = WebApp
+	EndGlobalSection
 EndGlobal
