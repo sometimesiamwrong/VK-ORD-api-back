@@ -1,8 +1,7 @@
-﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp.csproj", "{B1E6C696-7905-4156-B58D-7ABB7531A592}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "src/WebApp/WebApp.csproj", "{B1E6C696-7905-4156-B58D-7ABB7531A592}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "../../src/Domain/Domain.csproj", "{EEE890AD-E6EB-483D-BD24-204ABD26F050}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "src/Domain/Domain.csproj", "{EEE890AD-E6EB-483D-BD24-204ABD26F050}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
