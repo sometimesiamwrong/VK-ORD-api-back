@@ -15,6 +15,7 @@ using System.Text.Unicode;
 using Domain.Data;
 using WebApp.Configuration;
 using WebApp.Controllers.Filters;
+using WebApp.Filters;
 using WebApp.Middleware;
 using WebApp.Security;
 using WebApp.Services.Implementations;
@@ -189,6 +190,12 @@ builder.Services.AddControllers()
     })
     .AddMvcOptions(o =>
     {
+        o.Filters.Add<ModelValidationFilter>();
+    })
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // Отключаем автоматическую обработку ошибок валидации
+        options.SuppressModelStateInvalidFilter = true;
     });
 
 // Настройка Swagger
