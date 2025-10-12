@@ -1,5 +1,5 @@
 using Domain.Entities;
-using VkOrdApi.Person;
+using Domain.Entities.Enums.VkOrd;
 using WebApp.Models.Responses;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
@@ -9,6 +9,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
     /// </summary>
     public interface ICreateVkOrdCounterpartyFromInnRepository
     {
-        Task CreateCounterpartyFromInnAsync(string inn, List<VkOrdPersonRoles> types, DaDataPartyShortResponse daData, CancellationToken cancellationToken);
+        Task CreateCounterpartyFromInnAsync(string inn, List<VkOrdApiPersonRoles> types, DaDataPartyShortResponse daData, CancellationToken cancellationToken);
     }
 }

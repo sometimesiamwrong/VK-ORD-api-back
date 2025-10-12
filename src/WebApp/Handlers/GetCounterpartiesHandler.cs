@@ -19,6 +19,7 @@ namespace WebApp.Handlers
         public async Task<GetCounterpartiesResponseDto> Handle(GetCounterpartiesRequest request, CancellationToken cancellationToken)
         {
             var result = await _vkOrdService.GetPageCounterparties(request.PageRequest, cancellationToken); 
+            await _vkOrdService.GetPageCounterparties(request.PageRequest, cancellationToken);
             return result;
         }
     }

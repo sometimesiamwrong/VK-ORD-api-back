@@ -22,3 +22,4 @@ public class GetCounterpartyContractsResponse : CacheResponse
     /// </summary>
     public int ReturnedCount { get; set; }
 }
+

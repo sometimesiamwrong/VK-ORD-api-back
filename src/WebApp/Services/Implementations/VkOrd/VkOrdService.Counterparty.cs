@@ -1,8 +1,10 @@
 using Domain;
 using Domain.BrokenRules;
+using Domain.Entities.Enums.VkOrd;
+using Domain.Entities.VkOrd;
 using Domain.Extensions;
+using Domain.VkOrdApi.Person;
 using Microsoft.IdentityModel.Tokens;
-using VkOrdApi.Person;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
 
@@ -13,7 +15,7 @@ namespace WebApp.Services.Implementations.VkOrd
     /// </summary>
     public partial class VkOrdService : IVkOrdService
     {
-        public async Task CreateCounterpartyFromInn(string inn, List<VkOrdPersonRoles> roles, CancellationToken cancellationToken)
+        public async Task CreateCounterpartyFromInn(string inn, List<VkOrdApiPersonRoles> roles, CancellationToken cancellationToken)
         {
             var dadata = await _daDataService.FindPartyByInnAsync(inn, cancellationToken);
             if (dadata == null)
@@ -21,10 +23,10 @@ namespace WebApp.Services.Implementations.VkOrd
                 throw BrokenRuleCodes.CounterpartyNotFound.AsExn("Контрагент по ИНН не найден в DaData");
             }
             
-            VkOrdPersonType type;
+            VkOrdApiPersonType type;
 
             // dadata.Type:  LEGAL — юридическое лицо, INDIVIDUAL — индивидуальный предприниматель
-            type = dadata.Type == "LEGAL" ? VkOrdPersonType.Juridical : VkOrdPersonType.Ip;
+            type = dadata.Type == "LEGAL" ? VkOrdApiPersonType.Juridical : VkOrdApiPersonType.Ip;
 
             var name = dadata.Value
                 ?? dadata.Name?.FullWithOpf
@@ -33,12 +35,12 @@ namespace WebApp.Services.Implementations.VkOrd
                 ?? string.Empty;
 
             // Map to VK ORD person schema
-            var person = new VkOrdPersonResponse
+            var person = new VkOrdApiPersonResponse
             {
                 Name = name,
                 Roles = roles,
                 RsUrl = null,
-                JuridicalDetails = new VkOrdPersonJuridicalDetails
+                JuridicalDetails = new VkOrdApiPersonJuridicalDetails
                 {
                     Type = type,
                     ModelScheme = "russia",
@@ -57,9 +59,9 @@ namespace WebApp.Services.Implementations.VkOrd
             await _createCounterpartyRepository.Create(externalId, person, cancellationToken);
         }
 
-        public Task CreateCounterparty(string externalId, VkOrdPersonResponse person, CancellationToken cancellationToken)
+        public Task CreateCounterparty(string externalId, VkOrdApiPersonResponse apiPerson, CancellationToken cancellationToken)
         {
-            return _createCounterpartyRepository.Create(externalId, person, cancellationToken);
+            return _createCounterpartyRepository.Create(externalId, apiPerson, cancellationToken);
         }
 
 
@@ -71,7 +73,7 @@ namespace WebApp.Services.Implementations.VkOrd
             {
                 return new GetCounterpartiesResponseDto
                 {
-                    Data = new List<VkOrdPersonResponse>(),
+                    Data = new List<VkOrdApiPersonResponse>(),
                     TotalItemsCount = 0,
                     Limit = 0
                 };
@@ -86,11 +88,11 @@ namespace WebApp.Services.Implementations.VkOrd
             _logger.LogInformation($"Found {externalIds.Count} counterparties (total: {totalItemsCount}, responseLimit: {responseLimit}), fetching full data for each");
 
             // Получаем полные данные для каждого контрагента последовательно
-            var counterparties = new List<VkOrdPersonResponse>();
+            var counterparties = new List<VkOrdApiPersonResponse>();
 
             foreach (var externalId in externalIds)
             {
-                var counterpartyResponse = await _getCounterpartyByIdRepository.GetCounterpartyByIdAsync(externalId, cancellationToken);
+                var counterpartyResponse = await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
                 if (counterpartyResponse?.Data != null)
                 {
                     counterparties.Add(counterpartyResponse.Data);
@@ -107,9 +109,9 @@ namespace WebApp.Services.Implementations.VkOrd
             };
         }
 
-        public Task<GetCounterpartyResponse?> GetCounterpartyById(string externalId, CancellationToken cancellationToken)
+        public Task<VkOrdCounterparty> GetCounterpartyById(string externalId, CancellationToken cancellationToken)
         {
-            return _getCounterpartyByIdRepository.GetCounterpartyByIdAsync(externalId, cancellationToken);
+            return _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
         }
     }
 }

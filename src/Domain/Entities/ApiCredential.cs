@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Domain.Entities;
 using Domain.Entities.Enums;
+using Domain.Entities.VkOrd;
 
 namespace Domain.Entities; 
 
@@ -13,7 +14,13 @@ public class ApiCredential : EntityBase
     /// Среда
     /// </summary>
     [Required]
-    public VkOrdEnvironmentCode Environment { get; set; } = VkOrdEnvironmentCode.Sandbox;
+    public VkOrdApiEnvironmentCode ApiEnvironment { get; set; } = VkOrdApiEnvironmentCode.Sandbox;
+
+    /// <summary>
+    /// Идентификатор логического аккаунта
+    /// </summary>
+    [Required]
+    public long LogicalAccountId { get; set; }
 
     /// <summary>
     /// Зашифрованный токен
@@ -37,6 +44,12 @@ public class ApiCredential : EntityBase
     /// </summary>
     [Required]
     public virtual User? User { get; set; }
+
+    /// <summary>
+    /// Логический аккаунт
+    /// </summary>
+    [Required]
+    public virtual VkOrdLogicalAccount? LogicalAccount { get; set; }
 }
 
 

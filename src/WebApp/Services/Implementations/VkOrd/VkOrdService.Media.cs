@@ -1,5 +1,5 @@
 using Domain;
-using VkOrdApi.Media;
+using Domain.VkOrdApi.Media;
 using WebApp.Models.Requests;
 using WebApp.Services.Interfaces;
 
@@ -15,7 +15,7 @@ namespace WebApp.Services.Implementations.VkOrd
             return _mediaRepository.UploadMedia(request, cancellationToken);
         }
 
-        public Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
+        public Task<VkOrdApiMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
         {
             return  _mediaRepository.GetMedia(externalId, cancellationToken);
         }
@@ -32,7 +32,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
                 _logger.LogInformation($"Found {externalIds.Count} creatives (total: {totalItemsCount}, limit: {responseLimit})");
 
-                var media = new List<VkOrdMediaInfoResponse>();
+                var media = new List<VkOrdApiMediaInfoResponse>();
 
                 foreach (var externalId in externalIds)
                 {
@@ -62,7 +62,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
             return new VkOrdMediaInfoListResponseDto
             {
-                Data = new List<VkOrdMediaInfoResponse>(),
+                Data = new List<VkOrdApiMediaInfoResponse>(),
                 TotalItemsCount = 0,
                 Limit = 0
             };

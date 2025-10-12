@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using Domain.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,7 @@ namespace WebApp.Controllers
         /// Получить информацию о контракте по external_id
         /// </summary>
         [HttpGet("{externalId}")]
-        public Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken)
+        public Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetContract(externalId, cancellationToken);
         }

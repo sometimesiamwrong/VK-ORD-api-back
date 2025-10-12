@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
+using Domain.Entities.Enums.VkOrd;
 using MediatR;
-using VkOrdApi.Person;
 
 namespace WebApp.Models.Requests
 {
@@ -15,9 +15,9 @@ namespace WebApp.Models.Requests
         /// Типы контрагента
         /// </summary>
         /// <example>
-        /// <see cref="VkOrdPersonRoles"/>
+        /// <see cref="VkOrdApiPersonRoles"/>
         /// </example>
-        public List<VkOrdPersonRoles> Types { get; set; } = new();
+        public List<VkOrdApiPersonRoles> Types { get; set; } = new();
 	}
 }
 

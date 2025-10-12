@@ -1,14 +1,15 @@
 using System.ComponentModel.DataAnnotations;
+using Domain.Entities.Enums.VkOrd;
+using Domain.VkOrdApi.Creative;
+using Domain.VkOrdApi.Statistics;
 using MediatR;
-using VkOrdApi.Creative;
-using VkOrdApi.Statistics;
 
 namespace WebApp.Models.Requests
 {
     /// <summary>
     /// Запрос на создание креатива
     /// </summary>
-    public class CreateCreativeRequest : IRequest<VkOrdCreativeV3RequestResponse>
+    public class CreateCreativeRequest : IRequest<VkOrdApiCreativeV3RequestResponse>
     {
         /// <summary>
         /// Внешний ID креатива
@@ -37,7 +38,7 @@ namespace WebApp.Models.Requests
         /// Формат
         /// </summary>
         [Required]
-        public VkOrdCreativeForm Type { get; set; }
+        public VkOrdApiCreativeForm Type { get; set; }
 
         /// <summary>
         /// Целевые URL
@@ -82,7 +83,7 @@ namespace WebApp.Models.Requests
         /// <summary>
         /// Тип оплаты
         /// </summary>
-        public VkOrdPayType PayType { get; set; }
+        public VkOrdApiPayType ApiPayType { get; set; }
 
         /// <summary>
         /// Форма
@@ -92,6 +93,6 @@ namespace WebApp.Models.Requests
         /// <summary>
         /// Флаги
         /// </summary>
-        public List<VkOrdCreativeFlag> Flags { get; set; } = new List<VkOrdCreativeFlag>();
+        public List<VkOrdApiCreativeFlag> Flags { get; set; } = new List<VkOrdApiCreativeFlag>();
     }
 }

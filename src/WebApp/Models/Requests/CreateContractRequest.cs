@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Domain;
 using MediatR;
-using VkOrdApi.Contract;
 
 namespace WebApp.Models.Requests
 {

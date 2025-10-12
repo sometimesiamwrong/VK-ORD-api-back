@@ -1,5 +1,4 @@
-
-using VkOrdApi.Creative;
+using Domain.VkOrdApi.Creative;
 using WebApp.Models.Responses;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Creative
@@ -9,6 +8,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Creative
     /// </summary>
     public interface ICreateCreativeRepository
     {
-        Task<VkOrdCreativeV3RequestResponse> CreateCreative(string externalId, VkOrdCreativeV3Request request, CancellationToken cancellationToken);
+        Task<VkOrdApiCreativeV3RequestResponse> CreateCreative(string externalId, VkOrdApiCreativeV3Request request, CancellationToken cancellationToken);
     }
 }

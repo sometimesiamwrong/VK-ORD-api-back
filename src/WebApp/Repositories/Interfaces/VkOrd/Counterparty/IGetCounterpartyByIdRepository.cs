@@ -1,4 +1,4 @@
-using WebApp.Models.Responses;
+using Domain.Entities.VkOrd;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
 {
@@ -7,6 +7,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
     /// </summary>
     public interface IGetCounterpartyByIdRepository
     {
-        Task<GetCounterpartyResponse?> GetCounterpartyByIdAsync(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken);
     }
 }

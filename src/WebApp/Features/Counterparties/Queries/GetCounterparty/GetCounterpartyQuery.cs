@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using MediatR;
 using WebApp.Models.Responses;
 
@@ -6,5 +7,5 @@ namespace WebApp.Features.Counterparties.Queries.GetCounterparty;
 /// <summary>
 /// Запрос на получение контрагента VK ОРД.
 /// </summary>
-public record GetCounterpartyQuery(string ExternalId) : IRequest<GetCounterpartyResponse>;
+public record GetCounterpartyQuery(string ExternalId) : IRequest<VkOrdCounterparty>;
 

@@ -26,3 +26,4 @@ public class GetCounterpartyContractsRequest : CacheRequest
     /// </summary>
     public bool IncludeAdditionalContracts { get; set; } = true;
 }
+

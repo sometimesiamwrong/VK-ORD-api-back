@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using WebApp.Models.Responses;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Contract
@@ -7,6 +8,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Contract
     /// </summary>
     public interface IGetContractRepository
     {
-        Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken);
     }
 }

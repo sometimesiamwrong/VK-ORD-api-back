@@ -19,7 +19,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? configuration["ConnectionStrings:DefaultConnection"]
-            ?? "Host=localhost;Port=5432;Database=vkord_dev;Username=postgres;Password=postgres";
+            ?? "Host=79.174.89.150;Port=19474;Database=vk_user;Username=vkord_user;Password=rV9-KmK-TYG-siA;Maximum Pool Size=50;";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

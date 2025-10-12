@@ -1,4 +1,4 @@
-using VkOrdApi.Contract;
+using Domain.VkOrdApi.Contract;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Contract
 {
@@ -7,6 +7,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Contract
     /// </summary>
     public interface ICreateOrUpdateContractRepository
     {
-        Task CreateOrUpdateContract(string externalId, VkOrdCreateUpdateContractRequest request, CancellationToken cancellationToken);
+        Task CreateOrUpdateContract(string externalId, VkOrdApiCreateUpdateContractRequest request, CancellationToken cancellationToken);
     }
 }

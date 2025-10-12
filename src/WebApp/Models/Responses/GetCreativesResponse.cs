@@ -1,4 +1,4 @@
-using VkOrdApi.Creative;
+using Domain.VkOrdApi.Creative;
 
 namespace WebApp.Models.Responses
 {
@@ -7,7 +7,7 @@ namespace WebApp.Models.Responses
     /// </summary>
     public class GetCreativesResponse
     {
-        public List<VkOrdCreativeV3Response> Data { get; set; } = new();
+        public List<VkOrdApiCreativeV3Response> Data { get; set; } = new();
         public int TotalCount => Data?.Count ?? 0;
         public int TotalItemsCount { get; set; }
         public int Limit { get; set; }

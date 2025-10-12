@@ -1,7 +1,9 @@
 using Domain;
+using Domain.Entities.Enums.VkOrd;
+using Domain.Entities.VkOrd;
 using Domain.Extensions;
+using Domain.VkOrdApi.Contract;
 using Microsoft.IdentityModel.Tokens;
-using VkOrdApi.Contract;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -17,35 +19,35 @@ namespace WebApp.Services.Implementations.VkOrd
             CreateContractRequest request,
             CancellationToken cancellationToken)
         {
-            var vkOrdContract = new VkOrdCreateUpdateContractRequest
+            var vkOrdContract = new VkOrdApiCreateUpdateContractRequest
             {
                 Serial = request.Serial,
                 ClientExternalId = request.ClientExternalId,
                 ContractorExternalId = request.ContractorExternalId,
-                Type = VkOrdContractType.Service,
+                Type = VkOrdApiContractType.Service,
                 Amount = request.PaySum.ToString(),
                 Date = request.Date,
                 DateEnd = request.DateEnd,
-                Flags = new List<VkOrdContractFlag> { VkOrdContractFlag.VatIncluded },
-                ActionType = VkOrdActionType.Other,
-                SubjectType = VkOrdSubjectType.Distribution
+                Flags = new List<VkOrdApiContractFlag> { VkOrdApiContractFlag.VatIncluded },
+                ActionType = VkOrdApiActionType.Other,
+                ApiSubjectType = VkOrdApiSubjectType.Distribution
             };
 
             return _createContractRepository.CreateOrUpdateContract(request.ExternalId, vkOrdContract, cancellationToken);
         }
 
-        public Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken)
         {
-            return _getContractRepository.GetContract(externalId, cancellationToken);
+            return await _getContractRepository.Get(externalId, cancellationToken);
         }
 
-        public async Task<GetContractResponseDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken)
+        public async Task<GetContractsDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken)
         {
             var pageContractListResponse = await _getPageContractRepository.Get(pageRequest, cancellationToken);
 
             if(pageContractListResponse?.ExternalIds.IsNullOrEmpty() ?? true)
             {
-                return new GetContractResponseDto
+                return new GetContractsDto
                 {
                     Data = new List<VkOrdContract>(),
                     TotalItemsCount = 0,
@@ -66,16 +68,16 @@ namespace WebApp.Services.Implementations.VkOrd
 
             foreach (var externalId in externalIds)
             {
-                var counterpartyResponse = await _getContractRepository.GetContract(externalId, cancellationToken);
+                var counterpartyResponse = await _getContractRepository.Get(externalId, cancellationToken);
                 if (counterpartyResponse?.Data != null)
                 {
-                    contracts.Add(counterpartyResponse.Data);
+                    contracts.Add(counterpartyResponse);
                 }
             }
 
             _logger.LogInformation($"Successfully fetched {contracts.Count} out of {externalIds.Count} counterparties");
 
-            return new GetContractResponseDto
+            return new GetContractsDto
             {
                 Data = contracts,
                 TotalItemsCount = totalItemsCount,

@@ -14,5 +14,5 @@ public class PageRequest
     /// Количество элементов, которые необходимо получить за один запрос
     /// </summary>
     [JsonPropertyName("limit")]
-    public int Limit { get; set; } = 10;
+    public int Limit { get; set; } = 100;
 }

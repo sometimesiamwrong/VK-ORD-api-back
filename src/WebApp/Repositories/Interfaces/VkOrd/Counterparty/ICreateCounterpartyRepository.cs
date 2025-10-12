@@ -1,4 +1,4 @@
-using VkOrdApi.Person;
+using Domain.VkOrdApi.Person;
 
 namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
 {
@@ -7,6 +7,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
     /// </summary>
     public interface ICreateCounterpartyRepository
     {
-        Task Create(string externalId, VkOrdPersonResponse person, CancellationToken cancellationToken);
+        Task Create(string externalId, VkOrdApiPersonResponse apiPerson, CancellationToken cancellationToken);
     }
 }

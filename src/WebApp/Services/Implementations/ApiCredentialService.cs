@@ -37,10 +37,10 @@ public class ApiCredentialService : IApiCredentialService
         return credentials.Select(MapToResponse).ToList();
     }
 
-    public async Task<List<ApiCredentialResponse>> GetAllByEnvironment(Guid userId, VkOrdEnvironmentCode environment, CancellationToken cancellationToken)
+    public async Task<List<ApiCredentialResponse>> GetAllByEnvironment(Guid userId, VkOrdApiEnvironmentCode apiEnvironment, CancellationToken cancellationToken)
     {
         var user = await _getUserRepo.GetByGuid(userId, cancellationToken);
-        var credentials = await _listRepo.GetListAsync(user.Id, cancellationToken, environment);
+        var credentials = await _listRepo.GetListAsync(user.Id, cancellationToken, apiEnvironment);
         return credentials.Select(MapToResponse).ToList();
     }
 
@@ -59,13 +59,13 @@ public class ApiCredentialService : IApiCredentialService
             throw new ArgumentException("TokenPlain is required", nameof(request.TokenPlain));
 
         var now = DateTimeOffset.UtcNow;
-        var environment = Enum.Parse<VkOrdEnvironmentCode>(request.Environment, true);
+        var environment = Enum.Parse<VkOrdApiEnvironmentCode>(request.Environment, true);
 
         var credential = new ApiCredential
         {
             Id = 0,
             UserId = userId,
-            Environment = environment,
+            ApiEnvironment = environment,
             TokenEncrypted = request.TokenPlain, // plain text, will be encrypted in repository
             DisplayName = request.DisplayName,
             CreatedAt = now,
@@ -94,7 +94,7 @@ public class ApiCredentialService : IApiCredentialService
 
         if (!string.IsNullOrWhiteSpace(request.Environment))
         {
-            existing.Environment = Enum.Parse<VkOrdEnvironmentCode>(request.Environment, true);
+            existing.ApiEnvironment = Enum.Parse<VkOrdApiEnvironmentCode>(request.Environment, true);
         }
 
         existing.DisplayName = request.DisplayName ?? existing.DisplayName;
@@ -118,7 +118,7 @@ public class ApiCredentialService : IApiCredentialService
         return new ApiCredentialResponse
         {
             PublicId = credential.PublicId,
-            Environment = credential.Environment.ToString(),
+            Environment = credential.ApiEnvironment.ToString(),
             DisplayName = credential.DisplayName,
             CreatedAt = credential.CreatedAt,
             UpdatedAt = credential.UpdatedAt

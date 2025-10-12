@@ -1,13 +1,3 @@
-using WebApp.Repositories.Implementation;
-using WebApp.Repositories.Implementation.ApiCredentials;
-using WebApp.Repositories.Implementation.DaData;
-using WebApp.Repositories.Implementation.DatabaseScripts;
-using WebApp.Repositories.Implementation.RefreshTokens;
-using WebApp.Repositories.Implementation.Users;
-using WebApp.Repositories.Implementation.VkOrd.Contract;
-using WebApp.Repositories.Implementation.VkOrd.Counterparty;
-using WebApp.Repositories.Implementation.VkOrd.Creative;
-using WebApp.Repositories.Implementations.Unified;
 using WebApp.Repositories.Interfaces;
 using WebApp.Repositories.Interfaces.ApiCredentials;
 using WebApp.Repositories.Interfaces.DaData;
@@ -21,6 +11,15 @@ using WebApp.Security;
 using WebApp.Services.Implementations;
 using WebApp.Services.Interfaces;
 using Scrutor;
+using WebApp.Repositories.Implementations;
+using WebApp.Repositories.Implementations.ApiCredentials;
+using WebApp.Repositories.Implementations.DaData;
+using WebApp.Repositories.Implementations.DatabaseScripts;
+using WebApp.Repositories.Implementations.RefreshTokens;
+using WebApp.Repositories.Implementations.Users;
+using WebApp.Repositories.Implementations.VkOrd.Contract;
+using WebApp.Repositories.Implementations.VkOrd.Counterparty;
+using WebApp.Repositories.Implementations.VkOrd.Creative;
 using WebApp.Services.Implementations.VkOrd;
 
 namespace WebApp.Startup
@@ -75,7 +74,6 @@ namespace WebApp.Startup
             
             services.AddScoped<ICreateCounterpartyRepository, CreateCounterpartyRepository>();
             services.AddScoped<IGetCounterpartyByIdRepository, GetCounterpartyByIdRepository>();
-            services.Decorate<IGetCounterpartyByIdRepository, GetCounterpartyByIdCacheRepository>();
             services.AddScoped<IGetPageCounterpartiesRepository, GetPageCounterpartiesRepository>();
             
             services.AddScoped<ICreateCreativeRepository, CreateCreativeRepository>();
@@ -88,8 +86,11 @@ namespace WebApp.Startup
             services.AddScoped<IVkOrdService, VkOrdService>();
             services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
             
+            // VK ORD Data Service
+            services.AddScoped(typeof(IVkOrdDataService<,>), typeof(VkOrdDataService<,>));
+            
             // ApiCredentials репозитории
-            services.AddScoped<IGetApiCredentialByIdRepository, WebApp.Repositories.Implementation.ApiCredentials.GetApiCredentialByIdRepository>();
+            services.AddScoped<IGetApiCredentialByIdRepository, GetApiCredentialByIdRepository>();
         }
     }
 }

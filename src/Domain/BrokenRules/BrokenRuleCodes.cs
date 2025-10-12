@@ -62,5 +62,19 @@ public enum BrokenRuleCodes : long
     /// </summary>
     [Description("Контрагент не найден")]
     [Domain("ExternalApi")]
-    CounterpartyNotFound = 7
+    CounterpartyNotFound = 7,
+
+    /// <summary>
+    /// Превышен лимит запросов к VK ОРД API
+    /// </summary>
+    [Description("Превышен лимит запросов к VK ОРД API")]
+    [Domain("ExternalApi")]
+    VkOrdApiRateLimit = 8,
+
+    /// <summary>
+    /// Контрагент не найден в VK ОРД API
+    /// </summary>
+    [Description("Контрагент не найден в VK ОРД API")]
+    [Domain("ExternalApi")]
+    DataIsEmpty = 9
 }

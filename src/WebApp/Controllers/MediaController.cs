@@ -1,8 +1,8 @@
 using Domain;
+using Domain.VkOrdApi.Media;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using VkOrdApi.Media;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -45,7 +45,7 @@ namespace WebApp.Controllers
         /// Получить информацию о медиа файле
         /// </summary>
         [HttpGet("{externalId}")]
-        public async Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdApiMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
         {
             return await _vkOrdService.GetMedia(externalId, cancellationToken);    
         }

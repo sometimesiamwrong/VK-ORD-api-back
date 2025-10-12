@@ -1,5 +1,5 @@
 using Domain;
-using VkOrdApi.Creative;
+using Domain.VkOrdApi.Creative;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Services.Interfaces;
@@ -11,9 +11,9 @@ namespace WebApp.Services.Implementations.VkOrd
     /// </summary>
     public partial class VkOrdService : IVkOrdService
     {
-        public async Task<VkOrdCreativeV3RequestResponse> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken)
+        public async Task<VkOrdApiCreativeV3RequestResponse> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken)
         {
-            var vkOrdCreative = new VkOrdCreativeV3Request
+            var vkOrdCreative = new VkOrdApiCreativeV3Request
             {
                 PersonExternalId = request.PersonExternalId ?? null,
                 ContractExternalIds = request.ContractExternalIds,
@@ -22,7 +22,7 @@ namespace WebApp.Services.Implementations.VkOrd
                 Brand = request.Brand,
                 Category = request.Category,
                 Description = request.Description,
-                PayType = request.PayType,
+                ApiPayType = request.ApiPayType,
                 Form = request.Type,
                 Targeting = request.TargetAudience,
                 TargetUrls = request.TargetUrls,
@@ -34,7 +34,7 @@ namespace WebApp.Services.Implementations.VkOrd
             return await _createCreativeRepository.CreateCreative(request.ExternalId, vkOrdCreative, cancellationToken);
         }
 
-        public async Task<VkOrdCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdApiCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken)
         {
             return await _getCreativeRepository.GetCreative(externalId, cancellationToken);
         }
@@ -51,7 +51,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
                 _logger.LogInformation($"Found {externalIds.Count} creatives (total: {totalItemsCount}, limit: {responseLimit})");
 
-                var creatives = new List<VkOrdCreativeV3Response>();
+                var creatives = new List<VkOrdApiCreativeV3Response>();
 
                 foreach (var externalId in externalIds)
                 {
@@ -81,13 +81,13 @@ namespace WebApp.Services.Implementations.VkOrd
 
             return new GetCreativesResponse
             {
-                Data = new List<VkOrdCreativeV3Response>(),
+                Data = new List<VkOrdApiCreativeV3Response>(),
                 TotalItemsCount = 0,
                 Limit = 0,
             };
         }
 
-        public async Task<VkOrdCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken)
+        public async Task<VkOrdApiCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken)
         {
             return await _getCreativeByEridRepository.GetCreativeByErid(erid, cancellationToken);
         }

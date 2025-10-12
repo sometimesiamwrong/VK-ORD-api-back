@@ -24,8 +24,8 @@ namespace WebApp.Services.Implementations
             _inner = inner;
             _logger = logger;
             var config = options.Value;
-            _readTimeout = TimeSpan.FromMilliseconds(config.ReadTimeoutMs <= 0 ? 200 : config.ReadTimeoutMs);
-            _writeTimeout = TimeSpan.FromMilliseconds(config.WriteTimeoutMs <= 0 ? 400 : config.WriteTimeoutMs);
+            _readTimeout = TimeSpan.FromMilliseconds(config.ReadTimeoutMs <= 0 ? 50 : config.ReadTimeoutMs);
+            _writeTimeout = TimeSpan.FromMilliseconds(config.WriteTimeoutMs <= 0 ? 100 : config.WriteTimeoutMs);
         }
 
         // ---------- Async API (используется в коде) ----------

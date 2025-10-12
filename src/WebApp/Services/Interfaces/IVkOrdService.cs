@@ -1,7 +1,9 @@
 using Domain;
-using VkOrdApi.Creative;
-using VkOrdApi.Media;
-using VkOrdApi.Person;
+using Domain.Entities.Enums.VkOrd;
+using Domain.Entities.VkOrd;
+using Domain.VkOrdApi.Creative;
+using Domain.VkOrdApi.Media;
+using Domain.Entities.VkOrd;
 using WebApp.Models.Requests;
 using WebApp.Models.Responses;
 using WebApp.Models.Counterparties;
@@ -24,22 +26,22 @@ public interface IVkOrdService
     /// <summary>
     /// Получить информацию о контракте по external_id
     /// </summary>
-    Task<ContractResponse> GetContract(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список контрактов
     /// </summary>
-    Task<GetContractResponseDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken);
+    Task<GetContractsDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken);
 
     /// <summary>
     /// Создать креатив
     /// </summary>
-    Task<VkOrdCreativeV3RequestResponse> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken);
+    Task<VkOrdApiCreativeV3RequestResponse> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить информацию о креативе по external_id
     /// </summary>
-    Task<VkOrdCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdApiCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список креативов с детальными данными
@@ -49,12 +51,12 @@ public interface IVkOrdService
     /// <summary>
     /// Получить креатив по ERID
     /// </summary>
-    Task<VkOrdCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken);
+    Task<VkOrdApiCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken);
     
     /// <summary>
     /// Создать контрагента в VK ОРД из данных DaData по ИНН
     /// </summary>
-    Task CreateCounterpartyFromInn(string inn, List<VkOrdPersonRoles> types, CancellationToken cancellationToken);
+    Task CreateCounterpartyFromInn(string inn, List<VkOrdApiPersonRoles> types, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список всех контрагентов с полными данными из VK ОРД
@@ -64,7 +66,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить контрагента по external_id из VK ОРД
     /// </summary>
-    Task<GetCounterpartyResponse?> GetCounterpartyById(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdCounterparty> GetCounterpartyById(string externalId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Загрузить медиа файл
@@ -74,7 +76,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить информацию о медиа файле
     /// </summary>
-    Task<VkOrdMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdApiMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список медиа файлов

@@ -27,6 +27,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
+    .MinimumLevel.Debug()
     .CreateLogger();
 
 builder.Host.UseSerilog();
@@ -39,6 +40,7 @@ var jsonSerializerOptions = new JsonSerializerOptions
     Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() },
     Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
     WriteIndented = true,
+    ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles,
 };
 builder.Services.AddSingleton(jsonSerializerOptions);
 
@@ -107,6 +109,7 @@ builder.Services.AddScoped<IDatabaseScriptService, DatabaseScriptService>();
 builder.Services.AddScoped<IApiCredentialService, ApiCredentialService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
+builder.Services.AddScoped<ICacheService, WebApp.Services.Implementations.Cache.CacheService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkApiHeadersFilter>();
@@ -182,6 +185,7 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
         options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All);
         options.JsonSerializerOptions.WriteIndented = true;
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
     })
     .AddMvcOptions(o =>
     {

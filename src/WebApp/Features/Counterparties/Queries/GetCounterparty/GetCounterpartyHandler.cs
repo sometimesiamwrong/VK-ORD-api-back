@@ -1,4 +1,5 @@
 using Domain.BrokenRules;
+using Domain.Entities.VkOrd;
 using Domain.Extensions;
 using MediatR;
 using WebApp.Models.Responses;
@@ -9,7 +10,7 @@ namespace WebApp.Features.Counterparties.Queries.GetCounterparty;
 /// <summary>
 /// Обработчик запроса получения контрагента VK ОРД.
 /// </summary>
-public class GetCounterpartyHandler : IRequestHandler<GetCounterpartyQuery, GetCounterpartyResponse>
+public class GetCounterpartyHandler : IRequestHandler<GetCounterpartyQuery, VkOrdCounterparty>
 {
     private readonly IVkOrdService _vkOrdService;
     private readonly ILogger<GetCounterpartyHandler> _logger;
@@ -22,7 +23,7 @@ public class GetCounterpartyHandler : IRequestHandler<GetCounterpartyQuery, GetC
         _logger = logger;
     }
 
-    public async Task<GetCounterpartyResponse> Handle(GetCounterpartyQuery request, CancellationToken cancellationToken)
+    public async Task<VkOrdCounterparty> Handle(GetCounterpartyQuery request, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Handling GetCounterpartyQuery for {ExternalId}", request.ExternalId);
 
