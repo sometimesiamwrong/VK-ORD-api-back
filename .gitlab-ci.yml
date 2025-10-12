@@ -25,9 +25,9 @@ deploy_to_hosting:
 
   script:
     - 'echo "Connecting to host and deploying..."'
-    - 'ssh -v $SSH_USER@$SSH_HOST "echo Connection successful"'
+    - 'ssh $SSH_USER@$SSH_HOST "echo Connection successful"'
     # 5. Ваша команда для деплоя, исправлена ошибка с двойным '&&'
-    - 'ssh -v $SSH_USER@$SSH_HOST "cd /root/vkoridapiwrapper/ && git pull origin main && dotnet publish -c Release -o ./publish && chmod +x shs/add-service.sh && cd shs && ./add-service.sh"'
+    - 'ssh $SSH_USER@$SSH_HOST "cd /root/vkoridapiwrapper/ && git pull origin main && dotnet publish -c Release -o ./publish && chmod +x /root/vkoridapiwrapper/shs/add-service.sh && cd /root/vkoridapiwrapper/shs && ./add-service.sh"'
     - 'echo "Deployment successful!"'
 
   only:

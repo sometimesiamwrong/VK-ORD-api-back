@@ -269,8 +269,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "https://criminally-astute-kangaroo.cloudpub.ru",
-            "https://ad-layer.ru",
             "https://server273.hosting.reg.ru",
+            "https://ad-lawyer.ru",
             "http://ad-lawyer.ru",
             "http://localhost",
             "http://localhost:5173"
