@@ -1,3 +1,5 @@
+using Domain.Entities.VkOrd;
+using Domain.VkOrdApi.Statistics;
 using WebApp.Models.Common;
 
 namespace WebApp.Models.Statistics;
@@ -10,7 +12,7 @@ public class GetActStatisticsResponse : CacheResponse
     /// <summary>
     /// Список статистики
     /// </summary>
-    //public List<StatisticsDto> Statistics { get; set; } = new();
+    public List<VkOrdStatistic> Statistics { get; set; } = new();
 
     /// <summary>
     /// Общее количество найденных записей

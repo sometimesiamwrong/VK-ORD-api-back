@@ -8,8 +8,7 @@ namespace WebApp.Handlers.Requests
     /// <summary>
     /// Запрос на получение списка контрагентов
     /// </summary>
-    public class GetCounterpartiesRequest : ICommand<GetCounterpartiesResponseDto>
+    public class GetCounterpartiesRequest : PageRequest, ICommand<GetCounterpartiesResponseDto>
     {
-        public PageRequest PageRequest { get; set; }
     }
 }

@@ -19,7 +19,7 @@ namespace WebApp.Controllers
 		/// <summary>
 		/// Поиск компании или ИП по ИНН
 		/// </summary>
-		[HttpGet("party/{inn}")]
+		[HttpGet("v1/party/{inn}")]
 		public Task<DaDataPartyShortResponse?> FindPartyByInn(string inn, CancellationToken cancellationToken)
 		{
 			return _service.FindPartyByInnAsync(inn, cancellationToken);

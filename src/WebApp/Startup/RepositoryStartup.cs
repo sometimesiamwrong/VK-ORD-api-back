@@ -7,6 +7,8 @@ using WebApp.Repositories.Interfaces.Users;
 using WebApp.Repositories.Interfaces.VkOrd.Contract;
 using WebApp.Repositories.Interfaces.VkOrd.Counterparty;
 using WebApp.Repositories.Interfaces.VkOrd.Creative;
+using WebApp.Repositories.Interfaces.VkOrd.Invoice;
+using WebApp.Repositories.Interfaces.VkOrd.Statistics;
 using WebApp.Security;
 using WebApp.Services.Implementations;
 using WebApp.Services.Interfaces;
@@ -20,6 +22,8 @@ using WebApp.Repositories.Implementations.Users;
 using WebApp.Repositories.Implementations.VkOrd.Contract;
 using WebApp.Repositories.Implementations.VkOrd.Counterparty;
 using WebApp.Repositories.Implementations.VkOrd.Creative;
+using WebApp.Repositories.Implementations.VkOrd.Invoice;
+using WebApp.Repositories.Implementations.VkOrd.Statistics;
 using WebApp.Services.Implementations.VkOrd;
 
 namespace WebApp.Startup
@@ -71,7 +75,8 @@ namespace WebApp.Startup
             services.AddScoped<ICreateOrUpdateContractRepository, CreateOrUpdateContractRepository>();
             services.AddScoped<IGetContractRepository, GetContractRepository>();
             services.AddScoped<IGetPageContractRepository, GetPageContractRepository>();
-            
+            services.AddScoped<IGetContractsByCounterpartyRepository, GetContractsByCounterpartyRepository>();
+            services.AddScoped<IGetContractDetailsRepository, GetContractDetailsRepository>();
             services.AddScoped<ICreateCounterpartyRepository, CreateCounterpartyRepository>();
             services.AddScoped<IGetCounterpartyByIdRepository, GetCounterpartyByIdRepository>();
             services.AddScoped<IGetPageCounterpartiesRepository, GetPageCounterpartiesRepository>();
@@ -81,6 +86,19 @@ namespace WebApp.Startup
             services.AddScoped<IGetAllCreativesRepository, GetAllCreativesRepository>();
             services.AddScoped<IGetCreativeByEridRepository, GetCreativeByEridRepository>();
 
+            services.AddScoped<ICreateOrUpdateInvoiceRepository, CreateOrUpdateInvoiceRepository>();
+            services.AddScoped<IGetInvoiceRepository, GetInvoiceRepository>();
+            services.AddScoped<IGetPageInvoiceRepository, GetPageInvoiceRepository>();
+            services.AddScoped<IDeleteInvoiceRepository, DeleteInvoiceRepository>();
+            services.AddScoped<IAddContractsToInvoiceRepository, AddContractsToInvoiceRepository>();
+            services.AddScoped<IDeleteContractsFromInvoiceRepository, DeleteContractsFromInvoiceRepository>();
+            services.AddScoped<ISendInvoiceToErirRepository, SendInvoiceToErirRepository>();
+            services.AddScoped<ICreateOrUpdateInvoiceHeaderRepository, CreateOrUpdateInvoiceHeaderRepository>();
+            services.AddScoped<IGetInvoiceHeaderRepository, GetInvoiceHeaderRepository>();
+
+            services.AddScoped<ICreateOrUpdateStatisticsRepository, CreateOrUpdateStatisticsRepository>();
+            services.AddScoped<IGetStatisticsListRepository, GetStatisticsListRepository>();
+            services.AddScoped<IDeleteStatisticsRepository, DeleteStatisticsRepository>();
 
             // VK ORD сервисы
             services.AddScoped<IVkOrdService, VkOrdService>();

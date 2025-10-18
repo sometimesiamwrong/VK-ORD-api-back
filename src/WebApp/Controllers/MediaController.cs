@@ -25,7 +25,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Загрузить медиа файл в VK ОРД
         /// </summary>
-        [HttpPost("upload")]
+        [HttpPost("v1/upload")]
         [Consumes("multipart/form-data")]
         [SwaggerOperation(Summary = "Загрузить медиа файл", Description = "Загружает медиа файл в VK ОРД")]
         [SwaggerResponse(200, "Файл успешно загружен")]
@@ -44,7 +44,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Получить информацию о медиа файле
         /// </summary>
-        [HttpGet("{externalId}")]
+        [HttpGet("v1/{externalId}")]
         public async Task<VkOrdApiMediaInfoResponse> GetMedia(string externalId, CancellationToken cancellationToken)
         {
             return await _vkOrdService.GetMedia(externalId, cancellationToken);    
@@ -53,7 +53,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Получить список медиа файлов
         /// </summary>
-        [HttpGet("page")]
+        [HttpGet("v1/page")]
         public async Task<VkOrdMediaInfoListResponseDto> GetPageMedia(PageRequest pageRequest, CancellationToken cancellationToken)
         {
             return await _vkOrdService.GetPageMedia(pageRequest, cancellationToken);

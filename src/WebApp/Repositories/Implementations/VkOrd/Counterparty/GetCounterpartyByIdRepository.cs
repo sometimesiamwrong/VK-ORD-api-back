@@ -19,25 +19,26 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
     public class GetCounterpartyByIdRepository : IGetCounterpartyByIdRepository
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ICacheService _cacheService;
         private readonly AppDbContext _context;
-        private readonly ILogger<GetCounterpartyByIdRepository> _logger;
 
         public GetCounterpartyByIdRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
             ICacheService cacheService,
             AppDbContext context,
-            ILogger<GetCounterpartyByIdRepository> logger)
+            IHttpContextAccessor httpContextAccessor)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _cacheService = cacheService;
             _context = context;
-            _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken)
         {
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
+            var noCache = _httpContextAccessor.GetNoCacheHeader();
 
             var cacheKey = GetCacheKey(externalId, vkOrdCredential);
 
@@ -48,12 +49,14 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
             );
 
             // Если данные не найдены в кэше, то получаем данные из базы данных
-            if (data == null || data.IsExpired())
+            if (data == null || data.IsExpired() || noCache)
             {
                 // Получаем данные из базы данных
-                data = await _context.VkOrdCounterparties.FirstOrDefaultAsync(AppDbContext.DefaultGetVkOrd<VkOrdCounterparty>(externalId, vkOrdCredential), cancellationToken);
+                data = await _context.VkOrdCounterparties
+                    .FirstOrDefaultAsync(
+                    AppDbContext.DefaultGetVkOrd<VkOrdCounterparty>(externalId, vkOrdCredential), cancellationToken);
 
-                if (data == null || data.IsExpired())
+                if (data == null || data.IsExpired() || noCache)
                 {
                     // Получаем данные из API
                     var vkOrdData = await GetByApi(externalId, cancellationToken);

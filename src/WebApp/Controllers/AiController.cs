@@ -20,7 +20,7 @@ public class AiController : BaseController
     /// <summary>
     /// Получить классификацию KKTY по тексту
     /// </summary>
-    [HttpPost("get-kkty_by-text")]
+    [HttpPost("v1/get-kkty_by-text")]
     public async Task<GetKktyByTextResponse> GetKktyByText([FromBody] GetKktyByTextRequest request, CancellationToken cancellationToken)
     {
         return await _service.GetKktyByTextAsync(request.Text, cancellationToken);

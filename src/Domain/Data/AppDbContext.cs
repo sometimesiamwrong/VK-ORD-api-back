@@ -19,7 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<VkOrdContract> VkOrdContracts { get; set; }
     public DbSet<VkOrdCreative> VkOrdCreatives { get; set; }
     public DbSet<VkOrdMedia> VkOrdMedias { get; set; }
-    public DbSet<VkOrdStatistics> VkOrdStatistics { get; set; }
+    public DbSet<VkOrdStatistic> VkOrdStatistics { get; set; }
+    public DbSet<VkOrdInvoice> VkOrdInvoices { get; set; }
 
     // VK ORD  relation entities
     public DbSet<VkOrdCreativeContract> VkOrdCreativeContract { get; set; }
@@ -154,8 +155,8 @@ public class AppDbContext : DbContext
             b.HasIndex(c => c.SyncStatus);
         });
 
-        // VkOrdStatistics
-        modelBuilder.Entity<VkOrdStatistics>(b =>
+        // VkOrdStatistic
+        modelBuilder.Entity<VkOrdStatistic>(b =>
         {
             b.ConfigureVkOrdBase();
             b.HasKey(e => e.Id);
@@ -264,6 +265,30 @@ public class AppDbContext : DbContext
             b.HasIndex(cc => cc.CreativeId);
             b.HasIndex(cc => cc.ContractId);
             b.HasIndex(cc => cc.CreatedAt);
+        });
+
+        // VkOrdInvoice
+        modelBuilder.Entity<VkOrdInvoice>(b =>
+        {
+            b.ConfigureVkOrdBase();
+            b.HasKey(e => e.Id);
+            b.Property(e => e.Id).ValueGeneratedOnAdd();
+
+            // Обычные индексы
+            b.HasIndex(i => i.SyncStatus);
+            b.HasIndex(i => i.IsDraft);
+            b.HasIndex(i => i.ContractExternalId);
+
+            // Ограничения
+            b.Property(i => i.ContractExternalId).HasMaxLength(255);
+
+            // Связь с основным договором (опциональная)
+            b.HasOne(i => i.Contract)
+                .WithMany()
+                .HasForeignKey(i => new { i.LogicalAccountId, i.ContractExternalId })
+                .HasPrincipalKey(c => new { c.LogicalAccountId, c.ExternalId })
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
         });
     }
 

@@ -43,5 +43,5 @@ public class VkOrdCreative : VkOrdBase
     /// <summary>
     /// Статистика по креативу
     /// </summary>
-    public virtual ICollection<VkOrdStatistics> Statistics { get; set; } = new List<VkOrdStatistics>();
+    public virtual ICollection<VkOrdStatistic> Statistics { get; set; } = new List<VkOrdStatistic>();
 }

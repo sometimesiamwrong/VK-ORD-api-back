@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using WebApp.Models.Common;
 
 namespace WebApp.Models.Contracts;
@@ -10,7 +11,7 @@ public class GetContractDetailsResponse : CacheResponse
     /// <summary>
     /// Договор
     /// </summary>
-    public ContractDto? Contract { get; set; }
+    public VkOrdContract? Contract { get; set; }
 
     /// <summary>
     /// Список креативов

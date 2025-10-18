@@ -30,5 +30,10 @@ namespace Domain.Extensions
 
             return credentialId;
         }
+
+        public static bool GetNoCacheHeader(this IHttpContextAccessor httpContextAccessor)
+        {
+            return httpContextAccessor.HttpContext?.Request.Headers["x-vkord-no-cache"].FirstOrDefault() == "true";
+        }
     }
 }

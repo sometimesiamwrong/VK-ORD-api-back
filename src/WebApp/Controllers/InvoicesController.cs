@@ -26,7 +26,7 @@ public class InvoicesController : BaseController
     /// <param name="request">Данные акта</param>
     /// <param name="draft">Является ли черновиком (по умолчанию false)</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpPut("{externalId}")]
+    [HttpPut("v1/{externalId}")]
     public Task CreateOrUpdateInvoice(
         string externalId,
         [FromBody] CreateOrUpdateInvoiceRequest request,
@@ -44,7 +44,7 @@ public class InvoicesController : BaseController
     /// </summary>
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpGet("{externalId}")]
+    [HttpGet("v1/{externalId}")]
     public Task<VkOrdInvoice> GetInvoice(string externalId, CancellationToken cancellationToken)
     {
         return _vkOrdService.GetInvoice(externalId, cancellationToken);
@@ -55,7 +55,7 @@ public class InvoicesController : BaseController
     /// </summary>
     /// <param name="pageRequest">Параметры пагинации</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpGet]
+    [HttpGet("v1/")]
     public Task<GetInvoicesDto> GetInvoices(
         [FromQuery] PageRequest pageRequest,
         CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ public class InvoicesController : BaseController
     /// </summary>
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpDelete("{externalId}")]
+    [HttpDelete("v1/{externalId}")]
     public Task DeleteInvoice(string externalId, CancellationToken cancellationToken)
     {
         return _vkOrdService.DeleteInvoice(externalId, cancellationToken);
@@ -80,7 +80,7 @@ public class InvoicesController : BaseController
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="request">Данные договоров для добавления</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpPatch("{externalId}/items")]
+    [HttpPatch("v1/{externalId}/items")]
     public Task AddContractsToInvoice(
         string externalId,
         [FromBody] Domain.VkOrdApi.Invoice.VkOrdApiAddContractsToInvoiceRequest request,
@@ -95,7 +95,7 @@ public class InvoicesController : BaseController
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="request">Данные договоров для удаления</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpPost("{externalId}/delete")]
+    [HttpPost("v1/{externalId}/delete")]
     public Task DeleteContractsFromInvoice(
         string externalId,
         [FromBody] Domain.VkOrdApi.Invoice.VkOrdApiDeleteContractsFromInvoiceRequest request,
@@ -109,7 +109,7 @@ public class InvoicesController : BaseController
     /// </summary>
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpPost("{externalId}/ready")]
+    [HttpPost("v1/{externalId}/ready")]
     public Task SendInvoiceToErir(string externalId, CancellationToken cancellationToken)
     {
         return _vkOrdService.SendInvoiceToErir(externalId, cancellationToken);
@@ -121,7 +121,7 @@ public class InvoicesController : BaseController
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="request">Данные заголовка акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpPut("{externalId}/header")]
+    [HttpPut("v1/{externalId}/header")]
     public Task CreateOrUpdateInvoiceHeader(
         string externalId,
         [FromBody] Domain.VkOrdApi.Invoice.VkOrdApiInvoiceHeaderRequest request,
@@ -135,7 +135,7 @@ public class InvoicesController : BaseController
     /// </summary>
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    [HttpGet("{externalId}/header")]
+    [HttpGet("v1/{externalId}/header")]
     public Task<Domain.VkOrdApi.Invoice.VkOrdApiInvoiceHeaderResponse> GetInvoiceHeader(
         string externalId,
         CancellationToken cancellationToken)

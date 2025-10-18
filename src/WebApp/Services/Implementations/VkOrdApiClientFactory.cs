@@ -68,7 +68,6 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         // Проверяем, есть ли уже кэшированный клиент для этого запроса
         if (httpContext.Items.TryGetValue(clientCacheKey, out var cachedClient) && cachedClient is IVkOrdApiClient client)
         {
-            _logger.LogDebug("Using cached VK ORD API client for request");
             return client;
         }
 
@@ -80,9 +79,6 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         }
 
         var baseUrl = apiContext.GetBaseUrl();
-
-        _logger.LogInformation("Creating VK ORD API client for route: {Route}, base URL: {BaseUrl}",
-            apiContext.Route, baseUrl);
 
         var httpClientHandler = new HttpClientHandler()
         {

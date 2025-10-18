@@ -12,13 +12,11 @@ public class GetContractBetweenCounterpartiesRequest : CacheRequest
     /// ИНН первого контрагента (клиента)
     /// </summary>
     [Required]
-    [StringLength(12, MinimumLength = 10)]
-    public string ClientInn { get; set; } = string.Empty;
+    public string ClientExternalId { get; set; } = string.Empty;
 
     /// <summary>
     /// ИНН второго контрагента (подрядчика)
     /// </summary>
     [Required]
-    [StringLength(12, MinimumLength = 10)]
-    public string ContractorInn { get; set; } = string.Empty;
+    public string ContractorExternalId { get; set; } = string.Empty;
 }

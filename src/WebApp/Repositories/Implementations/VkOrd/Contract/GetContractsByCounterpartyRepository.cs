@@ -58,7 +58,7 @@ namespace WebApp.Repositories.Implementations.VkOrd.Contract
             return data;
         }
 
-        private string GetCacheKey(string counterpartyExternalId, ApiCredential vkOrdCredential)
+        private static string GetCacheKey(string counterpartyExternalId, ApiCredential vkOrdCredential)
         {
             return $"vkord:GetContractsByCounterpartyRepository:{vkOrdCredential.LogicalAccountId}:{counterpartyExternalId}:{EntityType.Contract.GetDescription()}";
         }

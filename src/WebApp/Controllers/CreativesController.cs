@@ -24,7 +24,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Создать новый креатив в VK ОРД
         /// </summary>
-        [HttpPost]
+        [HttpPost("v1")]
         public Task<VkOrdApiCreativeV3RequestResponse> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             return _vkOrdService.CreateCreative(request, cancellationToken);
@@ -33,7 +33,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Получить информацию о креативе по external_id
         /// </summary>
-        [HttpGet("{externalId}")]
+        [HttpGet("v1/{externalId}")]
         public Task<VkOrdApiCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetCreative(externalId, cancellationToken);
@@ -42,7 +42,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Получить список креативов (итерация external_ids и сбор полных данных)
         /// </summary>
-        [HttpGet]
+        [HttpGet("v1")]
         public Task<GetCreativesResponse> GetCreatives([FromQuery] PageRequest pageRequest, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetPageCreatives(pageRequest, cancellationToken);
@@ -51,7 +51,7 @@ namespace WebApp.Controllers
         /// <summary>
         /// Получить креатив по ERID
         /// </summary>
-        [HttpGet("by-erid/{erid}")]
+        [HttpGet("v1/by-erid/{erid}")]
         public Task<VkOrdApiCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetCreativeByErid(erid, cancellationToken);

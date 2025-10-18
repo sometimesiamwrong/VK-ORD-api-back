@@ -18,14 +18,14 @@ namespace WebApp.Controllers
             _service = service;
         }
 
-        [HttpGet("me")]
+        [HttpGet("v1/me")]
         public async Task<UserProfileResponse?> Me(CancellationToken cancellationToken)
         {
             var userId = HttpContext.User.GetUserId();
             return await _service.Get(userId, cancellationToken);
         }
 
-        [HttpPatch("me")]
+        [HttpPatch("v1/me")]
         public async Task<UserProfileResponse?> UpdateMe([FromBody] UpdateUserRequest request, CancellationToken cancellationToken)
         {
             var userId = HttpContext.User.GetUserId();

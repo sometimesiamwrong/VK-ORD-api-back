@@ -4,10 +4,10 @@ using WebApp.Models.Responses;
 namespace WebApp.Repositories.Interfaces.VkOrd.Contract
 {
     /// <summary>
-    /// Репозиторий для получения контракта VK ORD API
+    /// Репозиторий для получения контрактов по контрагенту VK ORD API
     /// </summary>
-    public interface IGetContractRepository
+    public interface IGetContractsByCounterpartyRepository
     {
-        Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken);
+        Task<List<VkOrdContract>> Get(string counterpartyExternalId, CancellationToken cancellationToken);
     }
 }

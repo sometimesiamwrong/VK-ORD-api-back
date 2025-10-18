@@ -30,7 +30,7 @@ public class AuthController : BaseController
     /// <summary>
     /// Получить JWT токен для доступа к API
     /// </summary>
-    [HttpPost("register")]
+    [HttpPost("v1/register")]
     [AllowAnonymous]
     public async Task<AuthResponse> Register([FromBody] RegisterRequest request)
     {
@@ -49,7 +49,7 @@ public class AuthController : BaseController
         return authResponse;
     }
 
-    [HttpPost("login")]
+    [HttpPost("v1/login")]
     [AllowAnonymous]
     public async Task<AuthResponse> Login([FromBody] LoginRequest request)
     {
@@ -67,7 +67,7 @@ public class AuthController : BaseController
         return authResponse;
     }
 
-    [HttpPost("refresh")]
+    [HttpPost("v1/refresh")]
     [AllowAnonymous]
     public async Task<AuthResponse> Refresh()
     {
@@ -89,7 +89,7 @@ public class AuthController : BaseController
         return authResponse;
     }
 
-    [HttpPost("logout")]
+    [HttpPost("v1/logout")]
     [Authorize]
     public async Task<IActionResult> Logout()
     {

@@ -42,5 +42,19 @@ namespace Domain.Entities.Enums
         [EnumMember(Value = "person")]
         [Description("Персона")]
         Person = 5,
+
+        /// <summary>
+        /// Акт
+        /// </summary>
+        [EnumMember(Value = "invoice")]
+        [Description("Акт")]
+        Invoice = 6,
+
+        /// <summary>
+        /// Статистика
+        /// </summary>
+        [EnumMember(Value = "statistic")]
+        [Description("Статистика")]
+        Statistic = 7,
     }
 }

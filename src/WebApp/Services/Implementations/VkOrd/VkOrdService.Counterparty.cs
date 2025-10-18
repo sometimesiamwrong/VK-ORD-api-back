@@ -5,7 +5,9 @@ using Domain.Entities.VkOrd;
 using Domain.Extensions;
 using Domain.VkOrdApi.Person;
 using Microsoft.IdentityModel.Tokens;
+using WebApp.Models.Contracts;
 using WebApp.Models.Responses;
+using WebApp.Repositories.Interfaces.VkOrd.Contract;
 using WebApp.Services.Interfaces;
 
 namespace WebApp.Services.Implementations.VkOrd
@@ -73,7 +75,7 @@ namespace WebApp.Services.Implementations.VkOrd
             {
                 return new GetCounterpartiesResponseDto
                 {
-                    Data = new List<VkOrdApiPersonResponse>(),
+                    Data = new List<VkOrdCounterparty>(),
                     TotalItemsCount = 0,
                     Limit = 0
                 };
@@ -88,14 +90,14 @@ namespace WebApp.Services.Implementations.VkOrd
             _logger.LogInformation($"Found {externalIds.Count} counterparties (total: {totalItemsCount}, responseLimit: {responseLimit}), fetching full data for each");
 
             // Получаем полные данные для каждого контрагента последовательно
-            var counterparties = new List<VkOrdApiPersonResponse>();
+            var counterparties = new List<VkOrdCounterparty>();
 
             foreach (var externalId in externalIds)
             {
                 var counterpartyResponse = await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
                 if (counterpartyResponse?.Data != null)
                 {
-                    counterparties.Add(counterpartyResponse.Data);
+                    counterparties.Add(counterpartyResponse);
                 }
             }
 
@@ -112,6 +114,24 @@ namespace WebApp.Services.Implementations.VkOrd
         public Task<VkOrdCounterparty> GetCounterpartyById(string externalId, CancellationToken cancellationToken)
         {
             return _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
+        }
+
+        public async Task<CounterpartyWithContractsDto> GetContractsToCounterparty(string externalId, CancellationToken cancellationToken)
+        {
+            var counterparty = await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
+            if (counterparty == null)
+            {
+                throw BrokenRuleCodes.CounterpartyNotFound.AsExn();
+            }
+
+            var contracts = await _getContractsByCounterpartyRepository.Get(externalId, cancellationToken);
+
+            return new CounterpartyWithContractsDto
+            {
+                ExternalId = externalId,
+                Data = counterparty.Data,
+                Contracts = contracts
+            };
         }
     }
 }

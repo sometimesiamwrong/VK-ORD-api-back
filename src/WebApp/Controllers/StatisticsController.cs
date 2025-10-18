@@ -27,7 +27,7 @@ public class StatisticsController : ControllerBase
     /// Создать или обновить статистику
     /// POST /api/statistics
     /// </summary>
-    [HttpPost]
+    [HttpPost("v1")]
     public async Task<IActionResult> CreateOrUpdateStatistics(
         [FromBody] CreateOrUpdateStatisticsRequest request,
         CancellationToken cancellationToken)
@@ -43,7 +43,7 @@ public class StatisticsController : ControllerBase
     /// Получить список статистик с фильтрацией и пагинацией
     /// GET /api/statistics
     /// </summary>
-    [HttpGet]
+    [HttpGet("v1")]
     public async Task<IActionResult> GetStatisticsList(
         [FromQuery(Name = "creative_external_id")] string? creativeExternalId = null,
         [FromQuery(Name = "pad_external_id")] string? padExternalId = null,
@@ -70,7 +70,7 @@ public class StatisticsController : ControllerBase
     /// Удалить статистику
     /// POST /api/statistics/delete
     /// </summary>
-    [HttpPost("delete")]
+    [HttpPost("v1/delete")]
     public async Task<IActionResult> DeleteStatistics(
         [FromBody] DeleteStatisticsRequest request,
         CancellationToken cancellationToken)

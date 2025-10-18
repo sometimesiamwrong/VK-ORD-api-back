@@ -531,6 +531,86 @@ namespace Domain.Migrations
                     b.ToTable("VkOrdCreativeMedia");
                 });
 
+            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdInvoice", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<string>("ContractExternalId")
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("DataHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDraft")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("JsonData")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<long>("LogicalAccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SyncStatus")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractExternalId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("ExpiresAt");
+
+                    b.HasIndex("IsDraft");
+
+                    b.HasIndex("LogicalAccountId");
+
+                    b.HasIndex("SyncStatus");
+
+                    b.HasIndex("UpdatedAt");
+
+                    b.HasIndex("LogicalAccountId", "ContractExternalId");
+
+                    b.HasIndex("LogicalAccountId", "ExternalId")
+                        .IsUnique();
+
+                    b.ToTable("VkOrdInvoices");
+                });
+
             modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdLogicalAccount", b =>
                 {
                     b.Property<long>("Id")
@@ -891,6 +971,25 @@ namespace Domain.Migrations
                     b.Navigation("Creative");
 
                     b.Navigation("Media");
+                });
+
+            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdInvoice", b =>
+                {
+                    b.HasOne("Domain.Entities.VkOrd.VkOrdLogicalAccount", "OrdLogicalAccount")
+                        .WithMany()
+                        .HasForeignKey("LogicalAccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.VkOrd.VkOrdContract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("LogicalAccountId", "ContractExternalId")
+                        .HasPrincipalKey("LogicalAccountId", "ExternalId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("OrdLogicalAccount");
                 });
 
             modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdMedia", b =>

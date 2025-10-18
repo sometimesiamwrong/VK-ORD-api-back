@@ -1,5 +1,11 @@
 using Domain;
+using Domain.Data;
+using Domain.Entities;
+using Domain.Entities.Enums;
+using Domain.Extensions;
+using Microsoft.EntityFrameworkCore;
 using WebApp.Models.Responses;
+using WebApp.Repositories.Interfaces;
 using WebApp.Repositories.Interfaces.VkOrd.Counterparty;
 using WebApp.Services.Interfaces;
 
@@ -11,28 +17,74 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
     public class GetPageCounterpartiesRepository : IGetPageCounterpartiesRepository
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
-        private readonly ILogger<GetPageCounterpartiesRepository> _logger;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
+        private readonly ICacheService _cacheService;
+        private readonly AppDbContext _context; 
         
         public GetPageCounterpartiesRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            ILogger<GetPageCounterpartiesRepository> logger)
+            IHttpContextAccessor httpContextAccessor,
+            ICacheService cacheService,
+            AppDbContext context,
+            IGetCounterpartyByIdRepository getCounterpartyByIdRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _cacheService = cacheService;
+            _context = context;
+            _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
         }
 
         public async Task<GetPageVkOrdResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken)
         {
+            var noCache = _httpContextAccessor.GetNoCacheHeader();
+            var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
-            var response = await vkOrdClient.GetPersons(pageRequest, cancellationToken);
+            var cacheKey = GetCacheKey(pageRequest, vkOrdCredential);
+            var data = await _cacheService.Get<GetPageVkOrdResponse>(cacheKey, cancellationToken);
 
-            return new GetPageVkOrdResponse
+            if (data == null || noCache)
             {
-                ExternalIds = response.ExternalIds,
-                TotalItemsCount = response.TotalItemsCount,
-                Limit = response.Limit
-            };
+                var now = DateTimeOffset.UtcNow;
+                var query = _context.VkOrdCounterparties
+                    .Where(x=>now < x.ExpiresAt && x.LogicalAccountId == vkOrdCredential.LogicalAccountId);
+
+                data = new GetPageVkOrdResponse
+                {
+                    ExternalIds = await query
+                        .OrderBy(x=>x.UpdatedAt)
+                        .Skip(pageRequest.Offset)
+                        .Take(pageRequest.Limit)
+                        .Select(x=>x.ExternalId)
+                        .ToListAsync(cancellationToken),
+                    TotalItemsCount = await query.CountAsync(cancellationToken),
+                    Limit = pageRequest.Limit
+                };
+
+                if(data.ExternalIds.IsNullOrEmpty() || noCache)
+                {
+                    var vkOrdResponse = await vkOrdClient.GetPersons(pageRequest, cancellationToken);
+                    data.ExternalIds = vkOrdResponse.ExternalIds;
+                    data.TotalItemsCount = vkOrdResponse.TotalItemsCount;
+                    data.Limit = vkOrdResponse.Limit;
+
+                    foreach (var externalId in data.ExternalIds)
+                    {
+                        await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
+                    }
+                }
+
+                await _cacheService.Save(cacheKey, data, cancellationToken);
+            }
+
+            return data;
+        }
+
+        private string GetCacheKey(PageRequest pageRequest, ApiCredential vkOrdCredential)
+        {
+            return $"vkord:{vkOrdCredential.LogicalAccountId}:{pageRequest.Offset}:{pageRequest.Limit}:{EntityType.Counterparty.GetDescription()}";
         }
     }
 }

@@ -41,6 +41,12 @@ namespace WebApp.Services.Implementations.VkOrd
             return await _getContractRepository.Get(externalId, cancellationToken);
         }
 
+        public async Task<GetContractDetailsDto?> GetContractDetails(string externalId, CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Getting contract details for ExternalId: {ExternalId}", externalId);
+            return await _getContractDetailsRepository.GetDetailsAsync(externalId, cancellationToken);
+        }
+
         public async Task<GetContractsDto> GetPageContract(PageRequest pageRequest, CancellationToken cancellationToken)
         {
             var pageContractListResponse = await _getPageContractRepository.Get(pageRequest, cancellationToken);

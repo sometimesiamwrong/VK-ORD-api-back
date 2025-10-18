@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using Domain.Entities.Enums;
 using Domain.VkOrdApi.Person;
 
@@ -27,5 +28,6 @@ public class VkOrdCounterparty : VkOrdBase
     /// <summary>
     /// Связи с договорами
     /// </summary>
+    [JsonIgnore]
     public virtual ICollection<VkOrdContractParty> ContractParties { get; set; } = new List<VkOrdContractParty>();
 }

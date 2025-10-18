@@ -8,26 +8,26 @@ namespace Domain.VkOrdApi.Statistics;
 public sealed class VkOrdApiStatisticsAmount
 {
     /// <summary>
-    /// Сумма без НДС (decimal, precision up to 5)
+    /// Неотрицательная сумма без учета налогов. Максимум — 9 999 999 999.
     /// </summary>
     [JsonPropertyName("excluding_vat")]
-    public decimal ExcludingVat { get; set; }
+    public string ExcludingVat { get; set; } = string.Empty;
 
     /// <summary>
-    /// Ставка НДС (% decimal)
+    /// Ставка НДС в процентах. Максимальное значение — 20.
     /// </summary>
     [JsonPropertyName("vat_rate")]
-    public decimal VatRate { get; set; }
+    public string VatRate { get; set; } = string.Empty;
 
     /// <summary>
-    /// Сумма НДС (decimal, Scale5)
+    /// Неотрицательная сумма НДС (максимум 20% от excluding_vat + 0.001 коп).
     /// </summary>
     [JsonPropertyName("vat")]
-    public decimal Vat { get; set; }
+    public string Vat { get; set; } = string.Empty;
 
     /// <summary>
-    /// Сумма с НДС (decimal, Scale5)
+    /// Сумма с учетом налогов. Должна быть равна excluding_vat + vat.
     /// </summary>
     [JsonPropertyName("including_vat")]
-    public decimal IncludingVat { get; set; }
+    public string IncludingVat { get; set; } = string.Empty;
 }
