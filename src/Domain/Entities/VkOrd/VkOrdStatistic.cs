@@ -7,7 +7,7 @@ namespace Domain.Entities.VkOrd;
 /// <summary>
 /// Кэш статистики VK ORD API
 /// </summary>
-public class VkOrdStatistics : VkOrdBase
+public class VkOrdStatistic : VkOrdBase
 {
     /// <summary>
     /// Внешний идентификатор креатива
