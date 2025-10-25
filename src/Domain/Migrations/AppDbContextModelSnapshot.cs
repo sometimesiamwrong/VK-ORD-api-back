@@ -117,6 +117,98 @@ namespace Domain.Migrations
                     b.ToTable("DatabaseScripts");
                 });
 
+            modelBuilder.Entity("Domain.Entities.FlowTemplate", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<long>("ApiCredentialId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTimeOffset?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)");
+
+                    b.Property<Guid>("PublicId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("Tags")
+                        .HasColumnType("text");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("UseCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiCredentialId")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("CreatedAt")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("Name")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("PublicId")
+                        .IsUnique();
+
+                    b.HasIndex("Type")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("UseCount")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("ApiCredentialId", "IsActive")
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.HasIndex("ApiCredentialId", "Name")
+                        .IsUnique()
+                        .HasFilter("\"IsDeleted\" = false");
+
+                    b.ToTable("FlowTemplates");
+                });
+
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
                 {
                     b.Property<long>("Id")
@@ -714,7 +806,7 @@ namespace Domain.Migrations
                     b.ToTable("VkOrdMedias");
                 });
 
-            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdStatistics", b =>
+            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdStatistic", b =>
                 {
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
@@ -868,6 +960,17 @@ namespace Domain.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Domain.Entities.FlowTemplate", b =>
+                {
+                    b.HasOne("Domain.Entities.ApiCredential", "ApiCredential")
+                        .WithMany("FlowTemplates")
+                        .HasForeignKey("ApiCredentialId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ApiCredential");
+                });
+
             modelBuilder.Entity("Domain.Entities.RefreshToken", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
@@ -1003,7 +1106,7 @@ namespace Domain.Migrations
                     b.Navigation("OrdLogicalAccount");
                 });
 
-            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdStatistics", b =>
+            modelBuilder.Entity("Domain.Entities.VkOrd.VkOrdStatistic", b =>
                 {
                     b.HasOne("Domain.Entities.VkOrd.VkOrdCreative", "Creative")
                         .WithMany("Statistics")
@@ -1019,6 +1122,11 @@ namespace Domain.Migrations
                     b.Navigation("Creative");
 
                     b.Navigation("OrdLogicalAccount");
+                });
+
+            modelBuilder.Entity("Domain.Entities.ApiCredential", b =>
+                {
+                    b.Navigation("FlowTemplates");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

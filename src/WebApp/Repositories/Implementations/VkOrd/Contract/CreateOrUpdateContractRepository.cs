@@ -1,3 +1,5 @@
+using Domain.BrokenRules;
+using Domain.Extensions;
 using Domain.VkOrdApi;
 using Domain.VkOrdApi.Contract;
 using WebApp.Repositories.Interfaces.VkOrd.Contract;
@@ -11,24 +13,26 @@ namespace WebApp.Repositories.Implementations.VkOrd.Contract
     public class CreateOrUpdateContractRepository : ICreateOrUpdateContractRepository
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
+        private readonly IGetContractRepository _getContractRepository;
         private readonly ILogger<CreateOrUpdateContractRepository> _logger;
-        private readonly IVkOrdApiClient _vkOrdClient;
 
         public CreateOrUpdateContractRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
+            IGetContractRepository getContractRepository,
             ILogger<CreateOrUpdateContractRepository> logger)
         {
-            _vkOrdClient = vkOrdClientFactory.CreateClient().GetAwaiter().GetResult();
+            _vkOrdClientFactory = vkOrdClientFactory;
+            _getContractRepository = getContractRepository;
             _logger = logger;
         }
 
-        public Task CreateOrUpdateContract(string externalId, VkOrdApiCreateUpdateContractRequest request, CancellationToken cancellationToken)
-        {
-           return _vkOrdClient.CreateOrUpdateContract(
-                externalId, 
-                request, 
-                cancellationToken: cancellationToken, 
-                updateAdditionalContractsParties: null);
+        public async Task CreateOrUpdateContract(string externalId, VkOrdApiCreateUpdateContractRequest request, CancellationToken cancellationToken)
+        { 
+            var vkOrdClient = await _vkOrdClientFactory.CreateClient();
+
+            await vkOrdClient.CreateOrUpdateContract(externalId, request, cancellationToken: cancellationToken, updateAdditionalContractsParties: null);
+
+            await _getContractRepository.Get(externalId, cancellationToken);
         }
     }
 }

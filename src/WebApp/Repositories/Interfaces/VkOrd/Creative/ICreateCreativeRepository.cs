@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using Domain.VkOrdApi.Creative;
 using WebApp.Models.Responses;
 

@@ -56,5 +56,12 @@ namespace Domain.Entities.Enums
         [EnumMember(Value = "statistic")]
         [Description("Статистика")]
         Statistic = 7,
+
+        /// <summary>
+        /// Api учетные данные
+        /// </summary>
+        [EnumMember(Value = "api_credential")]
+        [Description("Api учетные данные VK ORD API")]
+        ApiCredential = 8,
     }
 }

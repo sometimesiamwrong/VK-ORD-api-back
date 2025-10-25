@@ -41,7 +41,7 @@ public class GetContractDetailsRepository : IGetContractDetailsRepository
                         .ThenInclude(cm => cm.Media)
             .Include(c => c.AdditionalContracts)
             .FirstOrDefaultAsync(
-                c => c.LogicalAccountId == vkOrdCredential.Id && c.ExternalId == externalId,
+                c => c.LogicalAccountId == vkOrdCredential.LogicalAccountId && c.ExternalId == externalId,
                 cancellationToken);
 
         if (contract == null)
@@ -66,13 +66,11 @@ public class GetContractDetailsRepository : IGetContractDetailsRepository
             Parties = contract.ContractParties
                 .Select(cp => cp.Counterparty)
                 .Where(c => c != null)
-                .Cast<VkOrdCounterparty>()
                 .Distinct()
                 .ToList(),
             Creatives = contract.CreativeContracts
                 .Select(cc => cc.Creative)
                 .Where(c => c != null)
-                .Cast<VkOrdCreative>()
                 .Distinct()
                 .ToList(),
             AdditionalContracts = contract.AdditionalContracts

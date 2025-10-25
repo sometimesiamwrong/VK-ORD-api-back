@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.Net.Http.Headers;
 
 namespace Domain.Entities.VkOrd;
@@ -75,6 +76,7 @@ public abstract class VkOrdBase
     /// Суммаризирующая сущность
     /// </summary>
     [ForeignKey(nameof(LogicalAccountId))]
+    [JsonIgnore]
     public virtual VkOrdLogicalAccount OrdLogicalAccount { get; set; } = null!;
 
     /// <summary>

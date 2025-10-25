@@ -41,5 +41,5 @@ public class User : EntityBase
     /// <summary>
     /// Список refresh токенов пользователя
     /// </summary>
-    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>(); 
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

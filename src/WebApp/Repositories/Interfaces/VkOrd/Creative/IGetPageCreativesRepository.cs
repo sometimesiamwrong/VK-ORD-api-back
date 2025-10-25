@@ -7,8 +7,8 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Creative
     /// <summary>
     /// Репозиторий для получения списка креативов VK ORD API
     /// </summary>
-    public interface IGetAllCreativesRepository
+    public interface IGetPageCreativesRepository
     {
-        Task<GetPageVkOrdResponse> GetAllCreatives(PageRequest pageRequest, CancellationToken cancellationToken);
+        Task<GetPageVkOrdResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken);
     }
 }

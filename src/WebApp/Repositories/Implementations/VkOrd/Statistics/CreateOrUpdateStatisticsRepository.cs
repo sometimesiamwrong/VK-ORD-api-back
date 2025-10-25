@@ -14,7 +14,6 @@ namespace WebApp.Repositories.Implementations.VkOrd.Statistics;
 /// </summary>
 public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepository
 {
-    private readonly IVkOrdApiClient _vkOrdClient;
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
     private readonly AppDbContext _context;
     private readonly ICacheService _cacheService;
@@ -26,7 +25,6 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
         ICacheService cacheService,
         ILogger<CreateOrUpdateStatisticsRepository> logger)
     {
-        _vkOrdClient = vkOrdApiClientFactory.CreateClient().GetAwaiter().GetResult();
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
         _context = context;
         _cacheService = cacheService;
@@ -39,9 +37,10 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
     {
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;
+        var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
 
         // Отправляем запрос в VK ORD API (POST /v2/statistics)
-        await _vkOrdClient.CreateStatisticsV2(items, cancellationToken);
+        await vkOrdClient.CreateStatisticsV2(items, cancellationToken);
 
         _logger.LogInformation(
             "Successfully created/updated {Count} statistics in VK ORD API for LogicalAccountId: {LogicalAccountId}",

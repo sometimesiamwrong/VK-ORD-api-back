@@ -35,7 +35,11 @@ namespace WebApp.Repositories.Implementations.ApiCredentials
 
             if (dublicate == null)
             {
-                var newLogical = new VkOrdLogicalAccount();
+                var newLogical = new VkOrdLogicalAccount()
+                {
+                    CreatedAt = DateTimeOffset.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                };
                 logical = (await _db.VkLogicalAccounts.AddAsync(newLogical, cancellationToken)).Entity;
             } else {
                 logical = dublicate.LogicalAccount;

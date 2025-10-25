@@ -1,3 +1,4 @@
+using Domain.Entities.VkOrd;
 using Domain.VkOrdApi.Creative;
 using MediatR;
 using WebApp.Handlers.Requests;
@@ -7,7 +8,7 @@ using WebApp.Services.Interfaces;
 
 namespace WebApp.Handlers
 {
-    public class CreateCreativeHandler : IRequestHandler<CreateCreativeRequest, VkOrdApiCreativeV3RequestResponse>
+    public class CreateCreativeHandler : IRequestHandler<CreateCreativeRequest, VkOrdCreative>
     {
         private readonly IVkOrdService _vkOrdService;
         private readonly ILogger<CreateCreativeHandler> _logger;
@@ -18,11 +19,11 @@ namespace WebApp.Handlers
             _logger = logger;
         }
 
-        public async Task<VkOrdApiCreativeV3RequestResponse> Handle(CreateCreativeRequest request, CancellationToken cancellationToken)
+        public async Task<VkOrdCreative> Handle(CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             var result = await _vkOrdService.CreateCreative(request, cancellationToken);
             
-            return result;
+            return  result;
         }
     }
 }

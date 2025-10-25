@@ -1,19 +1,24 @@
 using System.Text.Json;
 using Domain.Entities;
+using Domain.Entities.Enums;
+using Domain.Extensions;
 using Microsoft.Extensions.Caching.Distributed;
 using WebApp.Repositories.Interfaces.ApiCredentials;
+using WebApp.Services.Interfaces;
 
 namespace WebApp.Repositories.Implementations.ApiCredentials;
 
 public class GetApiCredentialByGuidCacheRepository : IGetApiCredentialByGuidRepository
 {
     private readonly IGetApiCredentialByGuidRepository _getApiCredentialByGuidRepository;
-    private readonly IDistributedCache _cacheRepository;
+    private readonly ICacheService _cacheService;
 
-    public GetApiCredentialByGuidCacheRepository(IGetApiCredentialByGuidRepository getApiCredentialByGuidRepository, IDistributedCache cacheRepository)
+    public GetApiCredentialByGuidCacheRepository(
+        IGetApiCredentialByGuidRepository getApiCredentialByGuidRepository, 
+        ICacheService cacheService)
     {
         _getApiCredentialByGuidRepository = getApiCredentialByGuidRepository;
-        _cacheRepository = cacheRepository;
+        _cacheService = cacheService;
     }
 
     public async Task<ApiCredential?> GetByGuidAsync(Guid guid)
@@ -27,7 +32,7 @@ public class GetApiCredentialByGuidCacheRepository : IGetApiCredentialByGuidRepo
         var result = await _getApiCredentialByGuidRepository.GetByGuidAsync(guid);
         if (result != null)
         {
-            await SetCachedApiCredentialAsync(guid, result);
+            await SetCachedApiCredentialAsync(result);
         }
         return result;
     }
@@ -35,23 +40,18 @@ public class GetApiCredentialByGuidCacheRepository : IGetApiCredentialByGuidRepo
     // ApiCredential кэш
     public async Task<ApiCredential?> GetCachedApiCredentialAsync(Guid guid)
     {
-        var cacheKey = $"api_credential_{guid}";
-        var cachedJson = await _cacheRepository.GetStringAsync(cacheKey);
-        if (!string.IsNullOrEmpty(cachedJson))
-        {
-            return JsonSerializer.Deserialize<ApiCredential>(cachedJson);
-        }
-        return null;
+        var cacheKey = GetCacheKey(guid);
+        return await _cacheService.Get<ApiCredential>(cacheKey, CancellationToken.None);
     }
 
-    public async Task SetCachedApiCredentialAsync(Guid guid, ApiCredential apiCredential)
+    public async Task SetCachedApiCredentialAsync(ApiCredential apiCredential)
     {
-        var cacheKey = $"api_credential_{guid}";
-        var json = JsonSerializer.Serialize(apiCredential);
-        var options = new DistributedCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(24)
-        };
-        await _cacheRepository.SetStringAsync(cacheKey, json, options);
+        var cacheKey = GetCacheKey(apiCredential.PublicId);
+        await _cacheService.Save(cacheKey, apiCredential, CancellationToken.None);
+    }
+
+    private static string GetCacheKey(Guid guid)
+    {
+        return $"vkord:{guid}:{EntityType.ApiCredential.GetDescription()}";
     }
 }

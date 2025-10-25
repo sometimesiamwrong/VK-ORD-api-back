@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Domain.Entities.Enums.VkOrd;
+using Domain.Entities.VkOrd;
 using Domain.VkOrdApi.Creative;
 using Domain.VkOrdApi.Statistics;
 using MediatR;
@@ -9,7 +10,7 @@ namespace WebApp.Models.Requests
     /// <summary>
     /// Запрос на создание креатива
     /// </summary>
-    public class CreateCreativeRequest : IRequest<VkOrdApiCreativeV3RequestResponse>
+    public class CreateCreativeRequest : IRequest<VkOrdCreative>
     {
         /// <summary>
         /// Внешний ID креатива

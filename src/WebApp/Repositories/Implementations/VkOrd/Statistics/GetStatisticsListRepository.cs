@@ -12,7 +12,6 @@ namespace WebApp.Repositories.Implementations.VkOrd.Statistics;
 /// </summary>
 public class GetStatisticsListRepository : IGetStatisticsListRepository
 {
-    private readonly IVkOrdApiClient _vkOrdClient;
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
     private readonly AppDbContext _context;
     private readonly ILogger<GetStatisticsListRepository> _logger;
@@ -22,7 +21,6 @@ public class GetStatisticsListRepository : IGetStatisticsListRepository
         AppDbContext context,
         ILogger<GetStatisticsListRepository> logger)
     {
-        _vkOrdClient = vkOrdApiClientFactory.CreateClient().GetAwaiter().GetResult();
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
         _context = context;
         _logger = logger;
@@ -35,6 +33,7 @@ public class GetStatisticsListRepository : IGetStatisticsListRepository
         int limit = 100,
         CancellationToken cancellationToken = default)
     {
+        var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;
 
@@ -48,7 +47,7 @@ public class GetStatisticsListRepository : IGetStatisticsListRepository
         };
 
         // Получаем список из VK ORD API (GET /v2/statistics/list)
-        var response = await _vkOrdClient.GetStatisticsListV2(request, cancellationToken);
+        var response = await vkOrdClient.GetStatisticsListV2(request, cancellationToken);
 
         _logger.LogInformation(
             "Successfully fetched {Count} statistics from VK ORD API for LogicalAccountId: {LogicalAccountId}",

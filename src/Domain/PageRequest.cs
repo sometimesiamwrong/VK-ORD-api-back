@@ -35,9 +35,15 @@ public class PageRequest
     [JsonPropertyName("need_all")]
     public bool NeedAll { get; set; } = false;
 
-    [JsonIgnore]
     /// <summary>
     /// Значение используется для первого запроса, после заменяется на Limit из ответа
     /// </summary>
+    [JsonIgnore]
     public int UnlimitedLimit { get; set; } = int.MaxValue;
+
+    /// <summary>
+    /// Номер страницы
+    /// </summary>
+    [JsonIgnore]
+    public int Page => Offset == 0 ? 1 : (Offset / Limit) + 1;
 }

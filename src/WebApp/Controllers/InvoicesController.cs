@@ -1,4 +1,5 @@
 using Domain;
+using Domain.Entities.Enums;
 using Domain.Entities.VkOrd;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -58,9 +59,10 @@ public class InvoicesController : BaseController
     [HttpGet("v1/")]
     public Task<GetInvoicesDto> GetInvoices(
         [FromQuery] PageRequest pageRequest,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        [FromQuery] List<string>? externalId = null)
     {
-        return _vkOrdService.GetPageInvoice(pageRequest, cancellationToken);
+        return _vkOrdService.GetPageInvoice(pageRequest, cancellationToken, externalId);
     }
 
     /// <summary>

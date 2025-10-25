@@ -1,4 +1,5 @@
 using Domain;
+using Domain.Entities.VkOrd;
 using Domain.VkOrdApi.Creative;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -25,7 +26,7 @@ namespace WebApp.Controllers
         /// Создать новый креатив в VK ОРД
         /// </summary>
         [HttpPost("v1")]
-        public Task<VkOrdApiCreativeV3RequestResponse> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
+        public Task<VkOrdCreative> CreateCreative([FromBody] CreateCreativeRequest request, CancellationToken cancellationToken)
         {
             return _vkOrdService.CreateCreative(request, cancellationToken);
         }
@@ -34,7 +35,7 @@ namespace WebApp.Controllers
         /// Получить информацию о креативе по external_id
         /// </summary>
         [HttpGet("v1/{externalId}")]
-        public Task<VkOrdApiCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken)
+        public Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetCreative(externalId, cancellationToken);
         }
@@ -52,7 +53,7 @@ namespace WebApp.Controllers
         /// Получить креатив по ERID
         /// </summary>
         [HttpGet("v1/by-erid/{erid}")]
-        public Task<VkOrdApiCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken)
+        public Task<VkOrdCreative> GetCreativeByErid(string erid, CancellationToken cancellationToken)
         {
             return _vkOrdService.GetCreativeByErid(erid, cancellationToken);
         }

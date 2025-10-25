@@ -59,7 +59,7 @@ public class BrokenRulesException : Exception
         string brokenRuleMessage,
         string domain = "App",
         string brokenRulesSeparator = "\n",
-        Exception innerException = null)
+        Exception? innerException = null)
         : this(new BrokenRulesCollection(brokenRuleCode, brokenRuleMessage, domain), brokenRulesSeparator, innerException)
     {
     }
@@ -73,7 +73,7 @@ public class BrokenRulesException : Exception
     public BrokenRulesException(
         BrokenRule brokenRule,
         string brokenRulesSeparator = "\n",
-        Exception innerException = null)
+        Exception? innerException = null)
         : this(new BrokenRulesCollection(brokenRule), brokenRulesSeparator, innerException)
     {
     }

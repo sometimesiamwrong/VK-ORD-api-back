@@ -1,5 +1,8 @@
 using Domain;
+using Domain.Data;
+using Domain.Extensions;
 using Domain.VkOrdApi.Invoice;
+using Microsoft.EntityFrameworkCore;
 using WebApp.Repositories.Interfaces.VkOrd.Invoice;
 using WebApp.Services.Interfaces;
 
@@ -11,34 +14,61 @@ namespace WebApp.Repositories.Implementations.VkOrd.Invoice;
 public class GetPageInvoiceRepository : IGetPageInvoiceRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
+    private readonly AppDbContext _context;
+    private readonly ICacheService _cacheService;
     private readonly ILogger<GetPageInvoiceRepository> _logger;
 
     public GetPageInvoiceRepository(
         IVkOrdApiClientFactory vkOrdClientFactory,
+        AppDbContext context,
+        ICacheService cacheService,
         ILogger<GetPageInvoiceRepository> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
+        _context = context;
+        _cacheService = cacheService;
         _logger = logger;
     }
 
-    public async Task<VkOrdApiInvoiceListResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken)
+    public async Task<VkOrdApiInvoiceListResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken, List<string>? externalIds = null)
     {
         var vkOrdClient = await _vkOrdClientFactory.CreateClient();
+        var apiCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
-        try
+        var query = _context.VkOrdInvoices.AsQueryable();
+        if (externalIds != null)
         {
-            var response = await vkOrdClient.GetInvoicesV1(pageRequest, cancellationToken);
-
-            _logger.LogInformation(
-                $"VK ORD API response - ExternalIds count: {response?.ExternalIds?.Count ?? 0}, " +
-                $"TotalItemsCount: {response?.TotalItemsCount}, Limit: {response?.Limit}");
-
-            return response ?? new VkOrdApiInvoiceListResponse();
+            query = query
+                .Include(x => x.Contract)
+                    .ThenInclude(c => c.ContractParties)
+                        .ThenInclude(cp => cp.Counterparty)
+                .Where(x => x.Contract != null && x.Contract.ContractParties.Any(cp => externalIds.Contains(cp.Counterparty.ExternalId)));
         }
-        catch (Exception ex)
+
+        query = query
+            .Where(x => x.LogicalAccountId == apiCredential.LogicalAccountId)
+            .Skip((pageRequest.Page - 1) * pageRequest.Limit)
+            .Take(pageRequest.Limit)
+            .OrderBy(x => x.UpdatedAt);
+
+        var data = await query.ToListAsync(cancellationToken);
+        var totalItemsCount = await query.CountAsync(cancellationToken);
+
+        if(!data.IsNullOrEmpty())
         {
-            _logger.LogError(ex, "Error getting invoices page from VK ORD API");
-            throw;
+            return new VkOrdApiInvoiceListResponse
+            {
+                ExternalIds = data.Select(x => x.ExternalId).ToList(),
+                TotalItemsCount = totalItemsCount,
+                Limit = pageRequest.Limit
+            };
         }
+
+        return new VkOrdApiInvoiceListResponse
+        {
+            ExternalIds = new List<string>(),
+            TotalItemsCount = 0,
+            Limit = pageRequest.Limit
+        };
     }
 }

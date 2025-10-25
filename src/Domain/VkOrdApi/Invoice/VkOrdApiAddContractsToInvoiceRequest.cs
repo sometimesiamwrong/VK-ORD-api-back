@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Domain.ValueGeneration;
 
 namespace Domain.VkOrdApi.Invoice;
 
@@ -29,7 +30,7 @@ public sealed class VkOrdApiInvoiceItemToAdd
     /// Суммы по договору (опционально)
     /// </summary>
     [JsonPropertyName("amount")]
-    public VkOrdInvoiceItemAmount? Amount { get; set; }
+    public VkOrdInvoiceAmount? Amount { get; set; }
 
     /// <summary>
     /// Список креативов в договоре (опционально)

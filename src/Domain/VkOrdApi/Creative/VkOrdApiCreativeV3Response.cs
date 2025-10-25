@@ -12,7 +12,7 @@ public sealed class VkOrdApiCreativeV3Response
     /// ERID (v3)
     /// </summary>
     [JsonPropertyName("erid")]
-    public required string Erid { get; set; }
+    public string Erid { get; set; }
 
     /// <summary>
     /// Person external ID (v3)
@@ -30,13 +30,13 @@ public sealed class VkOrdApiCreativeV3Response
     /// KKTUs (v3)
     /// </summary>
     [JsonPropertyName("kktus")]
-    public required List<string> Kktus { get; set; }
+    public List<string> Kktus { get; set; }
 
     /// <summary>
     /// Name (v3)
     /// </summary>
     [JsonPropertyName("name")]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
     /// Brand (v3)

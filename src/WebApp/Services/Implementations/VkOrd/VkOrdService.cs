@@ -25,7 +25,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
         private readonly ICreateCreativeRepository _createCreativeRepository;
         private readonly IGetCreativeRepository _getCreativeRepository;
-        private readonly IGetAllCreativesRepository _getAllCreativesRepository;
+        private readonly IGetPageCreativesRepository _getPageCreativesRepository;
         private readonly IGetCreativeByEridRepository _getCreativeByEridRepository;
         
         private readonly IVkOrdMediaRepository _mediaRepository;
@@ -54,7 +54,7 @@ namespace WebApp.Services.Implementations.VkOrd
             IGetPageCounterpartiesRepository getPageCounterpartiesRepository,
             ICreateCreativeRepository createCreativeRepository,
             IGetCreativeRepository getCreativeRepository,
-            IGetAllCreativesRepository getAllCreativesRepository,
+            IGetPageCreativesRepository getAllCreativesRepository,
             IGetCreativeByEridRepository getCreativeByEridRepository,
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository,
             IVkOrdMediaRepository mediaRepository,
@@ -83,7 +83,7 @@ namespace WebApp.Services.Implementations.VkOrd
             _getPageCounterpartiesRepository = getPageCounterpartiesRepository;
             _createCreativeRepository = createCreativeRepository;
             _getCreativeRepository = getCreativeRepository;
-            _getAllCreativesRepository = getAllCreativesRepository;
+            _getPageCreativesRepository = getAllCreativesRepository;
             _getCreativeByEridRepository = getCreativeByEridRepository;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
             _mediaRepository = mediaRepository;

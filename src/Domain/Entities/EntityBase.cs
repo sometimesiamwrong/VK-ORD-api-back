@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace Domain.Entities;
@@ -35,11 +36,13 @@ public abstract class EntityBase
     /// <summary>
     /// Версия строки
     /// </summary>
+    [JsonIgnore]
     public int RowVersion { get; set; }
 
     /// <summary>
     /// Удалена ли сущность
     /// </summary>
+    [JsonIgnore]
     public bool IsDeleted { get; set; }
 
     /// <returns>true если новая сущность (Id == 0), false если существующий</returns>

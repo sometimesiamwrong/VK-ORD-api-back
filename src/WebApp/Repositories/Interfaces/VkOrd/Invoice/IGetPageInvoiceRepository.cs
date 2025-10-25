@@ -13,6 +13,7 @@ public interface IGetPageInvoiceRepository
     /// </summary>
     /// <param name="pageRequest">Параметры пагинации</param>
     /// <param name="cancellationToken">Токен отмены</param>
+    /// <param name="externalIds">Список внешних идентификаторов актов</param>
     /// <returns>Список внешних идентификаторов актов с метаданными</returns>
-    Task<VkOrdApiInvoiceListResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken);
+    Task<VkOrdApiInvoiceListResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken, List<string>? externalIds = null);
 }

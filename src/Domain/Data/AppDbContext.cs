@@ -13,6 +13,7 @@ public class AppDbContext : DbContext
     public DbSet<VkOrdLogicalAccount> VkLogicalAccounts { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<DatabaseScript> DatabaseScripts { get; set; }
+    public DbSet<FlowTemplate> FlowTemplates { get; set; }
 
     // VK ORD  entities
     public DbSet<VkOrdCounterparty> VkOrdCounterparties { get; set; }
@@ -75,6 +76,30 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<DatabaseScript>(b =>
         {
             b.HasIndex(s => s.ScriptName).IsUnique();
+        });
+
+        // FlowTemplate
+        modelBuilder.Entity<FlowTemplate>(b =>
+        {
+            b.ConfigureEntityBase();
+            
+            b.HasOne(f => f.ApiCredential)
+                .WithMany(a => a.FlowTemplates)
+                .HasForeignKey(f => f.ApiCredentialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Индексы
+            b.HasIndex(f => f.ApiCredentialId).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(f => new { f.ApiCredentialId, f.IsActive }).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(f => f.Name).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(f => f.Type).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(f => f.CreatedAt).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(f => f.UseCount).HasFilter("\"IsDeleted\" = false");
+
+            // Unique constraint: одни учетные данные API не могут иметь два активных шаблона с одинаковым именем
+            b.HasIndex(f => new { f.ApiCredentialId, f.Name })
+                .IsUnique()
+                .HasFilter("\"IsDeleted\" = false");
         });
 
         // VkOrdLogicalAccount

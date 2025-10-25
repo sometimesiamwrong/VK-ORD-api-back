@@ -146,6 +146,7 @@ public partial interface IVkOrdApiClient
     [Put("/v3/invoice/{external_id}")]
     Task CreateFullInvoiceV3(
         [AliasAs("external_id")] string externalId,
+        [Query] bool draft,
         [Body] VkOrdApiFullInvoiceRequest apiFullRequest,
         CancellationToken cancellationToken);
 

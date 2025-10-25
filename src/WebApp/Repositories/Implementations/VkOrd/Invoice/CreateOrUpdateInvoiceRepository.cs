@@ -1,7 +1,9 @@
+using System.Globalization;
 using Domain.BrokenRules;
 using Domain.Data;
 using Domain.Entities;
 using Domain.Entities.Enums;
+using Domain.Entities.Enums.VkOrd;
 using Domain.Entities.VkOrd;
 using Domain.Extensions;
 using Domain.VkOrdApi.Invoice;
@@ -62,11 +64,55 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
         // Маппинг request в API модель
         var apiRequest = MapToApiRequest(request);
 
+        var vatRate = decimal.Parse(apiRequest.Amount.Services.VatRate, CultureInfo.InvariantCulture);
+        var includingVat = decimal.Parse(request.Amount.Services.IncludingVat, CultureInfo.InvariantCulture);
+        
+        var calculatedExcludingVat = Math.Round(includingVat / (1 + vatRate / 100), 2);
+        var calculatedVat = Math.Round(includingVat - calculatedExcludingVat, 2);
+
+        if (includingVat != calculatedExcludingVat + calculatedVat)
+        {
+            calculatedVat += 0.01m;
+            calculatedExcludingVat = includingVat - calculatedVat;
+        }
+
+        apiRequest.Amount.Services.ExcludingVat = calculatedExcludingVat.ToString(CultureInfo.InvariantCulture);
+        apiRequest.Amount.Services.Vat = calculatedVat.ToString(CultureInfo.InvariantCulture);
+        apiRequest.Amount.Services.IncludingVat = includingVat.ToString(CultureInfo.InvariantCulture);
+        apiRequest.Amount.Services.VatRate = vatRate.ToString(CultureInfo.InvariantCulture);
+
+        if (apiRequest.Items != null)
+        {
+            foreach (var item in apiRequest.Items)
+            {
+                var itemVatRate = decimal.Parse(item.Amount.VatRate, CultureInfo.InvariantCulture);
+                var itemIncludingVat = decimal.Parse(item.Amount.IncludingVat, CultureInfo.InvariantCulture);
+
+                var itemCalculatedExcludingVat = Math.Round(itemIncludingVat / (1 + itemVatRate / 100), 2);
+                var itemCalculatedVat = Math.Round(itemIncludingVat - itemCalculatedExcludingVat, 2);
+
+                if (itemIncludingVat != itemCalculatedExcludingVat + itemCalculatedVat)
+                {
+                    itemCalculatedVat += 0.01m;
+                    itemCalculatedExcludingVat = itemIncludingVat - itemCalculatedVat;
+                }
+
+                item.Amount.ExcludingVat = itemCalculatedExcludingVat.ToString(CultureInfo.InvariantCulture);
+                item.Amount.Vat = itemCalculatedVat.ToString(CultureInfo.InvariantCulture);
+                item.Amount.IncludingVat = itemIncludingVat.ToString(CultureInfo.InvariantCulture);
+                item.Amount.VatRate = itemVatRate.ToString(CultureInfo.InvariantCulture);
+            }
+        }
+
+        _logger.LogInformation($"Adjusted invoice amounts - VAT: {calculatedVat}, Including VAT: {includingVat}, Excluding VAT: {calculatedExcludingVat}");
+
+
         // Вызов VK Ord API
         var vkOrdClient = await _vkOrdClientFactory.CreateClient();
         
         await vkOrdClient.CreateFullInvoiceV3(
             externalId,
+            draft: request.Status == VkOrdApiInvoiceStatus.Draft,
             apiRequest,
             cancellationToken);
 
@@ -84,19 +130,18 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
         var invoice = existingInvoice ?? new VkOrdInvoice
         {
             LogicalAccountId = vkOrdCredential.LogicalAccountId,
-            ExternalId = externalId
+            ExternalId = externalId,
+            ContractExternalId = invoiceResponse.ContractExternalId,
         };
 
-        invoice.Data = invoiceResponse;
-        invoice.IsDraft = isDraft;
-        invoice.ContractExternalId = request.ContractExternalId;
-        invoice.UpdatedAt = DateTimeOffset.UtcNow;
+        invoice.UpdateData(invoiceResponse);
 
         if (!isUpdate)
         {
             invoice.CreatedAt = DateTimeOffset.UtcNow;
         }
-
+        invoice.UpdatedAt = DateTimeOffset.UtcNow;
+        
         // Сохраняем в БД
         await SaveToDatabase(invoice, isUpdate, cancellationToken);
 

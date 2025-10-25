@@ -12,7 +12,7 @@ public class CreateOrUpdateInvoiceRequest
     /// <summary>
     /// Внешний идентификатор акта (устанавливается из маршрута)
     /// </summary>
-    public string ExternalId { get; set; } = string.Empty;
+    public required string ExternalId { get; set; }
 
     /// <summary>
     /// Внешний идентификатор договора, к которому добавляется акт
@@ -25,7 +25,7 @@ public class CreateOrUpdateInvoiceRequest
     /// Внешний идентификатор договора-поручения (опционально)
     /// </summary>
     [MaxLength(255)]
-    public string? OrderContractExternalId { get; set; }
+    public string? OrderContractExternalId { get; set; } = null;
 
     /// <summary>
     /// Дата выставления акта (YYYY-MM-DD)

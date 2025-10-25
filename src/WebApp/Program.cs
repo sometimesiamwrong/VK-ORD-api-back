@@ -19,6 +19,7 @@ using WebApp.Filters;
 using WebApp.Middleware;
 using WebApp.Security;
 using WebApp.Services.Implementations;
+using WebApp.Services.Implementations.FlowTemplateServices;
 using WebApp.Services.Interfaces;
 using WebApp.Startup;
 
@@ -111,6 +112,8 @@ builder.Services.AddScoped<IApiCredentialService, ApiCredentialService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
 builder.Services.AddScoped<ICacheService, WebApp.Services.Implementations.Cache.CacheService>();
+builder.Services.AddScoped<IWizardFlowTemplateService, WizardFlowTemplateService>();
+builder.Services.AddScoped<IFlowTemplateService, FlowTemplateService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkApiHeadersFilter>();

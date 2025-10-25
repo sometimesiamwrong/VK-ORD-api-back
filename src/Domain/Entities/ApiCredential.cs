@@ -50,6 +50,13 @@ public class ApiCredential : EntityBase
     /// </summary>
     [Required]
     public virtual VkOrdLogicalAccount? LogicalAccount { get; set; }
+
+    /// <summary>
+    /// Список шаблонов потоков для этих учетных данных
+    /// </summary>
+    public ICollection<FlowTemplate> FlowTemplates { get; set; } = new List<FlowTemplate>();
 }
+
+
 
 

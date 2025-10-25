@@ -14,7 +14,6 @@ namespace WebApp.Repositories.Implementations.VkOrd.Statistics;
 /// </summary>
 public class DeleteStatisticsRepository : IDeleteStatisticsRepository
 {
-    private readonly IVkOrdApiClient _vkOrdClient;
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
     private readonly AppDbContext _context;
     private readonly ICacheService _cacheService;
@@ -26,7 +25,6 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
         ICacheService cacheService,
         ILogger<DeleteStatisticsRepository> logger)
     {
-        _vkOrdClient = vkOrdApiClientFactory.CreateClient().GetAwaiter().GetResult();
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
         _context = context;
         _cacheService = cacheService;
@@ -41,6 +39,7 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
     {
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;
+        var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
 
         // Создаем запрос для VK ORD API
         var request = new VkOrdApiDeleteStatisticsRequest
@@ -57,7 +56,7 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
         };
 
         // Удаляем через VK ORD API (POST /v1/statistics/delete)
-        await _vkOrdClient.DeleteStatisticsV1(request, cancellationToken);
+        await vkOrdClient.DeleteStatisticsV1(request, cancellationToken);
 
         _logger.LogInformation(
             "Successfully deleted statistic from VK ORD API. CreativeExternalId: {CreativeExternalId}, " +

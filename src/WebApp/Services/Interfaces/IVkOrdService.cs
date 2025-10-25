@@ -40,12 +40,12 @@ public interface IVkOrdService
     /// <summary>
     /// Создать креатив
     /// </summary>
-    Task<VkOrdApiCreativeV3RequestResponse> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken);
+    Task<VkOrdCreative> CreateCreative(CreateCreativeRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить информацию о креативе по external_id
     /// </summary>
-    Task<VkOrdApiCreativeV3Response> GetCreative(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список креативов с детальными данными
@@ -55,7 +55,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить креатив по ERID
     /// </summary>
-    Task<VkOrdApiCreativeV3Response> GetCreativeByErid(string erid, CancellationToken cancellationToken);
+    Task<VkOrdCreative> GetCreativeByErid(string erid, CancellationToken cancellationToken);
     
     /// <summary>
     /// Создать контрагента в VK ОРД из данных DaData по ИНН
@@ -105,7 +105,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить список актов с пагинацией
     /// </summary>
-    Task<GetInvoicesDto> GetPageInvoice(PageRequest pageRequest, CancellationToken cancellationToken);
+    Task<GetInvoicesDto> GetPageInvoice(PageRequest pageRequest, CancellationToken cancellationToken, List<string>? counterpartyExternalIds = null);
 
     /// <summary>
     /// Удалить акт

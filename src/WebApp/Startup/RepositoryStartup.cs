@@ -83,7 +83,7 @@ namespace WebApp.Startup
             
             services.AddScoped<ICreateCreativeRepository, CreateCreativeRepository>();
             services.AddScoped<IGetCreativeRepository, GetCreativeRepository>();
-            services.AddScoped<IGetAllCreativesRepository, GetAllCreativesRepository>();
+            services.AddScoped<IGetPageCreativesRepository, GetPageCreativesRepository>();
             services.AddScoped<IGetCreativeByEridRepository, GetCreativeByEridRepository>();
 
             services.AddScoped<ICreateOrUpdateInvoiceRepository, CreateOrUpdateInvoiceRepository>();

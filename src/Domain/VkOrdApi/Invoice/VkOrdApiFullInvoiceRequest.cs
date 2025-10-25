@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Domain.Entities.Enums.VkOrd;
+using Domain.ValueGeneration;
 
 namespace Domain.VkOrdApi.Invoice;
 
@@ -86,7 +87,7 @@ public sealed class VkOrdInvoiceAmount
     /// Информация о сумме за сервисы (обязательный object)
     /// </summary>
     [JsonPropertyName("services")]
-    public VkOrdInvoiceServicesAmount Services { get; set; } = new();
+    public VkOrdInvoiceAmountDetails Services { get; set; }
 
     /// <summary>
     /// Информация о вознаграждении посреднику (nullable object, only if main contract mediation).
@@ -97,37 +98,38 @@ public sealed class VkOrdInvoiceAmount
 }
 
 /// <summary>
-/// Сумма за сервисы
+/// Детали суммы (используется для сервисов, комиссии и позиций)
 /// </summary>
-public sealed class VkOrdInvoiceServicesAmount
+public sealed class VkOrdInvoiceAmountDetails
 {
     /// <summary>
     /// Сумма без НДС (Scale2 decimal, >0)
     /// </summary>
     [JsonPropertyName("excluding_vat")]
-    public decimal ExcludingVat { get; set; }
+    public required string ExcludingVat { get; set; }
 
     /// <summary>
-    /// Ставка НДС (%)
+    /// Ставка НДС (%, pattern: ^\d{1,2}(\.\d{1,2})? , max: 20)
     /// </summary>
     [JsonPropertyName("vat_rate")]
-    public decimal VatRate { get; set; }
+    [JsonConverter(typeof(DecimalToStringConverter))]
+    public required string VatRate { get; set; }
 
     /// <summary>
     /// Сумма НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("vat")]
-    public decimal Vat { get; set; }
+    public required string Vat { get; set; } = string.Empty;
 
     /// <summary>
     /// Сумма с НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("including_vat")]
-    public decimal IncludingVat { get; set; }
+    public required string IncludingVat { get; set; } = string.Empty;
 }
 
 /// <summary>
-/// Вознаграждение посреднику (commission)
+/// Вознаграждение посреднику (commission) с дополнительными реквизитами
 /// </summary>
 public sealed class VkOrdInvoiceCommissionAmount
 {
@@ -135,25 +137,26 @@ public sealed class VkOrdInvoiceCommissionAmount
     /// Сумма без НДС (Scale2 decimal, >0)
     /// </summary>
     [JsonPropertyName("excluding_vat")]
-    public decimal ExcludingVat { get; set; }
+    public required string ExcludingVat { get; set; }
 
     /// <summary>
-    /// Ставка НДС (%)
+    /// Ставка НДС (%, pattern: ^\d{1,2}(\.\d{1,2})? , max: 20)
     /// </summary>
     [JsonPropertyName("vat_rate")]
-    public decimal VatRate { get; set; }
+    [JsonConverter(typeof(DecimalToStringConverter))]
+    public required string VatRate { get; set; } = string.Empty;
 
     /// <summary>
     /// Сумма НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("vat")]
-    public decimal Vat { get; set; }
+    public required string Vat { get; set; } = string.Empty;
 
     /// <summary>
     /// Сумма с НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("including_vat")]
-    public decimal IncludingVat { get; set; }
+    public required string IncludingVat { get; set; } = string.Empty;
 
     /// <summary>
     /// Серийный номер договора комиссии (minLength 1, max 255, example: 123)
@@ -183,7 +186,7 @@ public sealed class VkOrdInvoiceV3Item
     /// Сумма по позиции (object, nullable false)
     /// </summary>
     [JsonPropertyName("amount")]
-    public VkOrdInvoiceItemAmount Amount { get; set; } = new();
+    public VkOrdInvoiceAmountDetails Amount { get; set; } 
 
     /// <summary>
     /// Список креативов позиции (nullable array, unique, API auto-links stats)
@@ -193,49 +196,13 @@ public sealed class VkOrdInvoiceV3Item
 }
 
 /// <summary>
-/// Сумма позиции (item amount)
-/// </summary>
-public sealed class VkOrdInvoiceItemAmount
-{
-    /// <summary>
-    /// Сумма без НДС (Scale2 decimal, >0)
-    /// </summary>
-    [JsonPropertyName("excluding_vat")]
-    public decimal ExcludingVat { get; set; }
-
-    /// <summary>
-    /// Ставка НДС (%)
-    /// </summary>
-    [JsonPropertyName("vat_rate")]
-    public decimal VatRate { get; set; }
-
-    /// <summary>
-    /// Сумма НДС (Scale2 decimal)
-    /// </summary>
-    [JsonPropertyName("vat")]
-    public decimal Vat { get; set; }
-
-    /// <summary>
-    /// Сумма с НДС (Scale2 decimal)
-    /// </summary>
-    [JsonPropertyName("including_vat")]
-    public decimal IncludingVat { get; set; }
-}
-
-/// <summary>
 /// Креатив в позиции items
 /// </summary>
 public sealed class VkOrdInvoiceItemCreative
 {
     /// <summary>
-    /// ERID креатива (string, unique in list)
+    /// External ID креатива
     /// </summary>
-    [JsonPropertyName("erid")]
-    public string Erid { get; set; } = string.Empty;
-
-    /// <summary>
-    /// External ID креатива (if needed, optional)
-    /// </summary>
-    [JsonPropertyName("external_id")]
-    public string? ExternalId { get; set; }
+    [JsonPropertyName("creative_external_id")]
+    public string? СreativeExternalId { get; set; }
 }

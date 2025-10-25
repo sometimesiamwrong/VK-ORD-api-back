@@ -76,5 +76,40 @@ public enum BrokenRuleCodes : long
     /// </summary>
     [Description("Контрагент не найден в VK ОРД API")]
     [Domain("ExternalApi")]
-    DataIsEmpty = 9
+    DataIsEmpty = 9,
+
+    /// <summary>
+    /// Шаблон с таким именем уже существует
+    /// </summary>
+    [Description("Шаблон с таким именем уже существует")]
+    [Domain("FlowTemplate")]
+    FlowTemplateWithSuchNameAlreadyExists = 10,
+
+    /// <summary>
+    /// Шаблон не найден
+    /// </summary>
+    [Description("Шаблон не найден")]
+    [Domain("FlowTemplate")]
+    FlowTemplateNotFound = 11,
+
+    /// <summary>
+    /// Ошибка обработки шаблона
+    /// </summary>
+    [Description("Ошибка обработки шаблона")]
+    [Domain("FlowTemplate")]
+    FlowTemplateProcessingError = 12,
+
+    /// <summary>
+    /// Контракт не найден
+    /// </summary>
+    [Description("Контракт не найден")]
+    [Domain("ExternalApi")]
+    ContractNotFound = 13,
+
+    /// <summary>
+    /// Креатив не найден
+    /// </summary>
+    [Description("Креатив не найден")]
+    [Domain("ExternalApi")]
+    CreativeNotFound = 14,
 }

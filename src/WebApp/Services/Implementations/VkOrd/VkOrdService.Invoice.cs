@@ -23,6 +23,8 @@ public partial class VkOrdService : IVkOrdService
             request,
             isDraft,
             cancellationToken);
+
+        await GetInvoice(request.ExternalId, cancellationToken);
     }
 
     public async Task<VkOrdInvoice> GetInvoice(string externalId, CancellationToken cancellationToken)
@@ -30,9 +32,9 @@ public partial class VkOrdService : IVkOrdService
         return await _getInvoiceRepository.Get(externalId, cancellationToken);
     }
 
-    public async Task<GetInvoicesDto> GetPageInvoice(PageRequest pageRequest, CancellationToken cancellationToken)
+    public async Task<GetInvoicesDto> GetPageInvoice(PageRequest pageRequest, CancellationToken cancellationToken, List<string>? counterpartyExternalIds = null)
     {
-        var pageInvoiceListResponse = await _getPageInvoiceRepository.Get(pageRequest, cancellationToken);
+        var pageInvoiceListResponse = await _getPageInvoiceRepository.Get(pageRequest, cancellationToken, counterpartyExternalIds);
 
         if (pageInvoiceListResponse?.ExternalIds == null || pageInvoiceListResponse.ExternalIds.Count == 0)
         {

@@ -118,8 +118,11 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         httpClient.DefaultRequestHeaders.Add("X-API-Route", apiContext.Route.ToString());
 
         // Логируем настроенные заголовки для отладки
-        _logger.LogDebug("VK ORD API client headers configured: User-Agent={UserAgent}, Accept={Accept}, Route={Route}",
-            "VK-ORD-API-Wrapper/1.0 (WebApp)", "application/json", apiContext.Route);
+        //_logger.LogDebug("VK ORD API client headers configured: User-Agent={UserAgent}, Accept={Accept}, Route={Route}",
+        //    "VK-ORD-API-Wrapper/1.0 (WebApp)", "application/json", apiContext.Route);
+        var credi = await GetVkOrdCredentialAsync();
+        var accountId = credi.LogicalAccountId;
+        _logger.LogDebug($"LogicalAccount: {accountId}", accountId);
 
         // Настраиваем сериализацию для Refit с поддержкой EnumMember
         var refitSettings = new RefitSettings
@@ -221,10 +224,15 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
 
     public async Task<ApiCredential> GetVkOrdCredentialAsync()
     {
-        var apiCredential = await _getApiCredentialByGuidRepository.GetByGuidAsync(_httpContextAccessor.GetVkOrdCredentialId());
-        if (apiCredential == null)
+        var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
+        if (userId == null)
         {
-            throw new ArgumentException("ApiCredential is not found");
+            throw new UnauthorizedAccessException("User is not authenticated");
+        }
+        var apiCredential = await _getApiCredentialByGuidRepository.GetByGuidAsync(_httpContextAccessor.GetVkOrdCredentialId());
+        if (apiCredential == null || apiCredential.UserId != userId)
+        {
+            throw BrokenRuleCodes.VkOrdCredentialsNotFound.AsExn();
         }
         return apiCredential;
     }
