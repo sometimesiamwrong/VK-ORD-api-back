@@ -7,7 +7,15 @@
         <RootNamespace>Jobs</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <NoWarn>$(NoWarn);1591</NoWarn>
+        <!-- Исключить содержимое WebApp при публикации -->
+        <EnableDefaultContentItems>true</EnableDefaultContentItems>
     </PropertyGroup>
+
+    <!-- Исключить appsettings файлы из WebApp при публикации -->
+    <ItemGroup>
+        <Content Remove="..\WebApp\appsettings.json" />
+        <Content Remove="..\WebApp\appsettings.*.json" />
+    </ItemGroup>
 
     <ItemGroup>
         <!-- Hangfire -->
@@ -43,7 +51,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />
-        <ProjectReference Include="..\WebApp\WebApp.csproj" />
+        <!-- Ссылка на WebApp только для компиляции, не копировать содержимое при публикации -->
+        <ProjectReference Include="..\WebApp\WebApp.csproj">
+            <Private>false</Private>
+            <ExcludeAssets>contentFiles</ExcludeAssets>
+            <IncludeAssets>compile;build</IncludeAssets>
+        </ProjectReference>
     </ItemGroup>
 
 </Project>
