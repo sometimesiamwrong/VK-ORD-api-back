@@ -51,11 +51,9 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Domain\Domain.csproj" />
-        <!-- Ссылка на WebApp только для компиляции, не копировать содержимое при публикации -->
+        <!-- Ссылка на WebApp - нужна для использования репозиториев и сервисов -->
         <ProjectReference Include="..\WebApp\WebApp.csproj">
-            <Private>false</Private>
             <ExcludeAssets>contentFiles</ExcludeAssets>
-            <IncludeAssets>compile;build</IncludeAssets>
         </ProjectReference>
     </ItemGroup>
 

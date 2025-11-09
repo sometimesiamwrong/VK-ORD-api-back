@@ -76,4 +76,3 @@
 # JOBS_INSTALL_DIR="/home/developer/deployed/adlawyer-jobs"
 # JOBS_USER="developer"
 # ENABLE_CLO_TUNNEL=false
-

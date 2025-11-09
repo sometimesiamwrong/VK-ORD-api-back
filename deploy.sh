@@ -31,7 +31,7 @@ JOBS_PROJECT_PATH="${REPO_ROOT}/src/Jobs"
 JOBS_PUBLISH_DIR="${JOBS_PROJECT_PATH}/publish"
 JOBS_INSTALL_DIR="/var/www/adlawyer-jobs"
 JOBS_EXEC_NAME="Jobs"
-JOBS_PORT="5001"
+JOBS_PORT="5101"
 JOBS_URL="http://*:${JOBS_PORT}"
 JOBS_USER="www-data"
 
