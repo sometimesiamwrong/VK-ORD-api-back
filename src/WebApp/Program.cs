@@ -289,15 +289,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins(
-            "https://criminally-astute-kangaroo.cloudpub.ru",
-            "https://server273.hosting.reg.ru",
-            "https://ad-lawyer.ru",
-            "http://ad-lawyer.ru",
-            "http://localhost",
-            "http://localhost:5173"
-        )
-            .AllowAnyMethod()
+        policy.AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials();
     });
