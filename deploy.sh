@@ -110,6 +110,67 @@ publish_project() {
     echo "✅ Проект ${project_name} успешно опубликован в ${publish_dir}"
 }
 
+kill_processes_by_port() {
+    local port=$1
+    local port_desc=$2
+    
+    echo "🔍 Проверка процессов на порту ${port}..."
+    
+    # Получить PID всех процессов слушающих на порту
+    local pids=$(lsof -ti :${port} 2>/dev/null || true)
+    
+    if [ -z "$pids" ]; then
+        echo "   ✅ Портом ${port} никто не занят"
+        return 0
+    fi
+    
+    echo "   🛑 Найдены процессы на порту ${port}: ${pids}"
+    
+    # Попытка graceful shutdown
+    for pid in $pids; do
+        echo "   • Отправка SIGTERM процессу $pid..."
+        kill -TERM "$pid" 2>/dev/null || true
+    done
+    
+    # Ждем 3 секунды
+    sleep 3
+    
+    # Проверка, остались ли процессы
+    pids=$(lsof -ti :${port} 2>/dev/null || true)
+    
+    if [ -z "$pids" ]; then
+        echo "   ✅ Процессы на порту ${port} успешно остановлены"
+        return 0
+    fi
+    
+    # Force kill если остались
+    echo "   ⚠️  Некоторые процессы еще активны, force kill..."
+    for pid in $pids; do
+        echo "   • Force kill процесса $pid..."
+        kill -9 "$pid" 2>/dev/null || true
+    done
+    
+    sleep 1
+    echo "   ✅ Порт ${port} освобожден"
+}
+
+cleanup_old_processes() {
+    echo ""
+    echo "========================================="
+    echo "🧹 Очистка старых процессов и портов"
+    echo "========================================="
+    
+    # Остановка по портам
+    kill_processes_by_port "$WEBAPP_PORT" "WebApp"
+    kill_processes_by_port "$JOBS_PORT" "Jobs"
+    
+    if [ "$ENABLE_CLO_TUNNEL" = true ]; then
+        kill_processes_by_port "$CLO_WEBAPP_PORT" "CLO WebApp Tunnel"
+    fi
+    
+    echo "✅ Очистка портов завершена"
+}
+
 stop_and_remove_service() {
     local service_name=$1
     local service_file="/etc/systemd/system/${service_name}.service"
@@ -377,6 +438,9 @@ main() {
     # Проверки
     check_root
     install_dotnet_if_needed
+    
+    # Очистка старых процессов и портов
+    cleanup_old_processes
     
     # Публикация проектов
     publish_project "WebApp" "$WEBAPP_PROJECT_PATH" "$WEBAPP_PUBLISH_DIR"
