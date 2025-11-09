@@ -274,18 +274,50 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Настройка CORS - разрешаем любые источники
+// Настройка CORS - разрешаем конкретные источники и все поддомены *.cloudpub.ru
+var corsOrigins = builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() 
+    ?? new[] 
+    { 
+        "https://ad-lawyer.ru",
+        "https://www.ad-lawyer.ru",
+        "http://localhost:3000",
+        "http://localhost:5000",
+        "http://localhost:5173",
+        "http://127.0.0.1:3000"
+    };
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
+        policy.WithOrigins(corsOrigins)
+              .SetIsOriginAllowedToAllowWildcardSubdomains()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
+// Дополнительная политика для cloudpub.ru с регулярным выражением
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowCloudPub", policy =>
+    {
+        policy.SetIsOriginAllowed(origin => 
+        {
+            if (string.IsNullOrEmpty(origin))
+                return false;
+            
+            var uri = new Uri(origin);
+            // Разрешаем все поддомены cloudpub.ru через регулярное выражение
+            return System.Text.RegularExpressions.Regex.IsMatch(uri.Host, @"^(?:.*\.)?cloudpub\.ru$", System.Text.RegularExpressions.RegexOptions.IgnoreCase)
+                || corsOrigins.Contains(origin);
+        })
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
 
 var app = builder.Build();
 
@@ -313,7 +345,7 @@ app.UseSwaggerUI(c =>
     c.RoutePrefix = string.Empty; // Swagger на корневом пути
 });
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowCloudPub");
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 app.UseResultStatusCode(); // Выполняется после GlobalExceptionHandlingMiddleware
 

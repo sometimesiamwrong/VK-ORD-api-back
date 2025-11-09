@@ -23,7 +23,15 @@
     "DefaultDatabase": 0
   },
   "CorsSettings": {
-    "AllowedOrigins": []
+    "AllowedOrigins": [
+      "https://ad-lawyer.ru",
+      "https://www.ad-lawyer.ru",
+      "http://localhost:3000",
+      "http://localhost:5000",
+      "http://localhost:5173",
+      "http://127.0.0.1:3000"
+    ],
+    "Note": "Все поддомены *.cloudpub.ru разрешены через регулярное выражение в коде"
   },
   "VkOrd": {
     "ApiToken": "3c58cc4ec81f4a68a1bf9f84a22e0826",

@@ -50,7 +50,14 @@
     "TimeoutSeconds": 30
   },
   "CorsSettings": {
-    "AllowedOrigins": []
+    "AllowedOrigins": [
+      "https://ad-lawyer.ru",
+      "https://www.ad-lawyer.ru",
+      "http://localhost:3000",
+      "http://localhost:5000",
+      "http://localhost:5173"
+    ],
+    "Note": "Все поддомены *.cloudpub.ru разрешены через регулярное выражение в коде"
   },
   "RedisSettings": {
     "ConnectionString": "localhost:6379",
