@@ -49,6 +49,9 @@
     "ApiToken": "",
     "TimeoutSeconds": 30
   },
+  "CorsSettings": {
+    "AllowedOrigins": []
+  },
   "RedisSettings": {
     "ConnectionString": "localhost:6379",
     "InstanceName": "VkOrdApi",

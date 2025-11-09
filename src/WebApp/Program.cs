@@ -274,26 +274,18 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Настройка CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
-
+// Настройка CORS - разрешаем любые источники
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
+
 
 var app = builder.Build();
 

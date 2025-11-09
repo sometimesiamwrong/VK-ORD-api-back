@@ -31,6 +31,9 @@
     "InstanceName": "VkOrdApi",
     "DefaultDatabase": 0
   },
+  "CorsSettings": {
+    "AllowedOrigins": []
+  },
   "Logging": {
     "LogLevel": {
       "Default": "Information",

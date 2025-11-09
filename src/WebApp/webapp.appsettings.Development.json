@@ -22,6 +22,9 @@
     "InstanceName": "VkOrdApi_Dev",
     "DefaultDatabase": 0
   },
+  "CorsSettings": {
+    "AllowedOrigins": []
+  },
   "VkOrd": {
     "ApiToken": "3c58cc4ec81f4a68a1bf9f84a22e0826",
     "UseProduction": false,
