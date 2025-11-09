@@ -19,70 +19,73 @@ namespace WebApp.Repositories.Implementations.VkOrd.Creative
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IGetContractRepository _getContractRepository;
-        private readonly ICacheService _cacheService;
         private readonly AppDbContext _context;
-        private readonly ILogger<GetCreativeRepository> _logger;
 
         public GetCreativeRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            ICacheService cacheService,
             AppDbContext context,
-            ILogger<GetCreativeRepository> logger,
             IGetContractRepository getContractRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _cacheService = cacheService;
             _context = context;
-            _logger = logger;
             _getContractRepository = getContractRepository;
-        }   
+        }
 
-        public async Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken,
+            bool nocache = false)
         {
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
-            var cacheKey = GetCacheKey(externalId, vkOrdCredential);
 
-            var data = await _cacheService.Get<VkOrdCreative>(cacheKey, cancellationToken);
-            if (data == null || data.IsExpired())
+            var data = await _context.VkOrdCreatives.FirstOrDefaultAsync(
+                AppDbContext.DefaultGetVkOrd<VkOrdCreative>(externalId, vkOrdCredential), cancellationToken);
+            if (data == null || nocache)
             {
-                data = await _context.VkOrdCreatives.FirstOrDefaultAsync(AppDbContext.DefaultGetVkOrd<VkOrdCreative>(externalId, vkOrdCredential), cancellationToken);
-                if (data == null)
+                var vkOrdData = await vkOrdClient.GetCreativeV3ByExternalId(externalId, cancellationToken);
+
+                if (vkOrdData == null)
                 {
-                    var vkOrdData = await vkOrdClient.GetCreativeV3ByExternalId(externalId, cancellationToken);
-
-                    if (vkOrdData == null)
-                    {
-                        throw BrokenRuleCodes.DataIsEmpty.AsExn();
-                    }
-
-                    data = await MapOperation(vkOrdData, data, vkOrdCredential, externalId, cancellationToken);
+                    throw BrokenRuleCodes.DataIsEmpty.AsExn();
                 }
 
-                await _cacheService.Save(cacheKey, data, cancellationToken);
+                data = await MapOperation(vkOrdData, data, vkOrdCredential, externalId, cancellationToken);
             }
 
             return data;
         }
 
-        private async Task<VkOrdCreative> MapOperation(VkOrdApiCreativeV3Response vkOrdData, VkOrdCreative data, ApiCredential vkOrdCredential, string externalId, CancellationToken cancellationToken)
+        private async Task<VkOrdCreative> MapOperation(VkOrdApiCreativeV3Response vkOrdData, VkOrdCreative? data,
+            ApiCredential vkOrdCredential, string externalId, CancellationToken cancellationToken)
         {
             var contractExternalId = vkOrdData.ContractExternalIds?.FirstOrDefault();
             if (contractExternalId == null)
             {
                 throw BrokenRuleCodes.DataIsEmpty.AsExn();
             }
+
             var contract = await _getContractRepository.Get(contractExternalId, cancellationToken);
             if (contract == null)
             {
                 throw BrokenRuleCodes.DataIsEmpty.AsExn();
             }
 
-            data = new VkOrdCreative { LogicalAccountId = vkOrdCredential.LogicalAccountId, ExternalId = externalId, ContractId = contract.Id };
+            data ??= new VkOrdCreative
+            {
+                LogicalAccountId = vkOrdCredential.LogicalAccountId, ExternalId = externalId, ContractId = contract.Id
+            };
             data.UpdateData(vkOrdData);
 
-            data.CreativeContracts.Add(new VkOrdCreativeContract { ContractId = contract.Id, CreativeId = data.Id });
-            await _context.VkOrdCreatives.AddAsync(data, cancellationToken);
+            if (data.IsNew())
+            {
+                data.CreativeContracts.Add(new VkOrdCreativeContract
+                    { ContractId = contract.Id, CreativeId = data.Id });
+                await _context.VkOrdCreatives.AddAsync(data, cancellationToken);
+            }
+            else
+            {
+                _context.VkOrdCreatives.Update(data);
+            }
+
             await _context.SaveChangesAsync(cancellationToken);
             return data;
         }

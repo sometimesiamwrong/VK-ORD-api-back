@@ -20,17 +20,14 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly ICacheService _cacheService;
         private readonly AppDbContext _context;
 
         public GetCounterpartyByIdRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            ICacheService cacheService,
             AppDbContext context,
             IHttpContextAccessor httpContextAccessor)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _cacheService = cacheService;
             _context = context;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -39,53 +36,38 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
         {
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var noCache = _httpContextAccessor.GetNoCacheHeader();
-
-            var cacheKey = GetCacheKey(externalId, vkOrdCredential);
-
-            // Получаем данные из кэша
-            var data = await _cacheService.Get<VkOrdCounterparty>(
-                cacheKey,
-                cancellationToken
-            );
-
-            // Если данные не найдены в кэше, то получаем данные из базы данных
-            if (data == null || data.IsExpired() || noCache)
-            {
-                // Получаем данные из базы данных
-                data = await _context.VkOrdCounterparties
+                
+            // Получаем данные из базы данных
+            var data = await _context.VkOrdCounterparties
                     .FirstOrDefaultAsync(
                     AppDbContext.DefaultGetVkOrd<VkOrdCounterparty>(externalId, vkOrdCredential), cancellationToken);
 
-                if (data == null || data.IsExpired() || noCache)
+            if (data == null || data.IsExpired() || noCache)
+            {
+                // Получаем данные из API
+                var vkOrdData = await GetByApi(externalId, cancellationToken);
+
+                if (vkOrdData == null)
                 {
-                    // Получаем данные из API
-                    var vkOrdData = await GetByApi(externalId, cancellationToken);
-
-                    if (vkOrdData == null)
-                    {
-                        throw BrokenRuleCodes.DataIsEmpty.AsExn();
-                    }
-
-                    // Мапим данные
-                    data = MapOperation(vkOrdData, data, vkOrdCredential, externalId);
-
-                    if(data.IsNew())
-                    {
-                        // Добавляем данные в базу данных
-                        _context.VkOrdCounterparties.Add(data);
-                    }
-                    else
-                    {
-                        // Обновляем данные в базе данных
-                        _context.VkOrdCounterparties.Update(data);
-                    }
-
-                    // Сохраняем данные в базу данных
-                    await _context.SaveChangesAsync(cancellationToken);
+                    throw BrokenRuleCodes.DataIsEmpty.AsExn();
                 }
-                            
-                // Сохраняем данные в кэш
-                await _cacheService.Save(cacheKey, data, cancellationToken);
+
+                // Мапим данные
+                data = MapOperation(vkOrdData, data, vkOrdCredential, externalId);
+
+                if(data.IsNew())
+                {
+                    // Добавляем данные в базу данных
+                    _context.VkOrdCounterparties.Add(data);
+                }
+                else
+                {
+                    // Обновляем данные в базе данных
+                    _context.VkOrdCounterparties.Update(data);
+                }
+
+                // Сохраняем данные в базу данных
+                await _context.SaveChangesAsync(cancellationToken);
             }
 
             return data;

@@ -8,6 +8,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Contract
     /// </summary>
     public interface IGetContractRepository
     {
-        Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken, bool noCache = false);
     }
 }

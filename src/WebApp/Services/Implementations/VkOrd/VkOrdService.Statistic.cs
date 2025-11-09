@@ -41,11 +41,11 @@ public partial class VkOrdService
             creativeExternalId, padExternalId, offset, limit);
 
         var result = await _getStatisticsListRepository.GetListAsync(
+            cancellationToken,
             creativeExternalId,
             padExternalId,
             offset,
-            limit,
-            cancellationToken);
+            limit);
 
         _logger.LogInformation(
             "Successfully retrieved {Count} statistics (Total: {Total})",

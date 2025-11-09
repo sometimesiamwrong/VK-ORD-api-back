@@ -45,11 +45,11 @@ public class StatisticsController : ControllerBase
     /// </summary>
     [HttpGet("v1")]
     public async Task<IActionResult> GetStatisticsList(
+        CancellationToken cancellationToken,
         [FromQuery(Name = "creative_external_id")] string? creativeExternalId = null,
         [FromQuery(Name = "pad_external_id")] string? padExternalId = null,
         [FromQuery] int offset = 0,
-        [FromQuery] int limit = 100,
-        CancellationToken cancellationToken = default)
+        [FromQuery] int limit = 100)
     {
         _logger.LogInformation(
             "Getting statistics list. CreativeExternalId: {CreativeExternalId}, " +

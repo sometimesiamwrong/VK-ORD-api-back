@@ -33,7 +33,7 @@ public class FlowTemplatesController : BaseController
         [FromBody] CreateFlowTemplateRequest request,
         CancellationToken cancellationToken)
     {
-        return _service.CreateAsync(request, cancellationToken);
+        return _service.Create(request, cancellationToken);
     }
 
     /// <summary>
@@ -42,6 +42,7 @@ public class FlowTemplatesController : BaseController
     [HttpGet("v1")]
     [ProducesResponseType(typeof(FlowTemplateListResponse), StatusCodes.Status200OK)]
     public Task<FlowTemplateListResponse> GetList(
+        CancellationToken cancellationToken,
         [FromQuery] int limit = 50,
         [FromQuery] int offset = 0,
         [FromQuery] string? search = null,
@@ -49,15 +50,15 @@ public class FlowTemplatesController : BaseController
         [FromQuery] string? tags = null,
         [FromQuery] string sort = "created_at",
         [FromQuery] string order = "desc",
-        [FromQuery] bool activeOnly = false,
-        CancellationToken cancellationToken = default)
+        [FromQuery] bool activeOnly = false)
     {       
         // Парсим теги из comma-separated строки
         var tagsList = string.IsNullOrWhiteSpace(tags)
             ? null
             : tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
 
-        return _service.GetListAsync(
+        return _service.GetList(
+            cancellationToken,
             limit,
             offset,
             search,
@@ -65,8 +66,7 @@ public class FlowTemplatesController : BaseController
             tagsList,
             sort,
             order,
-            activeOnly,
-            cancellationToken);
+            activeOnly);
     }
 
     /// <summary>
@@ -79,7 +79,7 @@ public class FlowTemplatesController : BaseController
         long id,
         CancellationToken cancellationToken)
     {
-        return _service.GetByIdAsync(id, cancellationToken);
+        return _service.GetById(id, cancellationToken);
     }
 
     /// <summary>
@@ -94,7 +94,22 @@ public class FlowTemplatesController : BaseController
         [FromBody] UpdateFlowTemplateRequest request,
         CancellationToken cancellationToken)
     {
-        return _service.UpdateAsync(id, request, cancellationToken);
+        return _service.Update(id, request, cancellationToken);
+    }
+    
+    /// <summary>
+    /// Обновить шаблон
+    /// </summary>
+    [HttpPut("v1/{id:long}/headers")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public Task UpdateHeaders(
+        long id,
+        [FromBody] UpdateFlowTemplateHeadersRequest headersRequest,
+        CancellationToken cancellationToken)
+    {
+        return _service.UpdateHeaders(id, headersRequest, cancellationToken);
     }
 
     /// <summary>
@@ -107,7 +122,7 @@ public class FlowTemplatesController : BaseController
         long id,
         CancellationToken cancellationToken)
     {
-        return _service.DeleteAsync(id, cancellationToken);
+        return _service.Delete(id, cancellationToken);
     }
 
     /// <summary>
@@ -121,7 +136,7 @@ public class FlowTemplatesController : BaseController
         [FromBody] ActivateFlowTemplateRequest request,
         CancellationToken cancellationToken)
     {
-        return _service.ActivateAsync(id, request.IsActive, cancellationToken);
+        return _service.Activate(id, request.IsActive, cancellationToken);
     }
 
     /// <summary>
@@ -134,7 +149,7 @@ public class FlowTemplatesController : BaseController
         long id,
         CancellationToken cancellationToken)
     {
-        return _service.IncrementUseCountAsync(id, cancellationToken);
+        return _service.IncrementUseCount(id, cancellationToken);
     }
 
     /// <summary>
@@ -146,6 +161,6 @@ public class FlowTemplatesController : BaseController
     public Task<FlowTemplateTypesResponse> GetTypes(
         CancellationToken cancellationToken)
     {
-        return _service.GetTypesAsync(cancellationToken);
+        return _service.GetTypes(cancellationToken);
     }
 }

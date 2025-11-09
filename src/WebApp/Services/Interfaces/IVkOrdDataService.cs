@@ -27,7 +27,7 @@ public interface IVkOrdDataService<TEntity, TApiResponse>
         Func<string, CancellationToken, Task<TApiResponse?>> getApiOperation,
         Func<TApiResponse, TEntity?, ApiCredential, TEntity> mapOperation,
         Func<DbSet<TEntity>, IQueryable<TEntity>> getFromDatabaseQuery,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Выполнить запрос и получить первую запись
@@ -35,7 +35,7 @@ public interface IVkOrdDataService<TEntity, TApiResponse>
     /// <param name="query">Запрос к БД</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Первая найденная сущность</returns>
-    Task<TEntity?> FirstOrDefaultAsync(IQueryable<TEntity> query, CancellationToken cancellationToken = default);
+    Task<TEntity?> FirstOrDefaultAsync(IQueryable<TEntity> query, CancellationToken cancellationToken);
 
     /// <summary>
     /// Выполнить запрос и получить список записей
@@ -43,5 +43,5 @@ public interface IVkOrdDataService<TEntity, TApiResponse>
     /// <param name="query">Запрос к БД</param>
     /// <param name="cancellationToken">Токен отмены</param>
     /// <returns>Список найденных сущностей</returns>
-    Task<List<TEntity>> ToListAsync(IQueryable<TEntity> query, CancellationToken cancellationToken = default);
+    Task<List<TEntity>> ToListAsync(IQueryable<TEntity> query, CancellationToken cancellationToken);
 }

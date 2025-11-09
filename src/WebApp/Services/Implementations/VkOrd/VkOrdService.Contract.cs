@@ -36,9 +36,9 @@ namespace WebApp.Services.Implementations.VkOrd
             return _createContractRepository.CreateOrUpdateContract(request.ExternalId, vkOrdContract, cancellationToken);
         }
 
-        public async Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
-            return await _getContractRepository.Get(externalId, cancellationToken);
+            return await _getContractRepository.Get(externalId, cancellationToken, noCache);
         }
 
         public async Task<GetContractDetailsDto?> GetContractDetails(string externalId, CancellationToken cancellationToken)

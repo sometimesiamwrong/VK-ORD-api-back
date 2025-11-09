@@ -12,17 +12,18 @@ public interface IFlowTemplateService
     /// <summary>
     /// Создать новый шаблон потока
     /// </summary>
-    Task<FlowTemplateResponse> CreateAsync(CreateFlowTemplateRequest request, CancellationToken cancellationToken = default);
+    Task<FlowTemplateResponse> Create(CreateFlowTemplateRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить шаблон по ID
     /// </summary>
-    Task<FlowTemplateResponse> GetByIdAsync(long templateId, CancellationToken cancellationToken = default);
+    Task<FlowTemplateResponse> GetById(long templateId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список шаблонов с фильтрацией
     /// </summary>
-    Task<FlowTemplateListResponse> GetListAsync(
+    Task<FlowTemplateListResponse> GetList(
+        CancellationToken cancellationToken,
         int limit = 50,
         int offset = 0,
         string? search = null,
@@ -30,31 +31,35 @@ public interface IFlowTemplateService
         List<string>? tags = null,
         string sort = "created_at",
         string order = "desc",
-        bool activeOnly = false,
-        CancellationToken cancellationToken = default);
+        bool activeOnly = false);
 
     /// <summary>
     /// Обновить шаблон
     /// </summary>
-    Task<FlowTemplateResponse> UpdateAsync(long templateId, UpdateFlowTemplateRequest request, CancellationToken cancellationToken = default);
+    Task<FlowTemplateResponse> Update(long templateId, UpdateFlowTemplateRequest request, CancellationToken cancellationToken);
+    
+    /// <summary>
+    /// Обновить шаблон
+    /// </summary>
+    Task UpdateHeaders(long templateId, UpdateFlowTemplateHeadersRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     /// Удалить шаблон (soft delete)
     /// </summary>
-    Task<bool> DeleteAsync(long templateId, CancellationToken cancellationToken = default);
+    Task<bool> Delete(long templateId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Активировать/деактивировать шаблон
     /// </summary>
-    Task<bool> ActivateAsync(long templateId, bool isActive, CancellationToken cancellationToken = default);
+    Task<bool> Activate(long templateId, bool isActive, CancellationToken cancellationToken);
 
     /// <summary>
     /// Увеличить счетчик использования шаблона
     /// </summary>
-    Task<bool> IncrementUseCountAsync(long templateId, CancellationToken cancellationToken = default);
+    Task<bool> IncrementUseCount(long templateId, CancellationToken cancellationToken);
 
     /// <summary>
     /// Получить список всех типов шаблонов
     /// </summary>
-    Task<FlowTemplateTypesResponse> GetTypesAsync(CancellationToken cancellationToken = default);
+    Task<FlowTemplateTypesResponse> GetTypes(CancellationToken cancellationToken);
 }

@@ -33,12 +33,12 @@ namespace WebApp.Services.Implementations.VkOrd
             };
 
             await _createCreativeRepository.CreateCreative(request.ExternalId, vkOrdCreative, cancellationToken);
-            return await GetCreative(request.ExternalId, cancellationToken);
+            return await GetCreative(request.ExternalId, cancellationToken, true);
         }
 
-        public async Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
-            return await _getCreativeRepository.Get(externalId, cancellationToken);
+            return await _getCreativeRepository.Get(externalId, cancellationToken, noCache);
         }
 
         public async Task<GetCreativesResponse> GetPageCreatives(PageRequest pageRequest, CancellationToken cancellationToken)

@@ -23,7 +23,7 @@ public abstract class BaseController : ControllerBase
     /// <summary>
     /// Получить ID ApiCredential из заголовка запроса
     /// </summary>
-    protected async Task<long> GetApiCredentialIdAsync(AppDbContext context, CancellationToken cancellationToken = default)
+    protected async Task<long> GetApiCredentialIdAsync(AppDbContext context, CancellationToken cancellationToken)
     {
         var publicId = ApiCredentialPublicId();
         

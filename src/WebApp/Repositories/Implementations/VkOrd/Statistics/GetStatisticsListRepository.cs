@@ -27,11 +27,11 @@ public class GetStatisticsListRepository : IGetStatisticsListRepository
     }
 
     public async Task<GetStatisticsDto> GetListAsync(
+        CancellationToken cancellationToken,
         string? creativeExternalId = null,
         string? padExternalId = null,
         int offset = 0,
-        int limit = 100,
-        CancellationToken cancellationToken = default)
+        int limit = 100)
     {
         var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();

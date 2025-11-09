@@ -39,7 +39,7 @@ public class VkOrdDataService<TEntity, TApiResponse> : IVkOrdDataService<TEntity
         Func<string, CancellationToken, Task<TApiResponse?>> getApiOperation,
         Func<TApiResponse, TEntity?, ApiCredential, TEntity> mapOperation,
         Func<DbSet<TEntity>, IQueryable<TEntity>> getFromDatabaseQuery,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var credential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
         var cacheKey = GetCacheKey(identifier, credential);
@@ -77,12 +77,12 @@ public class VkOrdDataService<TEntity, TApiResponse> : IVkOrdDataService<TEntity
         return data;
     }
 
-    public async Task<TEntity?> FirstOrDefaultAsync(IQueryable<TEntity> query, CancellationToken cancellationToken = default)
+    public async Task<TEntity?> FirstOrDefaultAsync(IQueryable<TEntity> query, CancellationToken cancellationToken)
     {
         return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<List<TEntity>> ToListAsync(IQueryable<TEntity> query, CancellationToken cancellationToken = default)
+    public async Task<List<TEntity>> ToListAsync(IQueryable<TEntity> query, CancellationToken cancellationToken)
     {
         return await query.ToListAsync(cancellationToken);
     }

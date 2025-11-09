@@ -35,7 +35,7 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
         string creativeExternalId,
         string padExternalId,
         string dateStartActual,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;

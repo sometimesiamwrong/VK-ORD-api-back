@@ -10,6 +10,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Creative
     /// </summary>
     public interface IGetCreativeRepository
     {
-        Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken, bool nocache = false);
     }
 }

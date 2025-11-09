@@ -16,9 +16,9 @@ public interface IGetStatisticsListRepository
     /// <param name="limit">Лимит элементов</param>
     /// <param name="cancellationToken">Токен отмены</param>
     Task<GetStatisticsDto> GetListAsync(
+        CancellationToken cancellationToken,
         string? creativeExternalId = null,
         string? padExternalId = null,
         int offset = 0,
-        int limit = 100,
-        CancellationToken cancellationToken = default);
+        int limit = 100);
 }

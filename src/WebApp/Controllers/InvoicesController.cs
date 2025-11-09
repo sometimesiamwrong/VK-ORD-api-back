@@ -31,8 +31,8 @@ public class InvoicesController : BaseController
     public Task CreateOrUpdateInvoice(
         string externalId,
         [FromBody] CreateOrUpdateInvoiceRequest request,
-        [FromQuery] bool draft = false,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken,
+        [FromQuery] bool draft = false)
     {
         // Устанавливаем externalId из маршрута
         request.ExternalId = externalId;

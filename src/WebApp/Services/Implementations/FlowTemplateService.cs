@@ -39,9 +39,9 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<FlowTemplateResponse> CreateAsync(
+    public async Task<FlowTemplateResponse> Create(
         CreateFlowTemplateRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
@@ -94,9 +94,9 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<FlowTemplateResponse?> GetByIdAsync(
+    public async Task<FlowTemplateResponse?> GetById(
         long templateId, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
@@ -126,7 +126,8 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<FlowTemplateListResponse> GetListAsync(
+    public async Task<FlowTemplateListResponse> GetList(
+        CancellationToken cancellationToken,
         int limit = 50,
         int offset = 0,
         string? search = null,
@@ -134,8 +135,7 @@ public class FlowTemplateService : IFlowTemplateService
         List<string>? tags = null,
         string sort = "created_at",
         string order = "desc",
-        bool activeOnly = false,
-        CancellationToken cancellationToken = default)
+        bool activeOnly = false)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var query = _context.FlowTemplates
@@ -214,10 +214,10 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<FlowTemplateResponse> UpdateAsync(
+    public async Task<FlowTemplateResponse> Update(
         long templateId, 
         UpdateFlowTemplateRequest request, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
@@ -279,11 +279,69 @@ public class FlowTemplateService : IFlowTemplateService
 
         return FlowTemplateMapper.ToResponse(template, request.Value);
     }
+    
+    public async Task UpdateHeaders(
+        long templateId, 
+        UpdateFlowTemplateHeadersRequest request, 
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
+
+        var template = await _context.FlowTemplates
+            .Where(t => t.Id == templateId 
+                       && t.ApiCredentialId == apiCredential.Id 
+                       && !t.IsDeleted)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (template == null)
+        {
+            _logger.LogWarning(
+                "Flow template {TemplateId} not found or access denied for ApiCredential {ApiCredentialId}",
+                templateId, apiCredential.Id);
+            throw BrokenRuleCodes.FlowTemplateNotFound.AsExn();
+        }
+
+        // Проверяем уникальность имени, если имя изменяется
+        if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != template.Name)
+        {
+            var exists = await _context.FlowTemplates
+                .AnyAsync(t => t.ApiCredentialId == apiCredential.Id 
+                              && t.Name == request.Name 
+                              && t.Id != templateId
+                              && !t.IsDeleted, 
+                    cancellationToken);
+
+            if (exists)
+            {
+                throw BrokenRuleCodes.FlowTemplateWithSuchNameAlreadyExists.AsExn();
+            }
+
+            template.Name = request.Name;
+        }
+        template.Description = request.Description;
+
+        if (!request.Tags.IsNullOrEmpty())
+        {
+            template.Tags = JsonSerializer.Serialize(request.Tags, _jsonSerializerOptions);
+        }
+
+        template.IsActive = request.IsActive;
+
+        // Инкрементируем версию и обновляем дату
+        template.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Updated flow template {TemplateId} (version {Version}) for ApiCredential {ApiCredentialId}",
+            template.Id, template.Version, apiCredential.Id);
+    }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAsync(
+    public async Task<bool> Delete(
         long templateId, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
@@ -315,10 +373,10 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<bool> ActivateAsync(
+    public async Task<bool> Activate(
         long templateId, 
         bool isActive, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var template = await _context.FlowTemplates
@@ -348,9 +406,9 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<bool> IncrementUseCountAsync(
+    public async Task<bool> IncrementUseCount(
         long templateId, 
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
@@ -382,7 +440,7 @@ public class FlowTemplateService : IFlowTemplateService
     }
 
     /// <inheritdoc />
-    public async Task<FlowTemplateTypesResponse> GetTypesAsync(CancellationToken cancellationToken = default)
+    public async Task<FlowTemplateTypesResponse> GetTypes(CancellationToken cancellationToken)
     {
         // Получаем все значения enum
         var types = Enum.GetValues<FlowTemplateType>()

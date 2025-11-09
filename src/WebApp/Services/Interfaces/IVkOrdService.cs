@@ -25,7 +25,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить информацию о контракте по external_id
     /// </summary>
-    Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdContract> GetContract(string externalId, CancellationToken cancellationToken, bool noCache = false);
 
     /// <summary>
     /// Получить полные данные контракта (контракт + стороны + креативы + доп. соглашения)
@@ -45,7 +45,7 @@ public interface IVkOrdService
     /// <summary>
     /// Получить информацию о креативе по external_id
     /// </summary>
-    Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdCreative> GetCreative(string externalId, CancellationToken cancellationToken, bool noCache = false);
 
     /// <summary>
     /// Получить список креативов с детальными данными

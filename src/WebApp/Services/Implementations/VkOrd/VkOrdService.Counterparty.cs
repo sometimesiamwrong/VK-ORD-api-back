@@ -58,7 +58,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
             var externalId = dadata.Inn ?? inn;
 
-            await _createCounterpartyRepository.Create(externalId, person, cancellationToken);
+            await CreateCounterparty(externalId, person, cancellationToken);
         }
 
         public Task CreateCounterparty(string externalId, VkOrdApiPersonResponse apiPerson, CancellationToken cancellationToken)

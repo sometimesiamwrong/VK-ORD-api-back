@@ -16,5 +16,5 @@ public interface IDeleteStatisticsRepository
         string creativeExternalId,
         string padExternalId,
         string dateStartActual,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }

@@ -36,47 +36,37 @@ public class GetInvoiceRepository : IGetInvoiceRepository
     public async Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken)
     {
         var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
-        var cacheKey = GetCacheKey(externalId, vkOrdCredential);
 
-        // Получаем данные из кэша
-        var data = await _cacheService.Get<VkOrdInvoice>(cacheKey, cancellationToken);
+        var data = await _context.VkOrdInvoices
+            .Include(x => x.Contract)
+            .ThenInclude(x => x.CreativeContracts)
+            .ThenInclude(x => x.Creative)
+            .FirstOrDefaultAsync(
+                AppDbContext.DefaultGetVkOrd<VkOrdInvoice>(externalId, vkOrdCredential),
+                cancellationToken);
 
-        // Если данных нет в кэше, получаем из БД
         if (data == null)
         {
-            data = await _context.VkOrdInvoices
-                .Include(x => x.Contract)
-                    .ThenInclude(x => x.CreativeContracts)
-                        .ThenInclude(x => x.Creative)
-                .FirstOrDefaultAsync(
-                    AppDbContext.DefaultGetVkOrd<VkOrdInvoice>(externalId, vkOrdCredential),
-                    cancellationToken);
+            // Получаем данные из API
+            var vkOrdData = await GetByApi(externalId, cancellationToken);
 
-            if (data == null)
+            if (vkOrdData == null)
             {
-                // Получаем данные из API
-                var vkOrdData = await GetByApi(externalId, cancellationToken);
-
-                if (vkOrdData == null)
-                {
-                    throw BrokenRuleCodes.DataIsEmpty.AsExn();
-                }
-
-                // Мапим данные
-                data = MapOperation(vkOrdData, vkOrdCredential, externalId);
-
-                // Сохраняем данные в базу
-                await SaveToDatabase(data, cancellationToken);
+                throw BrokenRuleCodes.DataIsEmpty.AsExn();
             }
 
-            // Сохраняем данные в кэш
-            await _cacheService.Save(cacheKey, data, cancellationToken);
+            // Мапим данные
+            data = MapOperation(vkOrdData, vkOrdCredential, externalId);
+
+            // Сохраняем данные в базу
+            await SaveToDatabase(data, cancellationToken);
         }
 
         return data;
     }
 
-    private VkOrdInvoice MapOperation(VkOrdApiFullInvoiceResponse response, ApiCredential vkOrdCredential, string externalId)
+    private VkOrdInvoice MapOperation(VkOrdApiFullInvoiceResponse response, ApiCredential vkOrdCredential,
+        string externalId)
     {
         var data = new VkOrdInvoice
         {

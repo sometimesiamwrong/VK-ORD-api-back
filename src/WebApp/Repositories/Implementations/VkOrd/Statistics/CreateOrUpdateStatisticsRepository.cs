@@ -33,7 +33,7 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
 
     public async Task CreateOrUpdateAsync(
         List<VkOrdApiStatisticsItem> items,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken)
     {
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;

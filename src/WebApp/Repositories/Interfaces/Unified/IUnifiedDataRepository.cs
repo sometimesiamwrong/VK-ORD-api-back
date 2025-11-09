@@ -22,7 +22,7 @@ public interface IUnifiedDataRepository<TEntity, TDto> where TEntity : class
         long apiCredentialId,
         string key,
         CacheRequest request,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Сохранить данные в кэш и БД
@@ -37,7 +37,7 @@ public interface IUnifiedDataRepository<TEntity, TDto> where TEntity : class
         string key,
         IEnumerable<TDto> data,
         int ttlMinutes,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }
 
 /// <summary>

@@ -14,5 +14,5 @@ public interface ICreateOrUpdateStatisticsRepository
     /// <param name="cancellationToken">Токен отмены</param>
     Task CreateOrUpdateAsync(
         List<VkOrdApiStatisticsItem> items,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken);
 }

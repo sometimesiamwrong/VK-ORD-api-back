@@ -19,67 +19,46 @@ namespace WebApp.Repositories.Implementations.VkOrd.Contract
     public class GetContractRepository : IGetContractRepository
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
-        private readonly ICacheService _cacheService;
         private readonly AppDbContext _context;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
-        private readonly ILogger<GetContractRepository> _logger;
 
         public GetContractRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            ICacheService cacheService,
             AppDbContext context,
-            ILogger<GetContractRepository> logger,
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _cacheService = cacheService;
             _context = context;
-            _logger = logger;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
         }
 
-        public async Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
-            var cacheKey = GetCacheKey(externalId, vkOrdCredential);
-
-            // Получаем данные из кэша
-            var data = await _cacheService.Get<VkOrdContract>(
-                cacheKey,
-                cancellationToken
-            );
-
-            // Если данные не найдены в кэше, то получаем данные из базы данных
-            if (data == null)
-            {
                 // Получаем данные из базы данных
-                data = await _context.VkOrdContracts
+            var data = await _context.VkOrdContracts
                     .Include(x=>x.ContractParties)
                         .ThenInclude(x=>x.Counterparty)
                     .FirstOrDefaultAsync(AppDbContext.DefaultGetVkOrd<VkOrdContract>(externalId, vkOrdCredential), cancellationToken);
 
-                if (data == null)
+            if (data == null || noCache)
+            {
+                // Получаем данные из API
+                var vkOrdData = await GetByApi(externalId, cancellationToken);
+
+                if (vkOrdData == null)
                 {
-                    // Получаем данные из API
-                    var vkOrdData = await GetByApi(externalId, cancellationToken);
-
-                    if (vkOrdData == null)
-                    {
-                        throw BrokenRuleCodes.DataIsEmpty.AsExn();
-                    }
-
-                    // Мапим данные
-                    data = MapOperation(vkOrdData, data, vkOrdCredential, externalId);
-
-                    // Сохраняем данные в базу данных
-                    await SaveToDatabase(data, cancellationToken);
+                    throw BrokenRuleCodes.DataIsEmpty.AsExn();
                 }
-                            
-                // Сохраняем данные в кэш
-                await _cacheService.Save(cacheKey, data, cancellationToken);
-            }
 
+                // Мапим данные
+                data = MapOperation(vkOrdData, data, vkOrdCredential, externalId);
+
+                // Сохраняем данные в базу данных
+                await SaveToDatabase(data, cancellationToken);
+            }
+                        
             return data;
         }
 
