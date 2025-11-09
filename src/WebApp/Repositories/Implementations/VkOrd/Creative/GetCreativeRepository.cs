@@ -31,15 +31,14 @@ namespace WebApp.Repositories.Implementations.VkOrd.Creative
             _getContractRepository = getContractRepository;
         }
 
-        public async Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken,
-            bool nocache = false)
+        public async Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
             var data = await _context.VkOrdCreatives.FirstOrDefaultAsync(
                 AppDbContext.DefaultGetVkOrd<VkOrdCreative>(externalId, vkOrdCredential), cancellationToken);
-            if (data == null || nocache)
+            if (data == null || noCache)
             {
                 var vkOrdData = await vkOrdClient.GetCreativeV3ByExternalId(externalId, cancellationToken);
 

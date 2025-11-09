@@ -21,6 +21,7 @@ namespace WebApp.Services.Implementations.VkOrd
 
         private readonly ICreateCounterpartyRepository _createCounterpartyRepository;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
+        private readonly IGetAllCounterpartyRepository _getAllCounterpartyRepository;
         private readonly IGetPageCounterpartiesRepository _getPageCounterpartiesRepository; 
 
         private readonly ICreateCreativeRepository _createCreativeRepository;
@@ -52,6 +53,7 @@ namespace WebApp.Services.Implementations.VkOrd
             ICreateCounterpartyRepository createCounterpartyRepository,
             IGetContractRepository getContractRepository,
             IGetPageCounterpartiesRepository getPageCounterpartiesRepository,
+            IGetAllCounterpartyRepository getAllCounterpartyRepository,
             ICreateCreativeRepository createCreativeRepository,
             IGetCreativeRepository getCreativeRepository,
             IGetPageCreativesRepository getAllCreativesRepository,
@@ -81,6 +83,7 @@ namespace WebApp.Services.Implementations.VkOrd
             _getContractRepository = getContractRepository;
             _getContractsByCounterpartyRepository = getContractsByCounterpartyRepository;
             _getPageCounterpartiesRepository = getPageCounterpartiesRepository;
+            _getAllCounterpartyRepository = getAllCounterpartyRepository;
             _createCreativeRepository = createCreativeRepository;
             _getCreativeRepository = getCreativeRepository;
             _getPageCreativesRepository = getAllCreativesRepository;

@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using Domain.Entities;
 using Domain.Entities.Enums;
 using Domain.Entities.VkOrd;
 

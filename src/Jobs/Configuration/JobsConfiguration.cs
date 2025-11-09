@@ -12,7 +12,7 @@ public class JobsConfiguration
     /// <summary>
     /// Интервал синхронизации ERIR статусов в минутах
     /// </summary>
-    public int ErirSyncIntervalMinutes { get; set; } = 5;
+    public int ErirSyncIntervalMinutes { get; set; } = 1;
 
     /// <summary>
     /// Включенные типы сущностей для синхронизации
@@ -30,6 +30,11 @@ public class JobsConfiguration
     /// Размер батча для запросов к VK ORD API
     /// </summary>
     public int BatchSize { get; set; } = 60000;
+
+    /// <summary>
+    /// Максимальное количество одновременных запросов при загрузке сущностей
+    /// </summary>
+    public int MaxConcurrency { get; set; } = 10;
 
     /// <summary>
     /// Продолжать работу при ошибках

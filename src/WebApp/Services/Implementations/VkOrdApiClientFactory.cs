@@ -30,6 +30,9 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
+    // AsyncLocal для передачи credential в Jobs
+    private static readonly AsyncLocal<ApiCredential?> _currentCredential = new();
+
     public VkOrdApiClientFactory(
         ILogger<VkOrdApiClientFactory> logger,
         ILoggerFactory loggerFactory,
@@ -51,24 +54,31 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
     }
 
     /// <summary>
-    /// Создать клиент для работы с VK ОРД API
+    /// Создать клиент для работы с VK ОРД API (из HTTP context или AsyncLocal)
     /// Кэширует HttpClient на уровне HTTP-запроса для оптимизации производительности
     /// </summary>
     public async Task<IVkOrdApiClient> CreateClient()
     {
+        // Для Jobs (AsyncLocal) мы не кэшируем клиент
+        var credentialFromContext = await GetCredentialFromContext();
         var httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
+        
+        // Если нет HTTP контекста и нет AsyncLocal credential - ошибка
+        if (httpContext == null && credentialFromContext == null)
         {
-            throw new InvalidOperationException("HttpContext is not available.");
+            throw new InvalidOperationException("HttpContext is not available and no credential context is set.");
         }
 
-        // Ключ для кэширования клиента в рамках одного HTTP-запроса
-        const string clientCacheKey = "VkOrdApiClient";
-        
-        // Проверяем, есть ли уже кэшированный клиент для этого запроса
-        if (httpContext.Items.TryGetValue(clientCacheKey, out var cachedClient) && cachedClient is IVkOrdApiClient client)
+        // Для WebApp (HttpContext) - кэшируем клиент на уровне запроса
+        if (httpContext != null)
         {
-            return client;
+            const string clientCacheKey = "VkOrdApiClient";
+            
+            // Проверяем, есть ли уже кэшированный клиент для этого запроса
+            if (httpContext.Items.TryGetValue(clientCacheKey, out var cachedClient) && cachedClient is IVkOrdApiClient client)
+            {
+                return client;
+            }
         }
 
         var apiContext = await GetApiContextAsync();
@@ -85,7 +95,9 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
             // Настройки для оптимальной производительности
             MaxConnectionsPerServer = 10,
             UseCookies = false, // VK ORD API не использует cookies
-            AutomaticDecompression = System.Net.DecompressionMethods.GZip | System.Net.DecompressionMethods.Deflate | System.Net.DecompressionMethods.Brotli,
+            AutomaticDecompression = System.Net.DecompressionMethods.GZip |
+                                     System.Net.DecompressionMethods.Deflate |
+                                     System.Net.DecompressionMethods.Brotli,
             UseProxy = false // Отключаем прокси для прямого соединения
         };
         
@@ -120,8 +132,7 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         // Логируем настроенные заголовки для отладки
         //_logger.LogDebug("VK ORD API client headers configured: User-Agent={UserAgent}, Accept={Accept}, Route={Route}",
         //    "VK-ORD-API-Wrapper/1.0 (WebApp)", "application/json", apiContext.Route);
-        var credi = await GetVkOrdCredentialAsync();
-        var accountId = credi.LogicalAccountId;
+        var accountId = credentialFromContext.LogicalAccountId;
         _logger.LogDebug($"LogicalAccount: {accountId}", accountId);
 
         // Настраиваем сериализацию для Refit с поддержкой EnumMember
@@ -133,11 +144,15 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         // Создаем Refit клиент
         var refitClient = RestService.For<IVkOrdApiClient>(httpClient, refitSettings);
         
-        // Кэшируем клиент в HttpContext.Items для повторного использования в рамках этого запроса
-        httpContext.Items[clientCacheKey] = refitClient;
-        
-        // Регистрируем очистку ресурсов при завершении запроса
-        httpContext.Response.RegisterForDispose(httpClient);
+        // Кэшируем клиент только для WebApp (если есть HttpContext)
+        if (httpContext != null)
+        {
+            const string clientCacheKey = "VkOrdApiClient";
+            httpContext.Items[clientCacheKey] = refitClient;
+            
+            // Регистрируем очистку ресурсов при завершении запроса
+            httpContext.Response.RegisterForDispose(httpClient);
+        }
         
         return refitClient;
     }
@@ -212,8 +227,13 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
 
     private async Task<VkOrdApiContext> GetApiContextAsync()
     {
-        var apiCredential = await GetVkOrdCredentialAsync();
+        var apiCredential = await GetCredentialFromContext();
+        
+        return GetApiContextFromCredential(apiCredential);
+    }
 
+    private VkOrdApiContext GetApiContextFromCredential(ApiCredential apiCredential)
+    {
         var token = _protector.Decrypt(apiCredential.TokenEncrypted);
         return new VkOrdApiContext
         {
@@ -222,8 +242,25 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         };
     }
 
+    /// <summary>
+    /// Создать клиент для работы с VK ОРД API с явным credential (для Jobs)
+    /// </summary>
+    public Task<IVkOrdApiClient> CreateClient(ApiCredential credential)
+    {
+        // Устанавливаем credential в AsyncLocal и используем стандартный метод CreateClient()
+        // НЕ используем using здесь, т.к. контекст должен жить на протяжении всей операции
+        // Контекст очищается через using в вызывающем коде (например, в SyncLogicalAccount)
+        SetCredentialContext(credential);
+        return CreateClient();
+    }
+
     public async Task<ApiCredential> GetVkOrdCredentialAsync()
     {
+        if(_currentCredential.Value != null)
+        {
+            return _currentCredential.Value;
+        }
+        
         var userId = _httpContextAccessor.HttpContext?.User.GetUserId();
         if (userId == null)
         {
@@ -236,7 +273,34 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         }
         return apiCredential;
     }
+
+
+    /// <summary>
+    /// Установить credential для текущего async потока (для Jobs)
+    /// </summary>
+    public IDisposable SetCredentialContext(ApiCredential credential)
+    {
+        _currentCredential.Value = credential;
+        return new CredentialContextScope();
+    }
+
+    private class CredentialContextScope : IDisposable
+    {
+        public void Dispose()
+        {
+            _currentCredential.Value = null;
+        }
+    }
+
+    /// <summary>
+    /// Получить credential из AsyncLocal если установлен (для Jobs)
+    /// </summary>
+    private async Task<ApiCredential> GetCredentialFromContext()
+    {
+        return _currentCredential.Value ?? await GetVkOrdCredentialAsync();;
+    }
 }
+
 
 public class VkOrdApiErrorHandler : DelegatingHandler
 {

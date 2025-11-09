@@ -17,18 +17,18 @@ public sealed class VkOrdApiErirStatusesListResponse
     /// <summary>
     /// Общее количество элементов.
     /// </summary>
-    [JsonPropertyName("total")]
-    public int Total { get; set; }
-
-    /// <summary>
-    /// Смещение для пагинации.
-    /// </summary>
-    [JsonPropertyName("offset")]
-    public int Offset { get; set; }
+    [JsonPropertyName("total_items_count")]
+    public int TotalItemsCount { get; set; }
 
     /// <summary>
     /// Лимит на страницу.
     /// </summary>
     [JsonPropertyName("limit")]
     public int Limit { get; set; }
+    
+    /// <summary>
+    /// Лимит на страницу.
+    /// </summary>
+    [JsonPropertyName("limit_per_entity")] 
+    public int LimitPerEntity { get; set; }
 }

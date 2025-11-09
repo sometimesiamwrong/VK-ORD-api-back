@@ -1,54 +1,169 @@
-# VkOridApiWrapper
+# AdLawyer API
 
+ASP.NET Core API для работы с рекламными данными и интеграцией с внешними сервисами.
 
+## 📋 Описание
 
-## Getting started
+AdLawyer API состоит из двух основных компонентов:
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+- **WebApp** - REST API сервис для работы с рекламными данными
+- **Jobs** - фоновые задачи для синхронизации данных с внешними системами (Hangfire)
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## 🚀 Быстрый старт
 
-## Add your files
+### Локальная разработка
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+```bash
+# Клонировать репозиторий
+git clone <repository_url> AdLawyerApi
+cd AdLawyerApi
+
+# Восстановить зависимости
+dotnet restore
+
+# Запустить WebApp
+cd src/WebApp
+dotnet run
+
+# В другом терминале запустить Jobs
+cd src/Jobs
+dotnet run
+```
+
+### Docker
+
+```bash
+# Собрать и запустить через Docker Compose
+docker-compose up -d
+```
+
+## 📦 Развертывание на сервере
+
+### Автоматический деплой через GitLab CI/CD
+
+При пуше в ветку `main` автоматически происходит развертывание на сервер.
+
+### Ручной деплой
+
+```bash
+# На сервере
+cd /root/AdLawyerApi
+git pull origin main
+sudo ./deploy.sh
+```
+
+### Подробная документация
+
+- [📖 Руководство по развертыванию](DEPLOYMENT-GUIDE.md) - полная инструкция по деплою
+- [⚙️ Конфигурация окружений](DEPLOYMENT-CONFIG.md) - настройка для разных окружений
+- [🔧 API документация](API_DOCUMENTATION.md) - документация API
+
+## 🛠 Технологии
+
+- **.NET 8.0** - основной фреймворк
+- **ASP.NET Core** - веб-фреймворк
+- **Entity Framework Core** - ORM для работы с БД
+- **PostgreSQL** - база данных
+- **Redis** - кэширование
+- **Hangfire** - фоновые задачи
+- **Serilog** - логирование
+- **JWT** - аутентификация
+- **Swagger/OpenAPI** - документация API
+
+## 📁 Структура проекта
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/Tekra/vkoridapiwrapper.git
-git branch -M main
-git push -uf origin main
+AdLawyerApi/
+├── src/
+│   ├── Domain/              # Общий слой домена, сущности, контекст БД
+│   ├── WebApp/              # REST API сервис
+│   └── Jobs/                # Фоновые задачи (Hangfire)
+├── deploy.sh                # Скрипт развертывания
+├── deploy.config.example.sh # Пример конфигурации
+├── docker-compose.yml       # Docker Compose конфигурация
+├── Dockerfile               # Dockerfile для WebApp
+├── Dockerfile.jobs          # Dockerfile для Jobs
+└── .gitlab-ci.yml          # GitLab CI/CD пайплайн
 ```
 
-## Integrate with your tools
+## ⚙️ Конфигурация
 
-- [ ] [Set up project integrations](https://gitlab.com/Tekra/vkoridapiwrapper/-/settings/integrations)
+### Переменные окружения
 
-## Collaborate with your team
+Основные настройки задаются в `appsettings.json` и `appsettings.Production.json`.
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+Для локальной разработки можно создать `appsettings.Development.json` (не коммитить в git).
 
-## Test and Deploy
+### Настройка деплоя
 
-Use the built-in continuous integration in GitLab.
+Скопируйте пример конфигурации:
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+```bash
+cp deploy.config.example.sh deploy.config.sh
+# Отредактируйте deploy.config.sh под ваше окружение
+```
 
-***
+## 🔐 Безопасность
 
-# Editing this README
+- Не храните секреты в репозитории
+- Используйте переменные окружения для чувствительных данных
+- Настройте firewall на сервере
+- Используйте HTTPS через reverse proxy (nginx)
+- Регулярно обновляйте зависимости
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+## 📊 Мониторинг
 
-## Suggestions for a good README
+### Логи служб
+
+```bash
+# WebApp логи
+sudo journalctl -u adlawyer-webapp -f
+
+# Jobs логи
+sudo journalctl -u adlawyer-jobs -f
+```
+
+### Статус служб
+
+```bash
+sudo systemctl status adlawyer-webapp
+sudo systemctl status adlawyer-jobs
+```
+
+### Hangfire Dashboard
+
+Jobs сервис предоставляет Hangfire Dashboard для мониторинга фоновых задач:
+- URL: `http://localhost:5001/hangfire` (или через настроенный домен)
+
+## 🧪 Тестирование
+
+```bash
+# Запустить тесты
+dotnet test
+```
+
+## 📝 GitLab CI/CD переменные
+
+Для автоматического деплоя настройте в Settings → CI/CD → Variables:
+
+- `SSH_PRIVATE_KEY` - приватный SSH ключ для доступа к серверу
+- `SSH_HOST` - адрес сервера (IP или домен)
+- `SSH_USER` - пользователь SSH (обычно `root`)
+
+## 🤝 Участие в разработке
+
+1. Создайте feature branch от `develop`
+2. Внесите изменения
+3. Создайте Merge Request в `develop`
+4. После ревью и тестирования изменения попадут в `main`
+
+## 📄 Лицензия
+
+Proprietary - все права защищены
+
+## 📞 Контакты
+
+Для вопросов и предложений обращайтесь к команде разработки.
 
 Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 

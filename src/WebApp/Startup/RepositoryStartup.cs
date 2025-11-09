@@ -80,6 +80,7 @@ namespace WebApp.Startup
             services.AddScoped<ICreateCounterpartyRepository, CreateCounterpartyRepository>();
             services.AddScoped<IGetCounterpartyByIdRepository, GetCounterpartyByIdRepository>();
             services.AddScoped<IGetPageCounterpartiesRepository, GetPageCounterpartiesRepository>();
+            services.AddScoped<IGetAllCounterpartyRepository, GetAllCounterpartyRepository>();
             
             services.AddScoped<ICreateCreativeRepository, CreateCreativeRepository>();
             services.AddScoped<IGetCreativeRepository, GetCreativeRepository>();

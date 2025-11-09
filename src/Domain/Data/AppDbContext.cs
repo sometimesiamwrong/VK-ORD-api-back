@@ -22,6 +22,7 @@ public class AppDbContext : DbContext
     public DbSet<VkOrdMedia> VkOrdMedias { get; set; }
     public DbSet<VkOrdStatistic> VkOrdStatistics { get; set; }
     public DbSet<VkOrdInvoice> VkOrdInvoices { get; set; }
+    public DbSet<VkOrdErirStatus> VkOrdErirStatuses { get; set; }
 
     // VK ORD  relation entities
     public DbSet<VkOrdCreativeContract> VkOrdCreativeContract { get; set; }
@@ -82,7 +83,7 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<FlowTemplate>(b =>
         {
             b.ConfigureEntityBase();
-            
+
             b.HasOne(f => f.ApiCredential)
                 .WithMany(a => a.FlowTemplates)
                 .HasForeignKey(f => f.ApiCredentialId)
@@ -100,6 +101,23 @@ public class AppDbContext : DbContext
             b.HasIndex(f => new { f.ApiCredentialId, f.Name })
                 .IsUnique()
                 .HasFilter("\"IsDeleted\" = false");
+        });
+
+        // VkOrdErirStatus
+        modelBuilder.Entity<VkOrdErirStatus>(b =>
+        {
+            b.ConfigureEntityBase();
+
+            // Уникальный индекс для быстрого поиска и предотвращения дублей
+            b.HasIndex(e => new { e.LogicalAccountId, e.ExternalId, e.EntityType })
+                .IsUnique()
+                .HasFilter("\"IsDeleted\" = false");
+
+            // Индексы для запросов
+            b.HasIndex(e => e.LogicalAccountId).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(e => e.EntityType).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(e => e.ErirStatus).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(e => e.UpdatedByUserTs).HasFilter("\"IsDeleted\" = false");
         });
 
         // VkOrdLogicalAccount

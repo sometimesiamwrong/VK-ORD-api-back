@@ -64,4 +64,18 @@ public interface IVkOrdErirStatusRepository
         long logicalAccountId,
         EntityType entityType,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Проверить существование сущности в БД по external ID
+    /// </summary>
+    /// <param name="logicalAccountId">ID логического аккаунта</param>
+    /// <param name="externalId">External ID сущности</param>
+    /// <param name="entityType">Тип сущности</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>true если сущность существует</returns>
+    Task<bool> EntityExists(
+        long logicalAccountId,
+        string externalId,
+        EntityType entityType,
+        CancellationToken cancellationToken);
 }

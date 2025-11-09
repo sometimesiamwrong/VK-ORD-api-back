@@ -12,6 +12,7 @@ public interface IGetInvoiceRepository
     /// </summary>
     /// <param name="externalId">Внешний идентификатор акта</param>
     /// <param name="cancellationToken">Токен отмены</param>
+    /// <param name="noCache">Игнорировать кэш и получить данные из API</param>
     /// <returns>Данные акта</returns>
-    Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken);
+    Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken, bool noCache = false);
 }

@@ -7,6 +7,6 @@ namespace WebApp.Repositories.Interfaces.VkOrd.Counterparty
     /// </summary>
     public interface IGetCounterpartyByIdRepository
     {
-        Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken);
+        Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken, bool noCache = false);
     }
 }

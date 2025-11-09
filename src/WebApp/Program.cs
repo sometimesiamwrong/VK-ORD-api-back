@@ -164,18 +164,30 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
+// Логирование текущего окружения
+var environment = builder.Environment.EnvironmentName;
+Log.Information("Starting application in {Environment} environment", environment);
+
 // DbContext (PostgreSQL)
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? builder.Configuration["ConnectionStrings:DefaultConnection"];
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    Log.Warning("Database connection string is missing. Set ConnectionStrings:DefaultConnection.");
+    Log.Error("Database connection string is missing. Set ConnectionStrings:DefaultConnection in appsettings.{Environment}.json", environment);
+    throw new InvalidOperationException($"Database connection string is not configured for {environment} environment");
 }
-else
+
+Log.Information("Configuring database connection for {Environment} environment", environment);
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(connectionString));
-}
+    options.UseNpgsql(connectionString);
+    
+    // Включить детальное логирование только для Development
+    if (builder.Environment.IsDevelopment())
+    {
+        options.EnableSensitiveDataLogging();
+        options.EnableDetailedErrors();
+    }
+});
 
 // Security services
 builder.Services.AddScoped<ITokenService, TokenService>();

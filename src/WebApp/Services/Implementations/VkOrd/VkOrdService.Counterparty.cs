@@ -89,10 +89,11 @@ namespace WebApp.Services.Implementations.VkOrd
 
             _logger.LogInformation($"Found {externalIds.Count} counterparties (total: {totalItemsCount}, responseLimit: {responseLimit}), fetching full data for each");
 
-            // Получаем полные данные для каждого контрагента последовательно
-            var counterparties = new List<VkOrdCounterparty>();
+            var counterparties = await _getAllCounterpartyRepository.GetAll(cancellationToken);
+            var existingCounterpartiesDictionary = counterparties.ToDictionary(x => x.ExternalId);
 
-            foreach (var externalId in externalIds)
+            // Получаем полные данные для каждого контрагента последовательно
+            foreach (var externalId in externalIds.Where(x => !existingCounterpartiesDictionary.ContainsKey(x)).ToList())
             {
                 var counterpartyResponse = await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
                 if (counterpartyResponse?.Data != null)

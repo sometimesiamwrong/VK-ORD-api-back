@@ -49,6 +49,11 @@ ssl/
 *.pem
 *.key
 
+# Deployment configuration (sensitive)
+deploy.config.sh
+*.local.sh
+deployment-secrets.sh
+
 # Docker volumes (local development)
 postgres_data/
 redis_data/

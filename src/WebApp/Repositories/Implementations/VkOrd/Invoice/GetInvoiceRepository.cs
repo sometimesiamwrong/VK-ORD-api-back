@@ -33,7 +33,7 @@ public class GetInvoiceRepository : IGetInvoiceRepository
         _logger = logger;
     }
 
-    public async Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken)
+    public async Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
     {
         var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
@@ -45,7 +45,7 @@ public class GetInvoiceRepository : IGetInvoiceRepository
                 AppDbContext.DefaultGetVkOrd<VkOrdInvoice>(externalId, vkOrdCredential),
                 cancellationToken);
 
-        if (data == null)
+        if (data == null || data.IsExpired() || noCache)
         {
             // Получаем данные из API
             var vkOrdData = await GetByApi(externalId, cancellationToken);
@@ -56,7 +56,7 @@ public class GetInvoiceRepository : IGetInvoiceRepository
             }
 
             // Мапим данные
-            data = MapOperation(vkOrdData, vkOrdCredential, externalId);
+            data = MapOperation(data, vkOrdData, vkOrdCredential, externalId);
 
             // Сохраняем данные в базу
             await SaveToDatabase(data, cancellationToken);
@@ -65,10 +65,10 @@ public class GetInvoiceRepository : IGetInvoiceRepository
         return data;
     }
 
-    private VkOrdInvoice MapOperation(VkOrdApiFullInvoiceResponse response, ApiCredential vkOrdCredential,
+    private VkOrdInvoice MapOperation(VkOrdInvoice? data, VkOrdApiFullInvoiceResponse response, ApiCredential vkOrdCredential,
         string externalId)
     {
-        var data = new VkOrdInvoice
+        data ??= new VkOrdInvoice
         {
             LogicalAccountId = vkOrdCredential.LogicalAccountId,
             ExternalId = externalId

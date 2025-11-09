@@ -9,14 +9,26 @@ namespace WebApp.Services.Interfaces;
 public interface IVkOrdApiClientFactory
 {
     /// <summary>
-    /// Создать клиент для работы с VK ОРД API
+    /// Создать клиент для работы с VK ОРД API (из HTTP context)
     /// </summary>
     Task<IVkOrdApiClient> CreateClient();
 
     /// <summary>
-    /// Получить контекст API
+    /// Создать клиент для работы с VK ОРД API с явным credential (для Jobs)
+    /// </summary>
+    Task<IVkOrdApiClient> CreateClient(ApiCredential credential);
+
+    /// <summary>
+    /// Получить контекст API (из HTTP context)
     /// </summary>
     Task<ApiCredential> GetVkOrdCredentialAsync();
+
+
+    /// <summary>
+    /// Установить credential для текущего async потока (для Jobs)
+    /// Используется через using для автоматической очистки
+    /// </summary>
+    IDisposable SetCredentialContext(ApiCredential credential);
 }
 
 

@@ -14,7 +14,21 @@ public sealed class VkOrdApiErirStatusResponse
     /// Возможные значения: processing (в обработке), bad (не прошёл проверку), verified (проверку пройдено успешно).
     /// </summary>
     [JsonPropertyName("erir_status")]
-    public VkOrdApiErirStatus ApiErirStatus { get; set; }
+    public VkOrdApiErirStatus ErirStatus { get; set; }
+
+    /// <summary>
+    /// Тип объекта по работе с рекламой.
+    /// Возможные значения: person (контрагенты), contract (договоры), creative (креативы),
+    /// pad (рекламные площадки), invoice (акты), statistics (статистика), cid (Contract ID).
+    /// </summary>
+    [JsonPropertyName("data_type")]
+    public VkOrdApiErirDataType DataType { get; set; }
+    
+    /// <summary>
+    /// Внешний ID объекта.
+    /// </summary>
+    [JsonPropertyName("external_id")]
+    public string ExternalId { get; set; } = string.Empty;
 
     /// <summary>
     /// Дата и время последнего обновления объекта по работе с рекламой в формате ISO 8601.

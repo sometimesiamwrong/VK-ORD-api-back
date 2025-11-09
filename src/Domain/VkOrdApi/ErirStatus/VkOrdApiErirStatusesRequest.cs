@@ -19,7 +19,7 @@ public sealed class VkOrdApiErirStatusesRequest
     /// </summary>
     [JsonPropertyName("data_type")]
     [Required]
-    public VkOrdApiErirDataType DataType { get; set; }
+    public VkOrdApiErirDataType? DataType { get; set; }
 
     /// <summary>
     /// Статусы обработки от ЕРИР, по которым выполняется фильтрация выдачи.

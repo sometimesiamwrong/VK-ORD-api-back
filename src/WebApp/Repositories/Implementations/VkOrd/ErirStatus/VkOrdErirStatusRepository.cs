@@ -126,4 +126,41 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
             _ => throw new ArgumentException($"Unsupported entity type: {entityType}", nameof(entityType))
         };
     }
+
+    public async Task<bool> EntityExists(
+        long logicalAccountId,
+        string externalId,
+        EntityType entityType,
+        CancellationToken cancellationToken)
+    {
+        return entityType switch
+        {
+            EntityType.Counterparty => await _context.VkOrdCounterparties
+                .AnyAsync(e => e.LogicalAccountId == logicalAccountId
+                    && e.ExternalId == externalId
+                    && !e.IsDeleted, cancellationToken),
+
+            EntityType.Contract => await _context.VkOrdContracts
+                .AnyAsync(e => e.LogicalAccountId == logicalAccountId
+                    && e.ExternalId == externalId
+                    && !e.IsDeleted, cancellationToken),
+
+            EntityType.Creative => await _context.VkOrdCreatives
+                .AnyAsync(e => e.LogicalAccountId == logicalAccountId
+                    && e.ExternalId == externalId
+                    && !e.IsDeleted, cancellationToken),
+
+            EntityType.Invoice => await _context.VkOrdInvoices
+                .AnyAsync(e => e.LogicalAccountId == logicalAccountId
+                    && e.ExternalId == externalId
+                    && !e.IsDeleted, cancellationToken),
+
+            EntityType.Statistic => await _context.VkOrdStatistics
+                .AnyAsync(e => e.LogicalAccountId == logicalAccountId
+                    && e.ExternalId == externalId
+                    && !e.IsDeleted, cancellationToken),
+
+            _ => throw new ArgumentException($"Unsupported entity type: {entityType}", nameof(entityType))
+        };
+    }
 }

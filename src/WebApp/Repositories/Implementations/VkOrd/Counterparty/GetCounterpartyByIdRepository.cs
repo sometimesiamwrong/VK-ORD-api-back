@@ -32,17 +32,18 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken)
+        public async Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
-            var noCache = _httpContextAccessor.GetNoCacheHeader();
-                
+            var noCacheHeader = _httpContextAccessor.GetNoCacheHeader();
+            var shouldBypassCache = noCache || noCacheHeader;
+
             // Получаем данные из базы данных
             var data = await _context.VkOrdCounterparties
                     .FirstOrDefaultAsync(
                     AppDbContext.DefaultGetVkOrd<VkOrdCounterparty>(externalId, vkOrdCredential), cancellationToken);
 
-            if (data == null || data.IsExpired() || noCache)
+            if (data == null || data.IsExpired() || shouldBypassCache)
             {
                 // Получаем данные из API
                 var vkOrdData = await GetByApi(externalId, cancellationToken);
@@ -57,16 +58,13 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
 
                 if(data.IsNew())
                 {
-                    // Добавляем данные в базу данных
-                    _context.VkOrdCounterparties.Add(data);
+                    await _context.VkOrdCounterparties.AddAsync(data, cancellationToken);
                 }
                 else
                 {
-                    // Обновляем данные в базе данных
                     _context.VkOrdCounterparties.Update(data);
                 }
 
-                // Сохраняем данные в базу данных
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
@@ -98,11 +96,5 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
 
             return person;
         }
-
-        private string GetCacheKey(string externalId, ApiCredential apiCredential)
-        {
-            return $"vkord:{apiCredential.LogicalAccountId}:{externalId}:{EntityType.Counterparty.GetDescription()}";
-        }
-
     }
 }

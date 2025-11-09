@@ -87,10 +87,43 @@ services:
     networks:
       - vkord-network
 
+  # Background Jobs (Hangfire)
+  jobs:
+    build:
+      context: .
+      dockerfile: Dockerfile.jobs
+    container_name: vkord-jobs
+    restart: unless-stopped
+    stop_grace_period: 30s
+    stop_signal: SIGTERM
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:5002
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=vkord;Username=vkord_user;Password=${DB_PASSWORD}
+      - RedisSettings__ConnectionString=redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - vkord-network
+    volumes:
+      - jobs_logs:/app/logs
+    ports:
+      - "5002:5002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5002/hangfire"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
 volumes:
   postgres_data:
   redis_data:
   logs:
+  jobs_logs:
 
 networks:
   vkord-network:
