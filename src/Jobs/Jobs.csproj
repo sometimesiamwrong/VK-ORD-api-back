@@ -53,8 +53,32 @@
         <ProjectReference Include="..\Domain\Domain.csproj" />
         <!-- Ссылка на WebApp - нужна для использования репозиториев и сервисов -->
         <ProjectReference Include="..\WebApp\WebApp.csproj">
+            <!-- Исключаем все content-файлы из WebApp при публикации -->
             <ExcludeAssets>contentFiles</ExcludeAssets>
+            <PrivateAssets>contentFiles</PrivateAssets>
         </ProjectReference>
     </ItemGroup>
+
+    <!-- Явно исключить конфликтующие файлы из WebApp -->
+    <Target Name="RemoveWebAppContentFiles" BeforeTargets="Build">
+        <ItemGroup>
+            <Content Remove="@(Content)" Condition="'%(Content.Link)' != '' AND $([System.String]::Copy('%(Content.Link)').StartsWith('appsettings'))" />
+        </ItemGroup>
+    </Target>
+
+    <!-- Исключить content-файлы WebApp из публикации -->
+    <Target Name="ExcludeWebAppFilesFromPublish" AfterTargets="ComputeFilesToPublish">
+        <ItemGroup>
+            <!-- Исключить appsettings из WebApp -->
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" 
+                Condition="$([System.String]::Copy('%(ResolvedFileToPublish.RelativePath)').StartsWith('appsettings')) AND 
+                           $([System.String]::Copy('%(ResolvedFileToPublish.SourcePath)').Contains('WebApp'))" />
+            
+            <!-- Исключить другие content-файлы WebApp если нужно -->
+            <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" 
+                Condition="'%(ResolvedFileToPublish.AssetType)' == 'content' AND 
+                           $([System.String]::Copy('%(ResolvedFileToPublish.SourcePath)').Contains('WebApp'))" />
+        </ItemGroup>
+    </Target>
 
 </Project>

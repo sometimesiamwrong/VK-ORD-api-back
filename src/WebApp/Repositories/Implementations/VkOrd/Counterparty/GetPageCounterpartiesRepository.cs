@@ -19,19 +19,16 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
-        private readonly ICacheService _cacheService;
         private readonly AppDbContext _context; 
         
         public GetPageCounterpartiesRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
             IHttpContextAccessor httpContextAccessor,
-            ICacheService cacheService,
             AppDbContext context,
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _httpContextAccessor = httpContextAccessor;
-            _cacheService = cacheService;
             _context = context;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
         }
@@ -42,41 +39,33 @@ namespace WebApp.Repositories.Implementations.VkOrd.Counterparty
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
-            var cacheKey = GetCacheKey(pageRequest, vkOrdCredential);
-            var data = await _cacheService.Get<GetPageVkOrdResponse>(cacheKey, cancellationToken);
+            var now = DateTimeOffset.UtcNow;
+            var query = _context.VkOrdCounterparties
+                .Where(x=> x.LogicalAccountId == vkOrdCredential.LogicalAccountId);
 
-            if (data == null || noCache)
+            var data = new GetPageVkOrdResponse
             {
-                var now = DateTimeOffset.UtcNow;
-                var query = _context.VkOrdCounterparties
-                    .Where(x=>now < x.ExpiresAt && x.LogicalAccountId == vkOrdCredential.LogicalAccountId);
+                ExternalIds = await query
+                    .OrderBy(x=>x.UpdatedAt)
+                    .Skip(pageRequest.Offset)
+                    .Take(pageRequest.Limit)
+                    .Select(x=>x.ExternalId)
+                    .ToListAsync(cancellationToken),
+                TotalItemsCount = await query.CountAsync(cancellationToken),
+                Limit = pageRequest.Limit
+            };
 
-                data = new GetPageVkOrdResponse
+            if(data.ExternalIds.IsNullOrEmpty() || noCache)
+            {
+                var vkOrdResponse = await vkOrdClient.GetPersons(pageRequest, cancellationToken);
+                data.ExternalIds = vkOrdResponse.ExternalIds;
+                data.TotalItemsCount = vkOrdResponse.TotalItemsCount;
+                data.Limit = vkOrdResponse.Limit;
+
+                foreach (var externalId in data.ExternalIds)
                 {
-                    ExternalIds = await query
-                        .OrderBy(x=>x.UpdatedAt)
-                        .Skip(pageRequest.Offset)
-                        .Take(pageRequest.Limit)
-                        .Select(x=>x.ExternalId)
-                        .ToListAsync(cancellationToken),
-                    TotalItemsCount = await query.CountAsync(cancellationToken),
-                    Limit = pageRequest.Limit
-                };
-
-                if(data.ExternalIds.IsNullOrEmpty() || noCache)
-                {
-                    var vkOrdResponse = await vkOrdClient.GetPersons(pageRequest, cancellationToken);
-                    data.ExternalIds = vkOrdResponse.ExternalIds;
-                    data.TotalItemsCount = vkOrdResponse.TotalItemsCount;
-                    data.Limit = vkOrdResponse.Limit;
-
-                    foreach (var externalId in data.ExternalIds)
-                    {
-                        await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
-                    }
+                    await _getCounterpartyByIdRepository.Get(externalId, cancellationToken);
                 }
-
-                await _cacheService.Save(cacheKey, data, cancellationToken);
             }
 
             return data;

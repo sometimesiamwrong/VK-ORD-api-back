@@ -18,7 +18,7 @@ ENVIRONMENT="Production"
 # --- Конфигурация WebApp ---
 WEBAPP_SERVICE_NAME="adlawyer-webapp"
 WEBAPP_PROJECT_PATH="${REPO_ROOT}/src/WebApp"
-WEBAPP_PUBLISH_DIR="${WEBAPP_PROJECT_PATH}/publish"
+WEBAPP_PUBLISH_DIR="${REPO_ROOT}/publish/WebApp"  # ← Изменено
 WEBAPP_INSTALL_DIR="/var/www/adlawyer-webapp"
 WEBAPP_EXEC_NAME="WebApp"
 WEBAPP_PORT="5000"
@@ -28,7 +28,7 @@ WEBAPP_USER="www-data"
 # --- Конфигурация Jobs ---
 JOBS_SERVICE_NAME="adlawyer-jobs"
 JOBS_PROJECT_PATH="${REPO_ROOT}/src/Jobs"
-JOBS_PUBLISH_DIR="${JOBS_PROJECT_PATH}/publish"
+JOBS_PUBLISH_DIR="${REPO_ROOT}/publish/Jobs"  # ← Изменено
 JOBS_INSTALL_DIR="/var/www/adlawyer-jobs"
 JOBS_EXEC_NAME="Jobs"
 JOBS_PORT="5101"
@@ -78,12 +78,12 @@ publish_project() {
     echo "📦 Публикация проекта: ${project_name}"
     echo "========================================="
     
-    if [ ! -d "$project_path" ]; then
-        echo "❌ Ошибка: Директория проекта '$project_path' не найдена"
+    local project_file="${project_path}/${project_name}.csproj"
+    
+    if [ ! -f "$project_file" ]; then
+        echo "❌ Ошибка: Файл проекта '${project_file}' не найден"
         exit 1
     fi
-    
-    cd "$project_path"
     
     # Очистка старой публикации
     if [ -d "$publish_dir" ]; then
@@ -91,16 +91,25 @@ publish_project() {
         rm -rf "$publish_dir"
     fi
     
-    # Публикация проекта
+    # Создание выходной директории
+    mkdir -p "$publish_dir"
+    
+    # Публикация проекта с абсолютным путем
     echo "🔨 Выполняется dotnet publish..."
-    dotnet publish -c Release -o "$publish_dir" --nologo
+    dotnet publish "$project_file" -c Release -o "$publish_dir" --nologo
     
     if [ ! -d "$publish_dir" ]; then
-        echo "❌ Ошибка: Публикация не создана в '$publish_dir'"
+        echo "❌ Ошибка: Публикация не создана в '${publish_dir}'"
         exit 1
     fi
     
-    echo "✅ Проект ${project_name} успешно опубликован"
+    # Проверка наличия главного исполняемого файла
+    if [ ! -f "${publish_dir}/${project_name}.dll" ]; then
+        echo "❌ Ошибка: ${project_name}.dll не найден в '${publish_dir}'"
+        exit 1
+    fi
+    
+    echo "✅ Проект ${project_name} успешно опубликован в ${publish_dir}"
 }
 
 stop_and_remove_service() {
@@ -144,6 +153,7 @@ install_service() {
         rm -rf "$install_dir"
     fi
     
+    
     # Создание директории и копирование файлов
     echo "📁 Создание директории ${install_dir}..."
     mkdir -p "$install_dir"
@@ -174,7 +184,8 @@ install_service() {
     cat <<EOF > "$service_file"
 [Unit]
 Description=${description}
-After=network.target
+After=network.target ${WEBAPP_SERVICE_NAME}.service
+Wants=${WEBAPP_SERVICE_NAME}.service
 
 [Service]
 Type=simple
@@ -364,6 +375,12 @@ main() {
     echo "========================================="
     echo "Дата: $(date '+%Y-%m-%d %H:%M:%S')"
     echo ""
+    
+    # Очистка старых публикаций
+    if [ -d "${REPO_ROOT}/publish" ]; then
+        echo "🗑️  Очистка старых публикаций..."
+        rm -rf "${REPO_ROOT}/publish"
+    fi
     
     # Загрузка пользовательской конфигурации, если существует
     local config_file="$(dirname "$0")/deploy.config.sh"
