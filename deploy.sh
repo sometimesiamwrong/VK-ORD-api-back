@@ -40,8 +40,6 @@ ENABLE_CLO_TUNNEL=true
 CLO_BIN="/root/clo"
 CLO_WEBAPP_SERVICE_NAME="clo-webapp-tunnel"
 CLO_WEBAPP_PORT="${WEBAPP_PORT}"
-CLO_JOBS_SERVICE_NAME="clo-jobs-tunnel"
-CLO_JOBS_PORT="${JOBS_PORT}"
 CLO_USER="root"
 
 # ==============================================================================
@@ -291,12 +289,6 @@ start_services() {
             systemctl enable "${CLO_WEBAPP_SERVICE_NAME}.service"
             systemctl start "${CLO_WEBAPP_SERVICE_NAME}.service"
         fi
-        
-        if systemctl list-unit-files | grep -q "^${CLO_JOBS_SERVICE_NAME}.service"; then
-            echo "▶️  Запуск ${CLO_JOBS_SERVICE_NAME}..."
-            systemctl enable "${CLO_JOBS_SERVICE_NAME}.service"
-            systemctl start "${CLO_JOBS_SERVICE_NAME}.service"
-        fi
     fi
     
     echo "✅ Все службы запущены"
@@ -316,11 +308,6 @@ show_status() {
         if systemctl list-unit-files | grep -q "^${CLO_WEBAPP_SERVICE_NAME}.service"; then
             echo ""
             systemctl status "${CLO_WEBAPP_SERVICE_NAME}.service" --no-pager --lines=5 || true
-        fi
-        
-        if systemctl list-unit-files | grep -q "^${CLO_JOBS_SERVICE_NAME}.service"; then
-            echo ""
-            systemctl status "${CLO_JOBS_SERVICE_NAME}.service" --no-pager --lines=5 || true
         fi
     fi
 }
@@ -349,10 +336,6 @@ show_summary() {
         if systemctl list-unit-files | grep -q "^${CLO_WEBAPP_SERVICE_NAME}.service"; then
             echo "   - WebApp туннель: ${CLO_WEBAPP_SERVICE_NAME} (порт ${CLO_WEBAPP_PORT})"
             echo "     Логи: journalctl -u ${CLO_WEBAPP_SERVICE_NAME} -f"
-        fi
-        if systemctl list-unit-files | grep -q "^${CLO_JOBS_SERVICE_NAME}.service"; then
-            echo "   - Jobs туннель: ${CLO_JOBS_SERVICE_NAME} (порт ${CLO_JOBS_PORT})"
-            echo "     Логи: journalctl -u ${CLO_JOBS_SERVICE_NAME} -f"
         fi
     fi
     
@@ -423,11 +406,6 @@ main() {
         "$CLO_WEBAPP_SERVICE_NAME" \
         "$CLO_WEBAPP_PORT" \
         "CLO CloudPub tunnel for AdLawyer WebApp"
-    
-    install_clo_tunnel \
-        "$CLO_JOBS_SERVICE_NAME" \
-        "$CLO_JOBS_PORT" \
-        "CLO CloudPub tunnel for AdLawyer Jobs"
     
     # Запуск служб
     start_services
