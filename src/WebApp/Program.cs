@@ -26,6 +26,13 @@ using WebApp.Startup;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Настройка конфигурации для использования webapp.appsettings.json
+builder.Configuration
+    .SetBasePath(Directory.GetCurrentDirectory())
+    .AddJsonFile("webapp.appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"webapp.appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddEnvironmentVariables();
+
 // Настройка Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)

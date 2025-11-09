@@ -18,15 +18,14 @@
     "EncryptionKey": ""
   },
   "VkOrd": {
-    "EncryptionKey": "L6Lk72cM3pYCcowxTMqmZYM4c7nhnphU2j1DvwYv2Pk="
-      "RetryCount": 3,
-      "BackoffPower": 2,
-      "InitialDelayMs": 100
-    },
-    "ConcurrencySettings": {
-      "MaxParallelRequests": 5,
-      "RateLimitPerMinute": 100
-    }
+    "EncryptionKey": "L6Lk72cM3pYCcowxTMqmZYM4c7nhnphU2j1DvwYv2Pk=",
+    "RetryCount": 3,
+    "BackoffPower": 2,
+    "InitialDelayMs": 100
+  },
+  "ConcurrencySettings": {
+    "MaxParallelRequests": 5,
+    "RateLimitPerMinute": 100
   },
   "Hangfire": {
     "WorkerCount": 1
