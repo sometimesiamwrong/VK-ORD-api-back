@@ -3,7 +3,13 @@
     "allow": [
       "Bash(dotnet ef migrations add:*)",
       "Bash(dotnet build:*)",
-      "Bash(Select-String -Pattern \"error|succeeded\")"
+      "Bash(Select-String -Pattern \"error|succeeded\")",
+      "Bash(Get-ChildItem -Path \"src\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(taskkill /F /PID 46436)",
+      "Bash(powershell -Command \"Stop-Process -Id 46436 -Force\")",
+      "Bash(Select-String -Pattern \"error|successfully\")",
+      "Bash(powershell -ExecutionPolicy Bypass -File test-mediatr-handlers.ps1)"
     ],
     "deny": [],
     "ask": []

@@ -1,8 +1,8 @@
 using MediatR;
 using Domain.BrokenRules;
 using Domain.Extensions;
+using Domain.Models.Requests;
 using Microsoft.AspNetCore.Http;
-using WebApp.Models.Requests;
 
 namespace WebApp.Behaviors;
 

@@ -1,6 +1,6 @@
 using System.ComponentModel;
 
-namespace Domain.Entities.Enums;
+namespace Domain.Entities.Enums.VkOrd;
 
 /// <summary>
 /// Среда API

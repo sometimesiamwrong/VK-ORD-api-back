@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Domain.Entities.Enums;
+using Domain.Entities.Enums.VkOrd;
 using Domain.Entities.VkOrd;
 
 namespace Domain.Entities; 

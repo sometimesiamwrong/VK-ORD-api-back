@@ -2,14 +2,14 @@ using System.Security.Authentication;
 using Domain.BrokenRules;
 using Domain.Extensions;
 using Domain.Entities;
+using Domain.Handlers.Requests;
+using Domain.Models.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using WebApp.Configuration;
-using WebApp.Models.Responses;
 using WebApp.Security;
-using WebApp.Handlers.Requests;
 
 namespace WebApp.Controllers; 
 

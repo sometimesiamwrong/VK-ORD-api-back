@@ -1,9 +1,9 @@
 using Domain;
+using Domain.Handlers.Requests;
+using Domain.Models.Responses;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Handlers.Requests;
-using WebApp.Models.Responses;
 
 namespace WebApp.Controllers
 {

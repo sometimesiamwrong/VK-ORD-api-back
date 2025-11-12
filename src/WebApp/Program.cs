@@ -13,14 +13,15 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
 using Domain.Data;
+using Domain.Filters;
+using Domain.Middleware;
+using Domain.Services.Implementations;
+using Domain.Services.Implementations.Cache;
+using Domain.Services.Implementations.FlowTemplateServices;
+using Domain.Services.Interfaces;
 using WebApp.Configuration;
 using WebApp.Controllers.Filters;
-using WebApp.Filters;
-using WebApp.Middleware;
 using WebApp.Security;
-using WebApp.Services.Implementations;
-using WebApp.Services.Implementations.FlowTemplateServices;
-using WebApp.Services.Interfaces;
 using WebApp.Startup;
 
 
@@ -64,6 +65,8 @@ builder.Services.Configure<OpenRouterConfiguration>(
     builder.Configuration.GetSection(OpenRouterConfiguration.SectionName));
 builder.Services.Configure<RedisConfiguration>(
     builder.Configuration.GetSection(RedisConfiguration.SectionName));
+builder.Services.Configure<Jobs.Configuration.JobsConfiguration>(
+    builder.Configuration.GetSection(Jobs.Configuration.JobsConfiguration.SectionName));
 
 // Регистрация HTTP клиентов и Refit
 var vkOrdConfig = builder.Configuration.GetSection(VkOrdConfiguration.SectionName).Get<VkOrdConfiguration>();
@@ -105,7 +108,11 @@ builder.Services.AddRefitClient<IOpenRouterApiClient>()
     });
 
 // Интеграция MediatR
-builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddMediatR(cfg =>
+{
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(Domain.Handlers.GetCounterpartiesHandler).Assembly);
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(WebApp.Behaviors.VkOrdKeyBehavior<,>));
 
@@ -118,7 +125,7 @@ builder.Services.AddScoped<IDatabaseScriptService, DatabaseScriptService>();
 builder.Services.AddScoped<IApiCredentialService, ApiCredentialService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDaDataService, DaDataService>();
-builder.Services.AddScoped<ICacheService, WebApp.Services.Implementations.Cache.CacheService>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IWizardFlowTemplateService, WizardFlowTemplateService>();
 builder.Services.AddScoped<IFlowTemplateService, FlowTemplateService>();
 

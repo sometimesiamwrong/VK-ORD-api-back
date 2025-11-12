@@ -74,5 +74,18 @@
     "TimeoutSeconds": 60,
     "Model": "x-ai/grok-4-fast:free"
   },
+  "Jobs": {
+    "ErirSyncIntervalMinutes": 60,
+    "EnabledEntityTypes": [
+      "Counterparty",
+      "Contract",
+      "Creative",
+      "Invoice",
+      "Statistic"
+    ],
+    "BatchSize": 60000,
+    "MaxConcurrency": 10,
+    "ContinueOnError": true
+  },
   "AllowedHosts": "*"
 }

@@ -1,16 +1,16 @@
 using Domain;
 using Domain.Entities.VkOrd;
 using Domain.Extensions;
+using Domain.Features.Counterparties.Queries.GetCounterparty;
+using Domain.Handlers.Requests;
+using Domain.Models.Contracts;
+using Domain.Models.Requests;
+using Domain.Models.Responses;
+using Domain.Services.Interfaces;
 using Domain.VkOrdApi.Creative;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Features.Counterparties.Queries.GetCounterparty;
-using WebApp.Handlers.Requests;
-using WebApp.Models.Contracts;
-using WebApp.Models.Requests;
-using WebApp.Models.Responses;
-using WebApp.Services.Interfaces;
 
 namespace WebApp.Controllers;
 

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Domain.Entities.Enums;
+using Domain.Entities.Enums.VkOrd;
 
 namespace Domain.VkOrdApi.Pad;
 

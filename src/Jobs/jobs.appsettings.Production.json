@@ -1,6 +1,6 @@
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Host=79.174.89.150;Port=19474;Database=vk_user_root;Username=vkord_user_root;Password=QZF-hL2-y4v-hYX;Maximum Pool Size=50;"
+    "DefaultConnection": "Host=79.174.89.150;Port=19474;Database=vk_user;Username=vkord_user;Password=rV9-KmK-TYG-siA;Maximum Pool Size=50;"
   },
   "Jobs": {
     "ErirSyncIntervalMinutes": 1,

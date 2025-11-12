@@ -1,11 +1,10 @@
 using Domain;
+using Domain.Models.Requests;
+using Domain.Services.Interfaces;
 using Domain.VkOrdApi.Media;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
-using WebApp.Models.Requests;
-using WebApp.Models.Responses;
-using WebApp.Services.Interfaces;
 
 namespace WebApp.Controllers
 {

@@ -1,34 +1,32 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Domain.Data;
+using Domain.Repositories.Implementations.ApiCredentials;
+using Domain.Repositories.Implementations.VkOrd.Contract;
+using Domain.Repositories.Implementations.VkOrd.Counterparty;
+using Domain.Repositories.Implementations.VkOrd.Creative;
+using Domain.Repositories.Implementations.VkOrd.ErirStatus;
+using Domain.Repositories.Implementations.VkOrd.Invoice;
+using Domain.Repositories.Implementations.VkOrd.Statistics;
+using Domain.Repositories.Interfaces.ApiCredentials;
+using Domain.Repositories.Interfaces.VkOrd.Contract;
+using Domain.Repositories.Interfaces.VkOrd.Counterparty;
+using Domain.Repositories.Interfaces.VkOrd.Creative;
+using Domain.Repositories.Interfaces.VkOrd.ErirStatus;
+using Domain.Repositories.Interfaces.VkOrd.Invoice;
+using Domain.Repositories.Interfaces.VkOrd.Statistics;
+using Domain.Services.Implementations;
+using Domain.Services.Implementations.Cache;
+using Domain.Services.Interfaces;
 using Domain.VkOrdApi;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Jobs.Configuration;
 using Jobs.Jobs;
-using Jobs.Services.Implementations;
-using Jobs.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebApp.Configuration;
-using WebApp.Repositories.Implementations.ApiCredentials;
-using WebApp.Repositories.Implementations.VkOrd.Contract;
-using WebApp.Repositories.Implementations.VkOrd.Counterparty;
-using WebApp.Repositories.Implementations.VkOrd.Creative;
-using WebApp.Repositories.Implementations.VkOrd.ErirStatus;
-using WebApp.Repositories.Implementations.VkOrd.Invoice;
-using WebApp.Repositories.Implementations.VkOrd.Statistics;
-using WebApp.Repositories.Interfaces.ApiCredentials;
-using WebApp.Repositories.Interfaces.VkOrd.Contract;
-using WebApp.Repositories.Interfaces.VkOrd.Counterparty;
-using WebApp.Repositories.Interfaces.VkOrd.Creative;
-using WebApp.Repositories.Interfaces.VkOrd.ErirStatus;
-using WebApp.Repositories.Interfaces.VkOrd.Invoice;
-using WebApp.Repositories.Interfaces.VkOrd.Statistics;
 using WebApp.Security;
-using WebApp.Services.Implementations;
-using WebApp.Services.Implementations.Cache;
-using WebApp.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,7 +121,7 @@ builder.Services.AddScoped<IGetApiCredentialByGuidRepository, GetApiCredentialBy
 // Services
 builder.Services.AddScoped<IBackgroundVkOrdApiClientFactory, BackgroundVkOrdApiClientFactory>();
 builder.Services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
-builder.Services.AddScoped<ICacheService, WebApp.Services.Implementations.Cache.CacheService>();
+builder.Services.AddScoped<ICacheService, CacheService>();
 // Настройка кэширования
 builder.Services.AddMemoryCache();
 var redisConfig = builder.Configuration.GetSection(RedisConfiguration.SectionName).Get<RedisConfiguration>();

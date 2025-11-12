@@ -1,30 +1,32 @@
-using WebApp.Repositories.Interfaces;
-using WebApp.Repositories.Interfaces.ApiCredentials;
-using WebApp.Repositories.Interfaces.DaData;
-using WebApp.Repositories.Interfaces.DatabaseScripts;
-using WebApp.Repositories.Interfaces.RefreshTokens;
-using WebApp.Repositories.Interfaces.Users;
-using WebApp.Repositories.Interfaces.VkOrd.Contract;
-using WebApp.Repositories.Interfaces.VkOrd.Counterparty;
-using WebApp.Repositories.Interfaces.VkOrd.Creative;
-using WebApp.Repositories.Interfaces.VkOrd.Invoice;
-using WebApp.Repositories.Interfaces.VkOrd.Statistics;
+using Domain.Repositories.Implementations;
+using Domain.Repositories.Implementations.ApiCredentials;
+using Domain.Repositories.Implementations.DaData;
+using Domain.Repositories.Implementations.DatabaseScripts;
+using Domain.Repositories.Implementations.RefreshTokens;
+using Domain.Repositories.Implementations.Users;
+using Domain.Repositories.Implementations.VkOrd.Contract;
+using Domain.Repositories.Implementations.VkOrd.Counterparty;
+using Domain.Repositories.Implementations.VkOrd.Creative;
+using Domain.Repositories.Implementations.VkOrd.ErirStatus;
+using Domain.Repositories.Implementations.VkOrd.Invoice;
+using Domain.Repositories.Implementations.VkOrd.Statistics;
+using Domain.Repositories.Interfaces;
+using Domain.Repositories.Interfaces.ApiCredentials;
+using Domain.Repositories.Interfaces.DaData;
+using Domain.Repositories.Interfaces.DatabaseScripts;
+using Domain.Repositories.Interfaces.RefreshTokens;
+using Domain.Repositories.Interfaces.Users;
+using Domain.Repositories.Interfaces.VkOrd.Contract;
+using Domain.Repositories.Interfaces.VkOrd.Counterparty;
+using Domain.Repositories.Interfaces.VkOrd.Creative;
+using Domain.Repositories.Interfaces.VkOrd.ErirStatus;
+using Domain.Repositories.Interfaces.VkOrd.Invoice;
+using Domain.Repositories.Interfaces.VkOrd.Statistics;
+using Domain.Services.Implementations;
+using Domain.Services.Implementations.VkOrd;
+using Domain.Services.Interfaces;
 using WebApp.Security;
-using WebApp.Services.Implementations;
-using WebApp.Services.Interfaces;
 using Scrutor;
-using WebApp.Repositories.Implementations;
-using WebApp.Repositories.Implementations.ApiCredentials;
-using WebApp.Repositories.Implementations.DaData;
-using WebApp.Repositories.Implementations.DatabaseScripts;
-using WebApp.Repositories.Implementations.RefreshTokens;
-using WebApp.Repositories.Implementations.Users;
-using WebApp.Repositories.Implementations.VkOrd.Contract;
-using WebApp.Repositories.Implementations.VkOrd.Counterparty;
-using WebApp.Repositories.Implementations.VkOrd.Creative;
-using WebApp.Repositories.Implementations.VkOrd.Invoice;
-using WebApp.Repositories.Implementations.VkOrd.Statistics;
-using WebApp.Services.Implementations.VkOrd;
 
 namespace WebApp.Startup
 {
@@ -99,11 +101,16 @@ namespace WebApp.Startup
 
             services.AddScoped<ICreateOrUpdateStatisticsRepository, CreateOrUpdateStatisticsRepository>();
             services.AddScoped<IGetStatisticsListRepository, GetStatisticsListRepository>();
+            services.AddScoped<IGetStatisticsByIdRepository, GetStatisticsByIdRepository>();
             services.AddScoped<IDeleteStatisticsRepository, DeleteStatisticsRepository>();
+
+            services.AddScoped<IGetAllLogicalAccountsRepository, GetAllLogicalAccountsRepository>();
+            services.AddScoped<IVkOrdErirStatusRepository, VkOrdErirStatusRepository>();
 
             // VK ORD сервисы
             services.AddScoped<IVkOrdService, VkOrdService>();
             services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
+            services.AddScoped<IErirStatusSyncService, ErirStatusSyncService>();
             
             // VK ORD Data Service
             services.AddScoped(typeof(IVkOrdDataService<,>), typeof(VkOrdDataService<,>));

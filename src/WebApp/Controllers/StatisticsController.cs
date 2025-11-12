@@ -1,7 +1,7 @@
+using Domain.Models.Requests;
+using Domain.Services.Interfaces;
 using Domain.VkOrdApi.Statistics;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Models.Requests;
-using WebApp.Services.Interfaces;
 
 namespace WebApp.Controllers;
 

@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Domain.Extensions;
-using WebApp.Models.Requests;
-using WebApp.Models.Responses;
-using WebApp.Services.Interfaces;
+using Domain.Models.Requests;
+using Domain.Models.Responses;
+using Domain.Services.Interfaces;
 
 namespace WebApp.Controllers
 {

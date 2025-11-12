@@ -2,9 +2,9 @@ using Domain.Data;
 using Domain.Entities.Enums;
 using Domain.Entities.FlowTemplates.Requests;
 using Domain.Entities.FlowTemplates.Responses;
+using Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Services.Interfaces;
 
 namespace WebApp.Controllers;
 

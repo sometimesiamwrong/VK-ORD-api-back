@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-namespace Domain.Entities.Enums;
+namespace Domain.Entities.Enums.VkOrd;
 
 public enum VkOrdApiPadType
 {

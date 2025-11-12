@@ -1,12 +1,11 @@
 using Domain;
 using Domain.Entities.VkOrd;
 using Domain.Extensions;
+using Domain.Models.Requests;
+using Domain.Models.Responses;
+using Domain.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using WebApp.Models.Contracts;
-using WebApp.Models.Requests;
-using WebApp.Models.Responses;
-using WebApp.Services.Interfaces;
 
 namespace WebApp.Controllers
 {

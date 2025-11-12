@@ -1,5 +1,5 @@
+using Domain.Services.Interfaces;
 using Hangfire;
-using Jobs.Services.Interfaces;
 
 namespace Jobs.Jobs;
 
