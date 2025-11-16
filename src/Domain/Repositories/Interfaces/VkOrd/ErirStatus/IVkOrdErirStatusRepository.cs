@@ -42,6 +42,13 @@ public interface IVkOrdErirStatusRepository
     Task UpsertStatus(VkOrdErirStatus status, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Создать или обновить несколько статусов в одной транзакции (batch операция)
+    /// </summary>
+    /// <param name="statuses">Статусы для сохранения</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    Task UpsertStatusesBatch(List<VkOrdErirStatus> statuses, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Получить все external ID для логического аккаунта и типа сущности из таблицы статусов
     /// </summary>
     /// <param name="logicalAccountId">ID логического аккаунта</param>

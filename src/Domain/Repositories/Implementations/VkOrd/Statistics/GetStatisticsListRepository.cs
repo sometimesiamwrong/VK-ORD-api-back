@@ -12,16 +12,13 @@ namespace Domain.Repositories.Implementations.VkOrd.Statistics;
 public class GetStatisticsListRepository : IGetStatisticsListRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
-    private readonly AppDbContext _context;
     private readonly ILogger<GetStatisticsListRepository> _logger;
 
     public GetStatisticsListRepository(
         IVkOrdApiClientFactory vkOrdApiClientFactory,
-        AppDbContext context,
         ILogger<GetStatisticsListRepository> logger)
     {
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
-        _context = context;
         _logger = logger;
     }
 

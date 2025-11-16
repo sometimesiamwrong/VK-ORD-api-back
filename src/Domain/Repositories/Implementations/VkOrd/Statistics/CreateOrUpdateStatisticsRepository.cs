@@ -14,18 +14,18 @@ namespace Domain.Repositories.Implementations.VkOrd.Statistics;
 public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ICacheService _cacheService;
     private readonly ILogger<CreateOrUpdateStatisticsRepository> _logger;
 
     public CreateOrUpdateStatisticsRepository(
         IVkOrdApiClientFactory vkOrdApiClientFactory,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ICacheService cacheService,
         ILogger<CreateOrUpdateStatisticsRepository> logger)
     {
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
-        _context = context;
+        _contextFactory = contextFactory;
         _cacheService = cacheService;
         _logger = logger;
     }
@@ -34,6 +34,7 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
         List<VkOrdApiStatisticsItem> items,
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;
         var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
@@ -53,7 +54,7 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
                 ? parsedDate 
                 : null;
 
-            var existing = await _context.VkOrdStatistics
+            var existing = await context.VkOrdStatistics
                 .FirstOrDefaultAsync(
                     s => s.LogicalAccountId == logicalAccountId &&
                          s.CreativeExternalId == item.CreativeExternalId &&
@@ -82,7 +83,7 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
                 };
                 UpdateStatisticsFromItem(newStatistic, item);
 
-                await _context.VkOrdStatistics.AddAsync(newStatistic, cancellationToken);
+                await context.VkOrdStatistics.AddAsync(newStatistic, cancellationToken);
             }
 
             // Инвалидируем кеш
@@ -90,7 +91,7 @@ public class CreateOrUpdateStatisticsRepository : ICreateOrUpdateStatisticsRepos
             await _cacheService.Remove<VkOrdStatistic>(cacheKey, cancellationToken);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Successfully saved {Count} statistics to database for LogicalAccountId: {LogicalAccountId}",

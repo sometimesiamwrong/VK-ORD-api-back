@@ -18,28 +18,29 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly ILogger<GetCreativeByEridRepository> _logger;
         private readonly ICacheService _cacheService;
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
         public GetCreativeByEridRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
             ICacheService cacheService,
-            AppDbContext context,
+            Func<AppDbContext> contextFactory,
             ILogger<GetCreativeByEridRepository> logger)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _logger = logger;
             _cacheService = cacheService;
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<VkOrdCreative> GetCreativeByErid(string erid, CancellationToken cancellationToken)
         {
+            await using var context = _contextFactory();
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var cacheKey = GetCacheKey(erid, vkOrdCredential);
             var data = await _cacheService.Get<VkOrdCreative>(cacheKey, cancellationToken);
             if (data == null || data.IsExpired())
             {
-                data = await _context.VkOrdCreatives.FirstOrDefaultAsync(
+                data = await context.VkOrdCreatives.FirstOrDefaultAsync(
                     c => c.LogicalAccountId == vkOrdCredential.LogicalAccountId && c.Data.Erid == erid,
                     cancellationToken);
                 if (data == null)
@@ -51,8 +52,8 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
                     }
                     data = new VkOrdCreative { LogicalAccountId = vkOrdCredential.LogicalAccountId, ExternalId = vkOrdData.Erid };
                     data.UpdateData(vkOrdData);
-                    await _context.VkOrdCreatives.AddAsync(data, cancellationToken);
-                    await _context.SaveChangesAsync(cancellationToken);
+                    await context.VkOrdCreatives.AddAsync(data, cancellationToken);
+                    await context.SaveChangesAsync(cancellationToken);
                 }
                 await _cacheService.Save(cacheKey, data, cancellationToken);
             }

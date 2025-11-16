@@ -10,16 +10,17 @@ namespace Domain.Repositories.Implementations.Users
     /// </summary>
     public class GetUsersListRepository : IGetUsersListRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetUsersListRepository(AppDbContext db)
+        public GetUsersListRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<User>> GetListAsync()
         {
-            return await _db.Users.ToListAsync();
+            await using var context = _contextFactory();
+            return await context.Users.ToListAsync();
         }
     }
 }

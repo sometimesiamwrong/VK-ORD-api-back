@@ -16,23 +16,24 @@ public class DeleteInvoiceRepository : IDeleteInvoiceRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
     private readonly ICacheService _cacheService;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<DeleteInvoiceRepository> _logger;
 
     public DeleteInvoiceRepository(
         IVkOrdApiClientFactory vkOrdClientFactory,
         ICacheService cacheService,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<DeleteInvoiceRepository> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
         _cacheService = cacheService;
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
     public async Task Delete(string externalId, CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
         var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
@@ -42,15 +43,15 @@ public class DeleteInvoiceRepository : IDeleteInvoiceRepository
         _logger.LogInformation($"Invoice {externalId} deleted from VK ORD API");
 
         // Удаляем из БД
-        var invoice = await _context.VkOrdInvoices
+        var invoice = await context.VkOrdInvoices
             .FirstOrDefaultAsync(
                 AppDbContext.DefaultGetVkOrd<VkOrdInvoice>(externalId, vkOrdCredential),
                 cancellationToken);
 
         if (invoice != null)
         {
-            _context.VkOrdInvoices.Remove(invoice);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.VkOrdInvoices.Remove(invoice);
+            await context.SaveChangesAsync(cancellationToken);
             _logger.LogInformation($"Invoice {externalId} deleted from database");
         }
 

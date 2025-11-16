@@ -61,17 +61,23 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 Log.Information("Configuring database connection for Jobs in {Environment} environment", environment);
-builder.Services.AddDbContext<AppDbContext>(options =>
+
+// Регистрируем DbContextOptions для создания новых экземпляров
+var dbContextOptions = new DbContextOptionsBuilder<AppDbContext>()
+    .UseNpgsql(connectionString)
+    .Options;
+
+if (builder.Environment.IsDevelopment())
 {
-    options.UseNpgsql(connectionString);
-    
-    // Включить детальное логирование только для Development
-    if (builder.Environment.IsDevelopment())
-    {
-        options.EnableSensitiveDataLogging();
-        options.EnableDetailedErrors();
-    }
-});
+    var devOptionsBuilder = new DbContextOptionsBuilder<AppDbContext>()
+        .UseNpgsql(connectionString)
+        .EnableSensitiveDataLogging()
+        .EnableDetailedErrors();
+    dbContextOptions = devOptionsBuilder.Options;
+}
+
+// Регистрируем Func<AppDbContext> для создания нового подключения в рамках запроса
+builder.Services.AddScoped<Func<AppDbContext>>(serviceProvider => () => new AppDbContext(dbContextOptions));
 
 // Hangfire with PostgreSQL
 builder.Services.AddHangfire(config => config

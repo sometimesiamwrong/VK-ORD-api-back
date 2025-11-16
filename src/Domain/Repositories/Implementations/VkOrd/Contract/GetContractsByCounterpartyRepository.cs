@@ -15,22 +15,23 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
         private readonly ICacheService _cacheService;
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
 
         public GetContractsByCounterpartyRepository(
             IVkOrdApiClientFactory vkOrdClientFactory, 
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository, 
             ICacheService cacheService, 
-            AppDbContext context)
+            Func<AppDbContext> contextFactory)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
             _cacheService = cacheService;
-            _context = context;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<VkOrdContract>> Get(string counterpartyExternalId, CancellationToken cancellationToken)
         {
+            await using var context = _contextFactory();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var cacheKey = GetCacheKey(counterpartyExternalId, vkOrdCredential);
 
@@ -39,7 +40,7 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
             if (data == null)
             {
                 var counterparty = await _getCounterpartyByIdRepository.Get(counterpartyExternalId, cancellationToken);
-                data = await _context.VkOrdContracts
+                data = await context.VkOrdContracts
                     .Where(
                         x=>x.LogicalAccountId == vkOrdCredential.LogicalAccountId &&
                         x.ContractParties.Any(y=>y.CounterpartyId == counterparty.Id)

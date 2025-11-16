@@ -10,16 +10,17 @@ namespace Domain.Repositories.Implementations.RefreshTokens
     /// </summary>
     public class GetRefreshTokensListRepository : IGetRefreshTokensListRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetRefreshTokensListRepository(AppDbContext db)
+        public GetRefreshTokensListRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<RefreshToken>> GetListAsync(long userId)
         {
-            return await _db.RefreshTokens
+            await using var context = _contextFactory();
+            return await context.RefreshTokens
                 .Where(t => t.UserId == userId)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();

@@ -21,18 +21,18 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
     private readonly ICacheService _cacheService;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<CreateOrUpdateInvoiceRepository> _logger;
 
     public CreateOrUpdateInvoiceRepository(
         IVkOrdApiClientFactory vkOrdClientFactory,
         ICacheService cacheService,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<CreateOrUpdateInvoiceRepository> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
         _cacheService = cacheService;
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
@@ -42,10 +42,11 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
         bool isDraft,
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
         // Проверяем, существует ли акт в БД
-        var existingInvoice = await _context.VkOrdInvoices
+        var existingInvoice = await context.VkOrdInvoices
             .FirstOrDefaultAsync(
                 AppDbContext.DefaultGetVkOrd<VkOrdInvoice>(externalId, vkOrdCredential),
                 cancellationToken);
@@ -143,7 +144,7 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
         invoice.UpdatedAt = DateTimeOffset.UtcNow;
         
         // Сохраняем в БД
-        await SaveToDatabase(invoice, isUpdate, cancellationToken);
+        await SaveToDatabase(invoice, isUpdate, cancellationToken, context);
 
         // Инвалидируем кэш
         var cacheKey = GetCacheKey(externalId, vkOrdCredential);
@@ -171,18 +172,18 @@ public class CreateOrUpdateInvoiceRepository : ICreateOrUpdateInvoiceRepository
         };
     }
 
-    private async Task SaveToDatabase(VkOrdInvoice invoice, bool isUpdate, CancellationToken cancellationToken)
+    private async Task SaveToDatabase(VkOrdInvoice invoice, bool isUpdate, CancellationToken cancellationToken, AppDbContext context)
     {
         if (isUpdate)
         {
-            _context.VkOrdInvoices.Update(invoice);
+            context.VkOrdInvoices.Update(invoice);
         }
         else
         {
-            await _context.VkOrdInvoices.AddAsync(invoice, cancellationToken);
+            await context.VkOrdInvoices.AddAsync(invoice, cancellationToken);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private string GetCacheKey(string externalId, ApiCredential apiCredential)

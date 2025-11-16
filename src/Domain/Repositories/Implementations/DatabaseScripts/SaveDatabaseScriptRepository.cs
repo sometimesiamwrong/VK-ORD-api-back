@@ -9,26 +9,27 @@ namespace Domain.Repositories.Implementations.DatabaseScripts
     /// </summary>
     public class SaveDatabaseScriptRepository : ISaveDatabaseScriptRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public SaveDatabaseScriptRepository(AppDbContext db)
+        public SaveDatabaseScriptRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<DatabaseScript?> SaveAsync(DatabaseScript script)
         {
+            await using var context = _contextFactory();
             if (script.IsNewOrUpdate())
             {
                 // Создание новой сущности
-                _db.DatabaseScripts.Add(script);
-                await _db.SaveChangesAsync();
+                context.DatabaseScripts.Add(script);
+                await context.SaveChangesAsync();
                 return script;
             }
             else
             {
                 // Обновление существующей сущности
-                var existing = await _db.DatabaseScripts.FindAsync(script.Id);
+                var existing = await context.DatabaseScripts.FindAsync(script.Id);
                 if (existing == null)
                     return null;
 
@@ -39,7 +40,7 @@ namespace Domain.Repositories.Implementations.DatabaseScripts
                 existing.IsSuccessful = script.IsSuccessful;
                 existing.ErrorMessage = script.ErrorMessage;
 
-                await _db.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return existing;
             }
         }

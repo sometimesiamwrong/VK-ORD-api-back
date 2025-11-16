@@ -6,7 +6,7 @@
     "EncryptionKey": "L6Lk72cM3pYCcowxTMqmZYM4c7nhnphU2j1DvwYv2Pk="
   },
   "Jobs": {
-    "ErirSyncIntervalMinutes": 5,
+    "ErirSyncIntervalMinutes": 1,
     "EnabledEntityTypes": [
       "Counterparty",
       "Contract",

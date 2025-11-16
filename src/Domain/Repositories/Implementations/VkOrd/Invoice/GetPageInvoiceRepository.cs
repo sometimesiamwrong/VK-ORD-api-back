@@ -13,28 +13,29 @@ namespace Domain.Repositories.Implementations.VkOrd.Invoice;
 public class GetPageInvoiceRepository : IGetPageInvoiceRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ICacheService _cacheService;
     private readonly ILogger<GetPageInvoiceRepository> _logger;
 
     public GetPageInvoiceRepository(
         IVkOrdApiClientFactory vkOrdClientFactory,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ICacheService cacheService,
         ILogger<GetPageInvoiceRepository> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
-        _context = context;
+        _contextFactory = contextFactory;
         _cacheService = cacheService;
         _logger = logger;
     }
 
     public async Task<VkOrdApiInvoiceListResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken, List<string>? externalIds = null)
     {
+        await using var context = _contextFactory();
         var vkOrdClient = await _vkOrdClientFactory.CreateClient();
         var apiCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
-        var query = _context.VkOrdInvoices.AsQueryable();
+        var query = context.VkOrdInvoices.AsQueryable();
         if (externalIds != null)
         {
             query = query

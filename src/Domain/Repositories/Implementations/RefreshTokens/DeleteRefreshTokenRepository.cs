@@ -8,21 +8,22 @@ namespace Domain.Repositories.Implementations.RefreshTokens
     /// </summary>
     public class DeleteRefreshTokenRepository : IDeleteRefreshTokenRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public DeleteRefreshTokenRepository(AppDbContext db)
+        public DeleteRefreshTokenRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var token = await _db.RefreshTokens.FindAsync(id);
+            await using var context = _contextFactory();
+            var token = await context.RefreshTokens.FindAsync(id);
             if (token == null)
                 return false;
 
-            _db.RefreshTokens.Remove(token);
-            await _db.SaveChangesAsync();
+            context.RefreshTokens.Remove(token);
+            await context.SaveChangesAsync();
             return true;
         }
     }

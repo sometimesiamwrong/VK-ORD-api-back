@@ -9,21 +9,22 @@ namespace Domain.Repositories.Implementations.ApiCredentials
     /// </summary>
     public class DeleteApiCredentialRepository : IDeleteApiCredentialRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public DeleteApiCredentialRepository(AppDbContext db)
+        public DeleteApiCredentialRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
         {
-            var credential = await _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == id);
+            await using var context = _contextFactory();
+            var credential = await context.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == id);
             if (credential == null)
                 return false;
 
-            _db.ApiCredentials.Remove(credential);
-            await _db.SaveChangesAsync(cancellationToken);
+            context.ApiCredentials.Remove(credential);
+            await context.SaveChangesAsync(cancellationToken);
             return true;
         }
     }

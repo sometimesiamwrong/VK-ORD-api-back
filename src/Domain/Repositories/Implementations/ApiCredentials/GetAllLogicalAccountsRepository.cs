@@ -10,18 +10,19 @@ namespace Domain.Repositories.Implementations.ApiCredentials;
 /// </summary>
 public class GetAllLogicalAccountsRepository : IGetAllLogicalAccountsRepository
 {
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
 
-    public GetAllLogicalAccountsRepository(AppDbContext context)
+    public GetAllLogicalAccountsRepository(Func<AppDbContext> contextFactory)
     {
-        _context = context;
+        _contextFactory = contextFactory;
     }
 
     public async Task<List<(long LogicalAccountId, ApiCredential Credential)>> GetAllWithCredentials(
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         // Получаем все уникальные LogicalAccountId и для каждого берем любой ApiCredential
-        var logicalAccounts = await _context.ApiCredentials
+        var logicalAccounts = await context.ApiCredentials
             .Where(a => !a.IsDeleted)
             .GroupBy(a => a.LogicalAccountId)
             .Select(g => new

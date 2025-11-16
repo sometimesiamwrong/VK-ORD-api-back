@@ -19,18 +19,18 @@ public class VkOrdDataService<TEntity, TApiResponse> : IVkOrdDataService<TEntity
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
     private readonly ICacheService _cacheService;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<VkOrdDataService<TEntity, TApiResponse>> _logger;
 
     public VkOrdDataService(
         IVkOrdApiClientFactory vkOrdClientFactory,
         ICacheService cacheService,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<VkOrdDataService<TEntity, TApiResponse>> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
         _cacheService = cacheService;
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
@@ -50,8 +50,9 @@ public class VkOrdDataService<TEntity, TApiResponse> : IVkOrdDataService<TEntity
         // Если данные не найдены в кэше или устарели, то получаем данные из базы данных
         if (data == null || data.IsExpired())
         {
+            await using var context = _contextFactory();
             // Получаем данные из базы данных
-            var query = getFromDatabaseQuery(_context.Set<TEntity>());
+            var query = getFromDatabaseQuery(context.Set<TEntity>());
             data = await query.FirstOrDefaultAsync(cancellationToken);
 
             if (data == null || data.IsExpired())
@@ -89,15 +90,16 @@ public class VkOrdDataService<TEntity, TApiResponse> : IVkOrdDataService<TEntity
 
     private async Task SaveToDatabase(TEntity entity, CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         if (entity.IsNew())
         {
-            _context.Set<TEntity>().Add(entity);
+            context.Set<TEntity>().Add(entity);
         }
         else
         {
-            _context.Set<TEntity>().Update(entity);
+            context.Set<TEntity>().Update(entity);
         }
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private string GetCacheKey(string identifier, ApiCredential credential)

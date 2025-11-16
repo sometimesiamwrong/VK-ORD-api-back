@@ -17,26 +17,27 @@ namespace Domain.Repositories.Implementations.VkOrd.Counterparty
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
 
         public GetCounterpartyByIdRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            AppDbContext context,
+            Func<AppDbContext> contextFactory,
             IHttpContextAccessor httpContextAccessor)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _context = context;
+            _contextFactory = contextFactory;
             _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<VkOrdCounterparty> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
+            await using var context = _contextFactory();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var noCacheHeader = _httpContextAccessor.GetNoCacheHeader();
             var shouldBypassCache = noCache || noCacheHeader;
 
             // Получаем данные из базы данных
-            var data = await _context.VkOrdCounterparties
+            var data = await context.VkOrdCounterparties
                     .FirstOrDefaultAsync(
                     AppDbContext.DefaultGetVkOrd<VkOrdCounterparty>(externalId, vkOrdCredential), cancellationToken);
 
@@ -55,14 +56,14 @@ namespace Domain.Repositories.Implementations.VkOrd.Counterparty
 
                 if(data.IsNew())
                 {
-                    await _context.VkOrdCounterparties.AddAsync(data, cancellationToken);
+                    await context.VkOrdCounterparties.AddAsync(data, cancellationToken);
                 }
                 else
                 {
-                    _context.VkOrdCounterparties.Update(data);
+                    context.VkOrdCounterparties.Update(data);
                 }
 
-                await _context.SaveChangesAsync(cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
             }
 
             return data;

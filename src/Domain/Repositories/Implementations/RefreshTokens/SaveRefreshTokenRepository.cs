@@ -9,26 +9,27 @@ namespace Domain.Repositories.Implementations.RefreshTokens
     /// </summary>
     public class SaveRefreshTokenRepository : ISaveRefreshTokenRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public SaveRefreshTokenRepository(AppDbContext db)
+        public SaveRefreshTokenRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<RefreshToken?> SaveAsync(RefreshToken token)
         {
+            await using var context = _contextFactory();
             if (token.IsNewOrUpdate())
             {
                 // Создание новой сущности
-                _db.RefreshTokens.Add(token);
-                await _db.SaveChangesAsync();
+                context.RefreshTokens.Add(token);
+                await context.SaveChangesAsync();
                 return token;
             }
             else
             {
                 // Обновление существующей сущности
-                var existing = await _db.RefreshTokens.FindAsync(token.Id);
+                var existing = await context.RefreshTokens.FindAsync(token.Id);
                 if (existing == null)
                     return null;
 
@@ -40,7 +41,7 @@ namespace Domain.Repositories.Implementations.RefreshTokens
                 existing.ReplacedByTokenHash = token.ReplacedByTokenHash;
                 existing.UpdatedAt = DateTimeOffset.UtcNow;
 
-                await _db.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return existing;
             }
         }

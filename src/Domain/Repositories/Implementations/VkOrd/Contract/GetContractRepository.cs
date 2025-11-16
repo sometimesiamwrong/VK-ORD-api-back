@@ -18,25 +18,26 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
     public class GetContractRepository : IGetContractRepository
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
 
         public GetContractRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            AppDbContext context,
+            Func<AppDbContext> contextFactory,
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _context = context;
+            _contextFactory = contextFactory;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
         }
 
         public async Task<VkOrdContract> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
+            await using var context = _contextFactory();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
                 // Получаем данные из базы данных
-            var data = await _context.VkOrdContracts
+            var data = await context.VkOrdContracts
                     .Include(x=>x.ContractParties)
                         .ThenInclude(x=>x.Counterparty)
                     .FirstOrDefaultAsync(AppDbContext.DefaultGetVkOrd<VkOrdContract>(externalId, vkOrdCredential), cancellationToken);
@@ -55,7 +56,7 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
                 data = MapOperation(vkOrdData, data, vkOrdCredential, externalId);
 
                 // Сохраняем данные в базу данных
-                await SaveToDatabase(data, cancellationToken);
+                await SaveToDatabase(data, cancellationToken, context);
             }
                         
             return data;
@@ -73,19 +74,19 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
             return data;
         }
 
-        private async Task SaveToDatabase(VkOrdContract data, CancellationToken cancellationToken)
+        private async Task SaveToDatabase(VkOrdContract data, CancellationToken cancellationToken, AppDbContext context)
         {
             var customer = await _getCounterpartyByIdRepository.Get(data.Data.ClientExternalId, cancellationToken);
             var contractor = await _getCounterpartyByIdRepository.Get(data.Data.ContractorExternalId, cancellationToken);
 
             // Удаляем все старые связи для этого договора
-            var existingParties = _context.VkOrdContractParties.Where(cp => cp.ContractId == data.Id).ToList();
+            var existingParties = context.VkOrdContractParties.Where(cp => cp.ContractId == data.Id).ToList();
             
             // Удаляем все существующие связи
             foreach (var party in existingParties)
             {
                 data.ContractParties.Remove(party);
-                _context.Remove(party);
+                context.Remove(party);
             }
             
             // Добавляем новые связи если они есть
@@ -114,15 +115,15 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract
             if(data.IsNew())
             {
                 // Добавляем данные в базу данных
-                _context.VkOrdContracts.Add(data);
+                context.VkOrdContracts.Add(data);
             }
             else
             {
                 // Обновляем данные в базу данных
-                _context.VkOrdContracts.Update(data);
+                context.VkOrdContracts.Update(data);
             }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
         }
 
         private async Task<VkOrdApiContractResponse?> GetByApi(string externalId, CancellationToken cancellationToken)

@@ -9,16 +9,17 @@ namespace Domain.Repositories.Implementations.DatabaseScripts
     /// </summary>
     public class GetDatabaseScriptByIdRepository : IGetDatabaseScriptByIdRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetDatabaseScriptByIdRepository(AppDbContext db)
+        public GetDatabaseScriptByIdRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<DatabaseScript?> GetByIdAsync(long id)
         {
-            return await _db.DatabaseScripts.FindAsync(id);
+            await using var context = _contextFactory();
+            return await context.DatabaseScripts.FindAsync(id);
         }
     }
 }

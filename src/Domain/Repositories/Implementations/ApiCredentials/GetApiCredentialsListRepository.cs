@@ -11,16 +11,17 @@ namespace Domain.Repositories.Implementations.ApiCredentials
     /// </summary>
     public class GetApiCredentialsListRepository : IGetApiCredentialsListRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetApiCredentialsListRepository(AppDbContext db)
+        public GetApiCredentialsListRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<ApiCredential>> GetListAsync(long userId, CancellationToken cancellationToken, VkOrdApiEnvironmentCode? environment = null) 
         {
-            var query = _db.ApiCredentials.Where(c => c.UserId == userId);
+            await using var context = _contextFactory();
+            var query = context.ApiCredentials.Where(c => c.UserId == userId);
             
             if (environment.HasValue)
             {

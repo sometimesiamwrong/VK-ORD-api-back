@@ -1,4 +1,5 @@
 using Domain.Entities;
+using Domain.VkOrdApi.ErirStatus;
 
 namespace Domain.Services.Interfaces;
 
@@ -19,5 +20,10 @@ public interface IErirStatusSyncService
     /// <param name="logicalAccountId">ID логического аккаунта</param>
     /// <param name="credential">API credentials для аккаунта</param>
     /// <param name="cancellationToken">Токен отмены</param>
-    Task SyncLogicalAccount(long logicalAccountId, ApiCredential credential, CancellationToken cancellationToken);
+    /// <param name="erirStatusesByAccount">Опциональный словарь со статусами для всех аккаунтов (для оптимизации)</param>
+    Task SyncLogicalAccount(
+        long logicalAccountId,
+        ApiCredential credential,
+        CancellationToken cancellationToken,
+        Dictionary<long, List<VkOrdApiErirStatusResponse>>? erirStatusesByAccount = null);
 }

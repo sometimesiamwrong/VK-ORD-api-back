@@ -10,16 +10,17 @@ namespace Domain.Repositories.Implementations.RefreshTokens
     /// </summary>
     public class GetRefreshTokenByHashRepository : IGetRefreshTokenByHashRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetRefreshTokenByHashRepository(AppDbContext db)
+        public GetRefreshTokenByHashRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<RefreshToken?> GetByHashAsync(string tokenHash)
         {
-            return await _db.RefreshTokens
+            await using var context = _contextFactory();
+            return await context.RefreshTokens
                 .Include(r => r.User)
                 .FirstOrDefaultAsync(r => r.TokenHash == tokenHash && 
                                         r.RevokedAt == null && 

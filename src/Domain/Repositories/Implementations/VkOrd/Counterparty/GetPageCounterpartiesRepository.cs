@@ -17,28 +17,29 @@ namespace Domain.Repositories.Implementations.VkOrd.Counterparty
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IGetCounterpartyByIdRepository _getCounterpartyByIdRepository;
-        private readonly AppDbContext _context; 
+        private readonly Func<AppDbContext> _contextFactory; 
         
         public GetPageCounterpartiesRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
             IHttpContextAccessor httpContextAccessor,
-            AppDbContext context,
+            Func<AppDbContext> contextFactory,
             IGetCounterpartyByIdRepository getCounterpartyByIdRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _httpContextAccessor = httpContextAccessor;
-            _context = context;
+            _contextFactory = contextFactory;
             _getCounterpartyByIdRepository = getCounterpartyByIdRepository;
         }
 
         public async Task<GetPageVkOrdResponse> Get(PageRequest pageRequest, CancellationToken cancellationToken)
         {
+            await using var context = _contextFactory();
             var noCache = _httpContextAccessor.GetNoCacheHeader();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
 
             var now = DateTimeOffset.UtcNow;
-            var query = _context.VkOrdCounterparties
+            var query = context.VkOrdCounterparties
                 .Where(x=> x.LogicalAccountId == vkOrdCredential.LogicalAccountId);
 
             var data = new GetPageVkOrdResponse

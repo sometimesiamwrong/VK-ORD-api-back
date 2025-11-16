@@ -186,3 +186,4 @@ The project uses GitLab CI/CD for deployment:
 4. **Multi-tenant VK ORD data**: Always consider `LogicalAccountId` when querying VK ORD entities
 5. **API Credential scoping**: VK ORD operations are scoped to `ApiCredential` which determines the logical account and API token
 6. **Database scripts run on startup**: New SQL scripts are auto-executed from output directory
+7/ **Text on task done**: minimal compressed text on the main points

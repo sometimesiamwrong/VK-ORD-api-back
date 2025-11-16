@@ -7,15 +7,16 @@ namespace Domain.Repositories.Implementations.ApiCredentials;
 
 public class GetApiCredentialByGuidRepository : IGetApiCredentialByGuidRepository
 {
-    private readonly AppDbContext _db;
+    private readonly Func<AppDbContext> _contextFactory;
 
-    public GetApiCredentialByGuidRepository(AppDbContext db)
+    public GetApiCredentialByGuidRepository(Func<AppDbContext> contextFactory)
     {
-        _db = db;
+        _contextFactory = contextFactory;
     }
 
-    public Task<ApiCredential?> GetByGuidAsync(Guid guid)
+    public async Task<ApiCredential?> GetByGuidAsync(Guid guid)
     {
-        return _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == guid);
+        await using var context = _contextFactory();
+        return await context.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == guid);
     }
 }

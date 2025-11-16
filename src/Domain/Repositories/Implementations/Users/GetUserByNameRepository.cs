@@ -10,16 +10,17 @@ namespace Domain.Repositories.Implementations.Users
     /// </summary>
     public class GetUserByNameRepository : IGetUserByNameRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetUserByNameRepository(AppDbContext db)
+        public GetUserByNameRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<User?> GetByName(string username, CancellationToken cancellationToken)
         {
-            return await _db.Users.FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
+            await using var context = _contextFactory();
+            return await context.Users.FirstOrDefaultAsync(u => u.UserName == username, cancellationToken);
         }
     }
 }

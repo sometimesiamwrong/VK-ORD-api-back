@@ -9,26 +9,27 @@ namespace Domain.Repositories.Implementations.Users
     /// </summary>
     public class SaveUserRepository : ISaveUserRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public SaveUserRepository(AppDbContext db)
+        public SaveUserRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<User?> Save(User user, CancellationToken cancellationToken)
         {
+            await using var context = _contextFactory();
             if (user.IsNewOrUpdate())
             {
                 // Создание новой сущности
-                _db.Users.Add(user);
-                await _db.SaveChangesAsync(cancellationToken);
+                context.Users.Add(user);
+                await context.SaveChangesAsync(cancellationToken);
                 return user;
             }
             else
             {
                 // Обновление существующей сущности
-                var existingUser = await _db.Users.FindAsync(user.Id, cancellationToken);
+                var existingUser = await context.Users.FindAsync(user.Id, cancellationToken);
                 if (existingUser == null)
                     return null;
 
@@ -38,7 +39,7 @@ namespace Domain.Repositories.Implementations.Users
                 existingUser.IsActive = user.IsActive;
                 existingUser.UpdatedAt = DateTimeOffset.UtcNow;
 
-                await _db.SaveChangesAsync(cancellationToken);
+                await context.SaveChangesAsync(cancellationToken);
                 return existingUser;
             }
         }

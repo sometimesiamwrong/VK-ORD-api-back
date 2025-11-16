@@ -10,16 +10,17 @@ namespace Domain.Repositories.Implementations.DatabaseScripts
     /// </summary>
     public class GetDatabaseScriptsListRepository : IGetDatabaseScriptsListRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetDatabaseScriptsListRepository(AppDbContext db)
+        public GetDatabaseScriptsListRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<List<DatabaseScript>> GetListAsync()
         {
-            return await _db.DatabaseScripts.OrderByDescending(s => s.ExecutedAt).ToListAsync();
+            await using var context = _contextFactory();
+            return await context.DatabaseScripts.OrderByDescending(s => s.ExecutedAt).ToListAsync();
         }
     }
 }

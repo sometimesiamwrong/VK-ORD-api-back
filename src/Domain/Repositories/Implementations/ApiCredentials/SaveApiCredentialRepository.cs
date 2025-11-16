@@ -12,22 +12,23 @@ namespace Domain.Repositories.Implementations.ApiCredentials
     /// </summary>
     public class SaveApiCredentialRepository : ISaveApiCredentialRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
         private readonly ISecretProtector _protector;
 
-        public SaveApiCredentialRepository(AppDbContext db, ISecretProtector protector)
+        public SaveApiCredentialRepository(Func<AppDbContext> contextFactory, ISecretProtector protector)
         {
-            _db = db;
+            _contextFactory = contextFactory;
             _protector = protector;
         }
 
         public async Task<ApiCredential?> Save(ApiCredential credential, CancellationToken cancellationToken)
         {
+            await using var context = _contextFactory();
             // Шифруем токен всегда
             var encryptedToken = _protector.Encrypt(credential.TokenEncrypted);
             credential.TokenEncrypted = encryptedToken;
             
-            var dublicate = await _db.ApiCredentials
+            var dublicate = await context.ApiCredentials
                 .Include(x=>x.LogicalAccount)
                 .FirstOrDefaultAsync(x=>x.TokenEncrypted == encryptedToken, cancellationToken);
 
@@ -40,7 +41,7 @@ namespace Domain.Repositories.Implementations.ApiCredentials
                     CreatedAt = DateTimeOffset.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
-                logical = (await _db.VkLogicalAccounts.AddAsync(newLogical, cancellationToken)).Entity;
+                logical = (await context.VkLogicalAccounts.AddAsync(newLogical, cancellationToken)).Entity;
             } else {
                 logical = dublicate.LogicalAccount;
             }
@@ -48,15 +49,15 @@ namespace Domain.Repositories.Implementations.ApiCredentials
             if (credential.IsNewOrUpdate())
             {
                 // Создание новой сущности
-                _db.ApiCredentials.Add(credential);
+                context.ApiCredentials.Add(credential);
                 credential.LogicalAccount = logical;
-                await _db.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return credential;
             }
             else
             {
                 // Обновление существующей сущности
-                var existing = await _db.ApiCredentials.FindAsync(credential.Id);
+                var existing = await context.ApiCredentials.FindAsync(credential.Id);
                 if (existing == null)
                     return null;
 
@@ -65,7 +66,7 @@ namespace Domain.Repositories.Implementations.ApiCredentials
                 existing.DisplayName = credential.DisplayName;
                 existing.UpdatedAt = DateTimeOffset.UtcNow;
 
-                await _db.SaveChangesAsync();
+                await context.SaveChangesAsync();
                 return existing;
             }
         }

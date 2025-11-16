@@ -11,13 +11,13 @@ namespace Domain.Repositories.Implementations.VkOrd.Contract;
 /// </summary>
 public class GetContractDetailsRepository : IGetContractDetailsRepository
 {
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
     private readonly ILogger<GetContractDetailsRepository> _logger;
 
-    public GetContractDetailsRepository(AppDbContext context, IVkOrdApiClientFactory vkOrdApiClientFactory, ILogger<GetContractDetailsRepository> logger)
+    public GetContractDetailsRepository(Func<AppDbContext> contextFactory, IVkOrdApiClientFactory vkOrdApiClientFactory, ILogger<GetContractDetailsRepository> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
         _logger = logger;
     }
@@ -26,12 +26,13 @@ public class GetContractDetailsRepository : IGetContractDetailsRepository
         string externalId,
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
         _logger.LogInformation("Getting contract details for ExternalId: {ExternalId}", externalId);
 
         // Получаем контракт со всеми связанными данными
-        var contract = await _context.VkOrdContracts
+        var contract = await context.VkOrdContracts
             .Include(c => c.ContractParties)
                 .ThenInclude(cp => cp.Counterparty)
             .Include(c => c.CreativeContracts)

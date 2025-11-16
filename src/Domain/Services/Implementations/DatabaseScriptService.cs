@@ -12,15 +12,13 @@ namespace Domain.Services.Implementations
     /// </summary>
     public class DatabaseScriptService : IDatabaseScriptService
     {
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
         private readonly ILogger<DatabaseScriptService> _logger;
-        private readonly IServiceProvider _serviceProvider;
 
-        public DatabaseScriptService(AppDbContext context, ILogger<DatabaseScriptService> logger, IServiceProvider serviceProvider)
+        public DatabaseScriptService(Func<AppDbContext> contextFactory, ILogger<DatabaseScriptService> logger)
         {
-            _context = context;
+            _contextFactory = contextFactory;
             _logger = logger;
-            _serviceProvider = serviceProvider;
         }
 
         public async Task<int> ExecutePendingScriptsAsync(string scriptsPath = "Scripts/")
@@ -93,8 +91,9 @@ namespace Domain.Services.Implementations
         {
             try
             {
+                await using var context = _contextFactory();
                 // Проверяем только успешно выполненные скрипты
-                var script = await _context.DatabaseScripts.AnyAsync(s => s.ScriptName == scriptName && s.IsSuccessful);
+                var script = await context.DatabaseScripts.AnyAsync(s => s.ScriptName == scriptName && s.IsSuccessful);
                 
                 // Если скрипт не найден или выполнен неуспешно - считаем что не выполнен
                 return script;
@@ -109,6 +108,7 @@ namespace Domain.Services.Implementations
 
         public async Task<bool> ExecuteScriptAsync(string scriptName, string scriptContent, string? description = null)
         {
+            await using var context = _contextFactory();
             // Проверяем, содержит ли скрипт собственное управление транзакциями
             bool hasTransactionStatements = scriptContent.Contains("START TRANSACTION", StringComparison.OrdinalIgnoreCase) ||
                                            scriptContent.Contains("BEGIN TRANSACTION", StringComparison.OrdinalIgnoreCase) ||
@@ -121,7 +121,7 @@ namespace Domain.Services.Implementations
             // Начинаем транзакцию только если скрипт не содержит собственных операторов транзакций
             if (!hasTransactionStatements)
             {
-                transaction = await _context.Database.BeginTransactionAsync();
+                transaction = await context.Database.BeginTransactionAsync();
             }
 
             try
@@ -130,7 +130,7 @@ namespace Domain.Services.Implementations
                 var scriptHash = ComputeHash(scriptContent);
 
                 // Проверяем, не выполнен ли уже этот скрипт
-                var existingScript = await _context.DatabaseScripts
+                var existingScript = await context.DatabaseScripts
                     .FirstOrDefaultAsync(s => s.ScriptName == scriptName);
 
                 if (existingScript != null)
@@ -159,7 +159,7 @@ namespace Domain.Services.Implementations
                 }
 
                 // Выполняем SQL скрипт
-                await _context.Database.ExecuteSqlRawAsync(scriptContent);
+                await context.Database.ExecuteSqlRawAsync(scriptContent);
 
                 // Записываем информацию о выполнении
                 var scriptRecord = new DatabaseScript
@@ -173,11 +173,11 @@ namespace Domain.Services.Implementations
 
                 if (existingScript != null)
                 {
-                    _context.DatabaseScripts.Remove(existingScript);
+                    context.DatabaseScripts.Remove(existingScript);
                 }
 
-                _context.DatabaseScripts.Add(scriptRecord);
-                await _context.SaveChangesAsync();
+                context.DatabaseScripts.Add(scriptRecord);
+                await context.SaveChangesAsync();
 
                 if (transaction != null)
                 {
@@ -215,8 +215,7 @@ namespace Domain.Services.Implementations
             try
             {
                 // Создаем новый контекст для записи ошибки, чтобы избежать проблем с транзакцией
-                using var scope = _serviceProvider.CreateScope();
-                var errorContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                using var errorContext = _contextFactory();
 
                 // Удаляем предыдущие неудачные попытки выполнения этого скрипта
                 var existingFailedScripts = errorContext.DatabaseScripts.Where(s => s.ScriptName == scriptName && !s.IsSuccessful);
@@ -245,8 +244,9 @@ namespace Domain.Services.Implementations
         {
             try
             {
+                await using var context = _contextFactory();
                 // Проверяем существование таблицы и создаем её если нужно
-                var tableExists = await _context.Database.ExecuteSqlRawAsync(@"
+                var tableExists = await context.Database.ExecuteSqlRawAsync(@"
                     SELECT 1 FROM information_schema.tables 
                     WHERE table_schema = 'public' 
                     AND table_name = 'DatabaseScripts'");
@@ -254,7 +254,8 @@ namespace Domain.Services.Implementations
             catch
             {
                 // Таблица не существует, создаем её
-                await _context.Database.ExecuteSqlRawAsync(@"
+                await using var context = _contextFactory();
+                await context.Database.ExecuteSqlRawAsync(@"
                     CREATE TABLE IF NOT EXISTS ""DatabaseScripts"" (
                         ""Id"" UUID PRIMARY KEY,
                         ""ScriptName"" VARCHAR(255) NOT NULL UNIQUE,

@@ -12,18 +12,15 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly ICacheService _cacheService;
-        private readonly AppDbContext _context;
         private readonly ILogger<CreateCreativeRepository> _logger;
 
         public CreateCreativeRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
             ICacheService cacheService,
-            AppDbContext context,
             ILogger<CreateCreativeRepository> logger)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
             _cacheService = cacheService;
-            _context = context;
             _logger = logger;
         }
 

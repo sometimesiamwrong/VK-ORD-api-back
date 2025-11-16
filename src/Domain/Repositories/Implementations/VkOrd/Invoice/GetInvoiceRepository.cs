@@ -18,26 +18,27 @@ public class GetInvoiceRepository : IGetInvoiceRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
     private readonly ICacheService _cacheService;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<GetInvoiceRepository> _logger;
 
     public GetInvoiceRepository(
         IVkOrdApiClientFactory vkOrdClientFactory,
         ICacheService cacheService,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<GetInvoiceRepository> logger)
     {
         _vkOrdClientFactory = vkOrdClientFactory;
         _cacheService = cacheService;
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
     public async Task<VkOrdInvoice> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
-        var data = await _context.VkOrdInvoices
+        var data = await context.VkOrdInvoices
             .Include(x => x.Contract)
             .ThenInclude(x => x.CreativeContracts)
             .ThenInclude(x => x.Creative)
@@ -59,7 +60,7 @@ public class GetInvoiceRepository : IGetInvoiceRepository
             data = MapOperation(data, vkOrdData, vkOrdCredential, externalId);
 
             // Сохраняем данные в базу
-            await SaveToDatabase(data, cancellationToken);
+            await SaveToDatabase(data, cancellationToken, context);
         }
 
         return data;
@@ -80,18 +81,18 @@ public class GetInvoiceRepository : IGetInvoiceRepository
         return data;
     }
 
-    private async Task SaveToDatabase(VkOrdInvoice data, CancellationToken cancellationToken)
+    private async Task SaveToDatabase(VkOrdInvoice data, CancellationToken cancellationToken, AppDbContext context)
     {
         if (data.IsNew())
         {
-            await _context.VkOrdInvoices.AddAsync(data, cancellationToken);
+            await context.VkOrdInvoices.AddAsync(data, cancellationToken);
         }
         else
         {
-            _context.VkOrdInvoices.Update(data);
+            context.VkOrdInvoices.Update(data);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<VkOrdApiFullInvoiceResponse?> GetByApi(string externalId, CancellationToken cancellationToken)

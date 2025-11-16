@@ -10,21 +10,23 @@ namespace Domain.Repositories.Implementations.Users
     /// </summary>
     public class GetUserByIdRepository : IGetUserByIdRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetUserByIdRepository(AppDbContext db)
+        public GetUserByIdRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<User?> GetById(long id, CancellationToken cancellationToken)
         {
-            return await _db.Users.FindAsync(id, cancellationToken);
+            await using var context = _contextFactory();
+            return await context.Users.FindAsync(id, cancellationToken);
         }
 
         public async Task<User?> GetByGuid(Guid guid, CancellationToken cancellationToken)
         {
-            return await _db.Users.FirstOrDefaultAsync(u => u.PublicId == guid, cancellationToken);
+            await using var context = _contextFactory();
+            return await context.Users.FirstOrDefaultAsync(u => u.PublicId == guid, cancellationToken);
         }
     }
 }

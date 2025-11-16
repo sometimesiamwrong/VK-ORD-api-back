@@ -8,21 +8,22 @@ namespace Domain.Repositories.Implementations.Users
     /// </summary>
     public class DeleteUserRepository : IDeleteUserRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public DeleteUserRepository(AppDbContext db)
+        public DeleteUserRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var user = await _db.Users.FindAsync(id);
+            await using var context = _contextFactory();
+            var user = await context.Users.FindAsync(id);
             if (user == null)
                 return false;
 
-            _db.Users.Remove(user);
-            await _db.SaveChangesAsync();
+            context.Users.Remove(user);
+            await context.SaveChangesAsync();
             return true;
         }
     }

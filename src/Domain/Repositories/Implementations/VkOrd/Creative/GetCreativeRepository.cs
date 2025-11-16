@@ -19,24 +19,25 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
     {
         private readonly IVkOrdApiClientFactory _vkOrdClientFactory;
         private readonly IGetContractRepository _getContractRepository;
-        private readonly AppDbContext _context;
+        private readonly Func<AppDbContext> _contextFactory;
 
         public GetCreativeRepository(
             IVkOrdApiClientFactory vkOrdClientFactory,
-            AppDbContext context,
+            Func<AppDbContext> contextFactory,
             IGetContractRepository getContractRepository)
         {
             _vkOrdClientFactory = vkOrdClientFactory;
-            _context = context;
+            _contextFactory = contextFactory;
             _getContractRepository = getContractRepository;
         }
 
         public async Task<VkOrdCreative> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
         {
+            await using var context = _contextFactory();
             var vkOrdClient = await _vkOrdClientFactory.CreateClient();
             var vkOrdCredential = await _vkOrdClientFactory.GetVkOrdCredentialAsync();
 
-            var data = await _context.VkOrdCreatives.FirstOrDefaultAsync(
+            var data = await context.VkOrdCreatives.FirstOrDefaultAsync(
                 AppDbContext.DefaultGetVkOrd<VkOrdCreative>(externalId, vkOrdCredential), cancellationToken);
             if (data == null || noCache)
             {
@@ -47,14 +48,14 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
                     throw BrokenRuleCodes.DataIsEmpty.AsExn();
                 }
 
-                data = await MapOperation(vkOrdData, data, vkOrdCredential, externalId, cancellationToken);
+                data = await MapOperation(vkOrdData, data, vkOrdCredential, externalId, cancellationToken, context);
             }
 
             return data;
         }
 
         private async Task<VkOrdCreative> MapOperation(VkOrdApiCreativeV3Response vkOrdData, VkOrdCreative? data,
-            ApiCredential vkOrdCredential, string externalId, CancellationToken cancellationToken)
+            ApiCredential vkOrdCredential, string externalId, CancellationToken cancellationToken, AppDbContext context)
         {
             var contractExternalId = vkOrdData.ContractExternalIds?.FirstOrDefault();
             if (contractExternalId == null)
@@ -78,14 +79,14 @@ namespace Domain.Repositories.Implementations.VkOrd.Creative
             {
                 data.CreativeContracts.Add(new VkOrdCreativeContract
                     { ContractId = contract.Id, CreativeId = data.Id });
-                await _context.VkOrdCreatives.AddAsync(data, cancellationToken);
+                await context.VkOrdCreatives.AddAsync(data, cancellationToken);
             }
             else
             {
-                _context.VkOrdCreatives.Update(data);
+                context.VkOrdCreatives.Update(data);
             }
 
-            await _context.SaveChangesAsync(cancellationToken);
+            await context.SaveChangesAsync(cancellationToken);
             return data;
         }
 

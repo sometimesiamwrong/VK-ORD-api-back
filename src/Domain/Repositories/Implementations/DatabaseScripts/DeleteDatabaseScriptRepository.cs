@@ -8,21 +8,22 @@ namespace Domain.Repositories.Implementations.DatabaseScripts
     /// </summary>
     public class DeleteDatabaseScriptRepository : IDeleteDatabaseScriptRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public DeleteDatabaseScriptRepository(AppDbContext db)
+        public DeleteDatabaseScriptRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var script = await _db.DatabaseScripts.FindAsync(id);
+            await using var context = _contextFactory();
+            var script = await context.DatabaseScripts.FindAsync(id);
             if (script == null)
                 return false;
 
-            _db.DatabaseScripts.Remove(script);
-            await _db.SaveChangesAsync();
+            context.DatabaseScripts.Remove(script);
+            await context.SaveChangesAsync();
             return true;
         }
     }

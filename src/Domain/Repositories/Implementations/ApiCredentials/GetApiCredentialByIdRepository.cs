@@ -10,21 +10,23 @@ namespace Domain.Repositories.Implementations.ApiCredentials
     /// </summary>
     public class GetApiCredentialByIdRepository : IGetApiCredentialByIdRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetApiCredentialByIdRepository(AppDbContext db)
+        public GetApiCredentialByIdRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
-        public Task<ApiCredential?> GetById(long id, CancellationToken cancellationToken)
+        public async Task<ApiCredential?> GetById(long id, CancellationToken cancellationToken)
         {
-            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+            await using var context = _contextFactory();
+            return await context.ApiCredentials.FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
         }
 
-        public Task<ApiCredential?> GetByPublicId(Guid publicId, CancellationToken cancellationToken)
+        public async Task<ApiCredential?> GetByPublicId(Guid publicId, CancellationToken cancellationToken)
         {
-            return _db.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == publicId, cancellationToken);
+            await using var context = _contextFactory();
+            return await context.ApiCredentials.FirstOrDefaultAsync(c => c.PublicId == publicId, cancellationToken);
         }
     }
 }

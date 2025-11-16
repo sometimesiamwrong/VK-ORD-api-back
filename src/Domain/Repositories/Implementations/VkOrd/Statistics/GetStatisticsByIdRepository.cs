@@ -11,22 +11,23 @@ namespace Domain.Repositories.Implementations.VkOrd.Statistics;
 /// </summary>
 public class GetStatisticsByIdRepository : IGetStatisticsByIdRepository
 {
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<GetStatisticsByIdRepository> _logger;
 
     public GetStatisticsByIdRepository(
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<GetStatisticsByIdRepository> logger)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
     }
 
     public async Task<VkOrdStatistic> Get(string externalId, CancellationToken cancellationToken, bool noCache = false)
     {
+        await using var context = _contextFactory();
         // For statistics, we just return from database
         // The ERIR sync job will handle refreshing if needed
-        var data = await _context.VkOrdStatistics
+        var data = await context.VkOrdStatistics
             .Include(x => x.Creative)
             .FirstOrDefaultAsync(x => x.ExternalId == externalId && !x.IsDeleted, cancellationToken);
 

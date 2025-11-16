@@ -18,20 +18,20 @@ namespace Domain.Services.Implementations;
 /// </summary>
 public class FlowTemplateService : IFlowTemplateService
 {
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ILogger<FlowTemplateService> _logger;
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
     private readonly IWizardFlowTemplateService _wizardFlowTemplateService;
     private readonly JsonSerializerOptions _jsonSerializerOptions;
 
     public FlowTemplateService(
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ILogger<FlowTemplateService> logger,
         IVkOrdApiClientFactory vkOrdApiClientFactory,
         IWizardFlowTemplateService wizardFlowTemplateService,
         JsonSerializerOptions jsonSerializerOptions)
     {
-        _context = context;
+        _contextFactory = contextFactory;
         _logger = logger;
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
         _wizardFlowTemplateService = wizardFlowTemplateService;
@@ -46,8 +46,9 @@ public class FlowTemplateService : IFlowTemplateService
         ArgumentNullException.ThrowIfNull(request);
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
+        await using var context = _contextFactory();
         // Проверяем уникальность имени для данного ApiCredential
-        var exists = await _context.FlowTemplates
+        var exists = await context.FlowTemplates
             .AnyAsync(t => t.ApiCredentialId == apiCredential.Id 
                           && t.Name == request.Name 
                           && !t.IsDeleted, 
@@ -83,8 +84,8 @@ public class FlowTemplateService : IFlowTemplateService
             Version = 1
         };
 
-        _context.FlowTemplates.Add(template);
-        await _context.SaveChangesAsync(cancellationToken);
+        context.FlowTemplates.Add(template);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Created flow template {TemplateId} with name '{Name}' for ApiCredential {ApiCredentialId}",
@@ -100,7 +101,8 @@ public class FlowTemplateService : IFlowTemplateService
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
-        var template = await _context.FlowTemplates
+        await using var context = _contextFactory();
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -138,7 +140,8 @@ public class FlowTemplateService : IFlowTemplateService
         bool activeOnly = false)
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
-        var query = _context.FlowTemplates
+        await using var context = _contextFactory();
+        var query = context.FlowTemplates
             .Where(t => t.ApiCredentialId == apiCredential.Id && !t.IsDeleted);
 
         // Фильтр по активности
@@ -222,7 +225,8 @@ public class FlowTemplateService : IFlowTemplateService
         ArgumentNullException.ThrowIfNull(request);
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
-        var template = await _context.FlowTemplates
+        await using var context = _contextFactory();
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -239,7 +243,7 @@ public class FlowTemplateService : IFlowTemplateService
         // Проверяем уникальность имени, если имя изменяется
         if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != template.Name)
         {
-            var exists = await _context.FlowTemplates
+            var exists = await context.FlowTemplates
                 .AnyAsync(t => t.ApiCredentialId == apiCredential.Id 
                               && t.Name == request.Name 
                               && t.Id != templateId
@@ -271,7 +275,7 @@ public class FlowTemplateService : IFlowTemplateService
         template.Version++;
         template.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Updated flow template {TemplateId} (version {Version}) for ApiCredential {ApiCredentialId}",
@@ -288,7 +292,8 @@ public class FlowTemplateService : IFlowTemplateService
         ArgumentNullException.ThrowIfNull(request);
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
-        var template = await _context.FlowTemplates
+        await using var context = _contextFactory();
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -305,7 +310,7 @@ public class FlowTemplateService : IFlowTemplateService
         // Проверяем уникальность имени, если имя изменяется
         if (!string.IsNullOrWhiteSpace(request.Name) && request.Name != template.Name)
         {
-            var exists = await _context.FlowTemplates
+            var exists = await context.FlowTemplates
                 .AnyAsync(t => t.ApiCredentialId == apiCredential.Id 
                               && t.Name == request.Name 
                               && t.Id != templateId
@@ -331,7 +336,7 @@ public class FlowTemplateService : IFlowTemplateService
         // Инкрементируем версию и обновляем дату
         template.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Updated flow template {TemplateId} (version {Version}) for ApiCredential {ApiCredentialId}",
@@ -345,7 +350,8 @@ public class FlowTemplateService : IFlowTemplateService
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
-        var template = await _context.FlowTemplates
+        await using var context = _contextFactory();
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -363,7 +369,7 @@ public class FlowTemplateService : IFlowTemplateService
         template.IsDeleted = true;
         template.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Deleted (soft) flow template {TemplateId} for ApiCredential {ApiCredentialId}",
@@ -378,8 +384,9 @@ public class FlowTemplateService : IFlowTemplateService
         bool isActive, 
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
-        var template = await _context.FlowTemplates
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -396,7 +403,7 @@ public class FlowTemplateService : IFlowTemplateService
         template.IsActive = isActive;
         template.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "{Action} flow template {TemplateId} for ApiCredential {ApiCredentialId}",
@@ -412,7 +419,8 @@ public class FlowTemplateService : IFlowTemplateService
     {
         var apiCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
 
-        var template = await _context.FlowTemplates
+        await using var context = _contextFactory();
+        var template = await context.FlowTemplates
             .Where(t => t.Id == templateId 
                        && t.ApiCredentialId == apiCredential.Id 
                        && !t.IsDeleted)
@@ -430,7 +438,7 @@ public class FlowTemplateService : IFlowTemplateService
         template.LastUsedAt = DateTimeOffset.UtcNow;
         template.UpdatedAt = DateTimeOffset.UtcNow;
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Incremented use count for flow template {TemplateId} (count: {UseCount}) for ApiCredential {ApiCredentialId}",

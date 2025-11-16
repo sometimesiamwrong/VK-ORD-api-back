@@ -9,16 +9,17 @@ namespace Domain.Repositories.Implementations.RefreshTokens
     /// </summary>
     public class GetRefreshTokenByIdRepository : IGetRefreshTokenByIdRepository
     {
-        private readonly AppDbContext _db;
+        private readonly Func<AppDbContext> _contextFactory;
 
-        public GetRefreshTokenByIdRepository(AppDbContext db)
+        public GetRefreshTokenByIdRepository(Func<AppDbContext> contextFactory)
         {
-            _db = db;
+            _contextFactory = contextFactory;
         }
 
         public async Task<RefreshToken?> GetByIdAsync(long id)
         {
-            return await _db.RefreshTokens.FindAsync(id);
+            await using var context = _contextFactory();
+            return await context.RefreshTokens.FindAsync(id);
         }
     }
 }

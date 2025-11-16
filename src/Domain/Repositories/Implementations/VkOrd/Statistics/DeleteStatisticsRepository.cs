@@ -14,18 +14,18 @@ namespace Domain.Repositories.Implementations.VkOrd.Statistics;
 public class DeleteStatisticsRepository : IDeleteStatisticsRepository
 {
     private readonly IVkOrdApiClientFactory _vkOrdApiClientFactory;
-    private readonly AppDbContext _context;
+    private readonly Func<AppDbContext> _contextFactory;
     private readonly ICacheService _cacheService;
     private readonly ILogger<DeleteStatisticsRepository> _logger;
 
     public DeleteStatisticsRepository(
         IVkOrdApiClientFactory vkOrdApiClientFactory,
-        AppDbContext context,
+        Func<AppDbContext> contextFactory,
         ICacheService cacheService,
         ILogger<DeleteStatisticsRepository> logger)
     {
         _vkOrdApiClientFactory = vkOrdApiClientFactory;
-        _context = context;
+        _contextFactory = contextFactory;
         _cacheService = cacheService;
         _logger = logger;
     }
@@ -36,6 +36,7 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
         string dateStartActual,
         CancellationToken cancellationToken)
     {
+        await using var context = _contextFactory();
         var vkOrdCredential = await _vkOrdApiClientFactory.GetVkOrdCredentialAsync();
         var logicalAccountId = vkOrdCredential.LogicalAccountId;
         var vkOrdClient = await _vkOrdApiClientFactory.CreateClient();
@@ -68,7 +69,7 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
             ? parsedDate 
             : null;
 
-        var statistic = await _context.VkOrdStatistics
+        var statistic = await context.VkOrdStatistics
             .FirstOrDefaultAsync(
                 s => s.LogicalAccountId == logicalAccountId &&
                      s.CreativeExternalId == creativeExternalId &&
@@ -78,8 +79,8 @@ public class DeleteStatisticsRepository : IDeleteStatisticsRepository
 
         if (statistic != null)
         {
-            _context.VkOrdStatistics.Remove(statistic);
-            await _context.SaveChangesAsync(cancellationToken);
+            context.VkOrdStatistics.Remove(statistic);
+            await context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Successfully deleted statistic from database. Id: {Id}", statistic.Id);
