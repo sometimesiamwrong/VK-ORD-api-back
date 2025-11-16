@@ -93,15 +93,9 @@ public static class EntityBaseExtensions
             .HasDefaultValue(false)
             .HasColumnType("boolean");
      
-            // Составной уникальный индекс
+            // Составной уникальный индекс (покрывает запросы по LogicalAccountId и LogicalAccountId+ExternalId)
         entityBuilder.HasIndex(e => new { e.LogicalAccountId, e.ExternalId })
                 .IsUnique();
-
-        // Дополнительные индексы (основной составной индекс настроен в AppDbContext)
-        entityBuilder.HasIndex(e => e.LogicalAccountId);
-        entityBuilder.HasIndex(e => e.CreatedAt);
-        entityBuilder.HasIndex(e => e.UpdatedAt);
-        entityBuilder.HasIndex(e => e.ExpiresAt);
 
         return entityBuilder;
     }

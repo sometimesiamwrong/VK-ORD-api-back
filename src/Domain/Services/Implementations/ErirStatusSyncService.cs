@@ -181,8 +181,23 @@ public class ErirStatusSyncService : IErirStatusSyncService
         var totalUpdated = 0;
         var totalCreated = 0;
 
-        // Шаг 3: Обрабатываем каждый тип сущности
+        // Шаг 3: Получаем ВСЕ существующие ERIR статусы для данного аккаунта ОДНИМ запросом
+        // вместо отдельного запроса для каждого типа сущности
+        var allExistingStatuses = await _erirStatusRepository.GetAllByLogicalAccount(
+            logicalAccountId,
+            cancellationToken);
+
+        var existingStatusesByType = allExistingStatuses
+            .GroupBy(s => s.EntityType)
+            .ToDictionary(g => g.Key, g => g.ToDictionary(s => s.ExternalId, s => s));
+
+        _logger.LogDebug(
+            "Fetched {Count} existing ERIR statuses from DB for logical account {LogicalAccountId}",
+            allExistingStatuses.Count, logicalAccountId);
+
+        // Шаг 4: Обрабатываем все типы сущностей и собираем все статусы для batch операции
         var enabledEntityTypes = _config.GetEnabledEntityTypes();
+        var allStatusesToUpsert = new List<VkOrdErirStatus>();
 
         foreach (var entityType in enabledEntityTypes)
         {
@@ -196,11 +211,20 @@ public class ErirStatusSyncService : IErirStatusSyncService
 
             try
             {
-                var (processed, created, updated) = await ProcessEntityTypeStatuses(
+                // Получаем existing statuses для данного типа сущности из уже загруженного набора
+                var existingStatusMapForType = existingStatusesByType.ContainsKey(entityType)
+                    ? existingStatusesByType[entityType]
+                    : new Dictionary<string, VkOrdErirStatus>();
+
+                var (processed, created, updated, statusesToUpsert) = await ProcessEntityTypeStatuses(
                     logicalAccountId,
                     entityType,
                     statuses,
+                    existingStatusMapForType,
                     cancellationToken);
+
+                // Собираем все статусы для batch операции
+                allStatusesToUpsert.AddRange(statusesToUpsert);
 
                 totalProcessed += processed;
                 totalCreated += created;
@@ -223,6 +247,15 @@ public class ErirStatusSyncService : IErirStatusSyncService
             }
         }
 
+        // Шаг 5: Обновляем все ERIR статусы одной batch операцией для всех типов сущностей
+        if (allStatusesToUpsert.Count > 0)
+        {
+            await _erirStatusRepository.UpsertStatusesBatch(allStatusesToUpsert, cancellationToken);
+            _logger.LogInformation(
+                "LogicalAccount {LogicalAccountId} - Batch updated {Count} ERIR statuses across all entity types",
+                logicalAccountId, allStatusesToUpsert.Count);
+        }
+
         _logger.LogInformation(
             "Completed ERIR status sync for logical account {LogicalAccountId}. Total processed: {TotalProcessed}, Created: {TotalCreated}, Updated: {TotalUpdated}",
             logicalAccountId, totalProcessed, totalCreated, totalUpdated);
@@ -243,7 +276,9 @@ public class ErirStatusSyncService : IErirStatusSyncService
         var result = new Dictionary<long, List<VkOrdApiErirStatusResponse>>();
         var resultLock = new object();
 
-        const int batchSize = 20;
+        // Уменьшаем batch size чтобы не перегружать VK ORD API
+        // Слишком много параллельных SSL соединений вызывают таймауты
+        const int batchSize = 5;
         var batches = logicalAccounts
             .Select((account, index) => new { account, index })
             .GroupBy(x => x.index / batchSize)
@@ -252,10 +287,14 @@ public class ErirStatusSyncService : IErirStatusSyncService
 
         _logger.LogInformation("Processing {BatchCount} batches of up to {BatchSize} accounts", batches.Count, batchSize);
 
+        var batchNumber = 0;
         foreach (var batch in batches)
         {
             if (cancellationToken.IsCancellationRequested)
                 break;
+
+            batchNumber++;
+            _logger.LogDebug("Processing batch {BatchNumber}/{TotalBatches}", batchNumber, batches.Count);
 
             var batchTasks = batch.Select(async account =>
             {
@@ -299,6 +338,13 @@ public class ErirStatusSyncService : IErirStatusSyncService
             });
 
             await Task.WhenAll(batchTasks);
+
+            // Небольшая задержка между батчами чтобы не перегружать API
+            if (batchNumber < batches.Count && !cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogDebug("Waiting 1 second before next batch to avoid API overload");
+                await Task.Delay(100, cancellationToken);
+            }
         }
 
         _logger.LogInformation(
@@ -376,10 +422,11 @@ public class ErirStatusSyncService : IErirStatusSyncService
     /// <summary>
     /// Обрабатывает ERIR статусы для конкретного типа сущности
     /// </summary>
-    private async Task<(int Processed, int Created, int Updated)> ProcessEntityTypeStatuses(
+    private async Task<(int Processed, int Created, int Updated, List<VkOrdErirStatus> StatusesToUpsert)> ProcessEntityTypeStatuses(
         long logicalAccountId,
         EntityType entityType,
         List<VkOrdApiErirStatusResponse> statuses,
+        Dictionary<string, VkOrdErirStatus> existingStatusMap,
         CancellationToken cancellationToken)
     {
         _logger.LogInformation(
@@ -411,8 +458,8 @@ public class ErirStatusSyncService : IErirStatusSyncService
         }
 
         _logger.LogInformation(
-            "{EntityType}: {TotalCount} total, {CreateCount} to create, {UpdateCount} to update",
-            entityType, statuses.Count, statusesToCreate.Count, statusesToUpdate.Count);
+            "LogicalAccount {LogicalAccountId} - {EntityType}: {TotalCount} total, {CreateCount} to create, {UpdateCount} to update",
+            logicalAccountId, entityType, statuses.Count, statusesToCreate.Count, statusesToUpdate.Count);
 
         var created = 0;
         var updated = 0;
@@ -427,17 +474,19 @@ public class ErirStatusSyncService : IErirStatusSyncService
                 cancellationToken);
         }
 
-        // Шаг 4: Обновляем существующие сущности и ERIR статусы
+        // Шаг 4: Обновляем существующие сущности и собираем ERIR статусы для batch операции
+        List<VkOrdErirStatus> statusesToUpsert = new();
         if (statusesToUpdate.Count > 0)
         {
-            updated = await UpdateExistingEntities(
+            (updated, statusesToUpsert) = await UpdateExistingEntities(
                 logicalAccountId,
                 entityType,
                 statusesToUpdate,
+                existingStatusMap,
                 cancellationToken);
         }
 
-        return (statuses.Count, created, updated);
+        return (statuses.Count, created, updated, statusesToUpsert);
     }
 
     /// <summary>
@@ -500,31 +549,23 @@ public class ErirStatusSyncService : IErirStatusSyncService
         createdCount = results.Count(success => success);
 
         _logger.LogInformation(
-            "Created {Count} {EntityType} entities",
-            createdCount, entityType);
+            "LogicalAccount {LogicalAccountId} - Created {Count} {EntityType} entities",
+            logicalAccountId, createdCount, entityType);
 
         return createdCount;
     }
 
     /// <summary>
-    /// Обновляет существующие сущности и их ERIR статусы
+    /// Обновляет существующие сущности и собирает ERIR статусы для batch операции
     /// </summary>
-    private async Task<int> UpdateExistingEntities(
+    private async Task<(int Updated, List<VkOrdErirStatus> StatusesToUpsert)> UpdateExistingEntities(
         long logicalAccountId,
         EntityType entityType,
         List<VkOrdApiErirStatusResponse> statuses,
+        Dictionary<string, VkOrdErirStatus> existingStatusMap,
         CancellationToken cancellationToken)
     {
         var updatedCount = 0;
-
-        // Получаем все existing ERIR статусы для данного типа
-        var existingStatuses = await _erirStatusRepository.GetAllByLogicalAccount(
-            logicalAccountId,
-            entityType,
-            cancellationToken);
-
-        var existingStatusMap = existingStatuses
-            .ToDictionary(s => s.ExternalId, s => s);
 
         // Списки для batch операций
         var statusesToUpdate = new List<VkOrdErirStatus>();
@@ -539,25 +580,34 @@ public class ErirStatusSyncService : IErirStatusSyncService
             var needsStatusUpdate = false;
             var needsEntityRefresh = false;
 
+            // Парсим API timestamp один раз для использования в сравнениях
+            var apiUpdatedTs = DateTimeOffset.Parse(apiStatus.UpdatedByUserTs);
+
             // Проверяем нужно ли обновить ERIR статус
             if (existingStatusMap.TryGetValue(apiStatus.ExternalId, out var existingStatus))
             {
-                var apiUpdatedTs = DateTimeOffset.Parse(apiStatus.UpdatedByUserTs);
+                // ОПТИМИЗАЦИЯ: Сравниваем DateTimeOffset напрямую без строковых преобразований
+                var timestampChanged = existingStatus.UpdatedByUserTs != apiUpdatedTs;
+                var statusChanged = existingStatus.ErirStatus != apiStatus.ErirStatus;
 
-                // Проверяем изменился ли статус или timestamp
-                if (existingStatus.UpdatedByUserTs < apiUpdatedTs || existingStatus.ErirStatus != apiStatus.ErirStatus)
+                if (timestampChanged || statusChanged)
                 {
                     needsStatusUpdate = true;
 
-                    // Обновляем сущность из API только если изменилась дата обновления
-                    if (existingStatus.UpdatedByUserTs < apiUpdatedTs)
+                    // Если timestamp изменился, обновляем сущность
+                    if (timestampChanged)
                     {
-                        needsEntityRefresh = true;
-                        _logger.LogDebug(
-                            "Entity {EntityType} {ExternalId} needs refresh: ERIR UpdatedByUserTs changed from {Old} to {New}",
-                            entityType, apiStatus.ExternalId, existingStatus.UpdatedByUserTs, apiUpdatedTs);
+                        // Дополнительная проверка - обновляем только если новый timestamp больше
+                        if (existingStatus.UpdatedByUserTs < apiUpdatedTs)
+                        {
+                            needsEntityRefresh = true;
+                            _logger.LogDebug(
+                                "Entity {EntityType} {ExternalId} needs refresh: ERIR UpdatedByUserTs changed from {Old} to {New}",
+                                entityType, apiStatus.ExternalId, existingStatus.UpdatedByUserTs, apiUpdatedTs);
+                        }
                     }
-                    else
+
+                    if (!needsEntityRefresh && statusChanged)
                     {
                         _logger.LogDebug(
                             "ERIR status changed for {EntityType} {ExternalId}: {Old} -> {New}, but timestamp unchanged",
@@ -586,7 +636,7 @@ public class ErirStatusSyncService : IErirStatusSyncService
                     ExternalId = apiStatus.ExternalId,
                     EntityType = entityType,
                     ErirStatus = apiStatus.ErirStatus,
-                    UpdatedByUserTs = DateTimeOffset.Parse(apiStatus.UpdatedByUserTs),
+                    UpdatedByUserTs = apiUpdatedTs, // Используем уже распарсенное значение
                     FinalizedTs = apiStatus.FinalizedTs != null ? DateTimeOffset.Parse(apiStatus.FinalizedTs) : null,
                     ErrorMessages = apiStatus.Messages
                 };
@@ -637,17 +687,17 @@ public class ErirStatusSyncService : IErirStatusSyncService
                 await Task.WhenAll(refreshTasks);
             }
 
-            _logger.LogInformation("Refreshed {Count} {EntityType} entities from API", entitiesToRefresh.Count, entityType);
+            _logger.LogInformation(
+                "LogicalAccount {LogicalAccountId} - Refreshed {Count} {EntityType} entities from API",
+                logicalAccountId, entitiesToRefresh.Count, entityType);
         }
 
-        // Обновляем все ERIR статусы одной batch операцией
-        if (statusesToUpdate.Count > 0)
-        {
-            await _erirStatusRepository.UpsertStatusesBatch(statusesToUpdate, cancellationToken);
-            _logger.LogInformation("Batch updated {Count} ERIR statuses for {EntityType}", statusesToUpdate.Count, entityType);
-        }
+        // Возвращаем статусы для batch операции (будут обработаны вместе со всеми типами сущностей)
+        _logger.LogInformation(
+            "LogicalAccount {LogicalAccountId} - Prepared {Count} ERIR statuses for {EntityType} (will be batch updated with other entity types)",
+            logicalAccountId, statusesToUpdate.Count, entityType);
 
-        return updatedCount;
+        return (updatedCount, statusesToUpdate);
     }
 
     /// <summary>

@@ -158,9 +158,6 @@ public class AppDbContext : DbContext
             b.HasKey(e => e.Id);
             b.Property(e => e.Id).ValueGeneratedOnAdd();
 
-            // Индексы
-            b.HasIndex(c => c.SyncStatus);
-
             // Ограничения
             b.Property(c => c.ExternalId).HasMaxLength(255);
         });
@@ -171,9 +168,6 @@ public class AppDbContext : DbContext
             b.ConfigureVkOrdBase();
             b.HasKey(e => e.Id);
             b.Property(e => e.Id).ValueGeneratedOnAdd();
-
-            // Обычные индексы
-            b.HasIndex(c => c.SyncStatus);
         });
 
         // VkOrdCreative
@@ -182,9 +176,6 @@ public class AppDbContext : DbContext
             b.ConfigureVkOrdBase();
             b.HasKey(e => e.Id);
             b.Property(e => e.Id).ValueGeneratedOnAdd();
-
-            // Обычные индексы
-            b.HasIndex(c => c.SyncStatus);
         });
 
         // VkOrdMedia
@@ -193,9 +184,6 @@ public class AppDbContext : DbContext
             b.ConfigureVkOrdBase();
             b.HasKey(e => e.Id);
             b.Property(e => e.Id).ValueGeneratedOnAdd();
-
-            // Обычные индексы
-            b.HasIndex(c => c.SyncStatus);
         });
 
         // VkOrdStatistic
@@ -210,17 +198,6 @@ public class AppDbContext : DbContext
                 .WithMany(c => c.Statistics)
                 .HasForeignKey(c => c.CreativeId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            // Индексы
-            b.HasIndex(c => c.CreativeExternalId);
-            b.HasIndex(c => c.PadExternalId);
-            b.HasIndex(c => c.Period);
-            b.HasIndex(c => c.StatisticsType);
-            b.HasIndex(c => c.DateStartPlanned);
-            b.HasIndex(c => c.DateEndPlanned);
-            b.HasIndex(c => c.DateStartActual);
-            b.HasIndex(c => c.DateEndActual);
-            b.HasIndex(c => c.SyncStatus);
 
             // Ограничения
             b.Property(c => c.ExternalId).HasMaxLength(255);
@@ -237,7 +214,7 @@ public class AppDbContext : DbContext
         {
             b.HasKey(cp => cp.Id);
 
-            // Составной ключ
+            // Составной индекс (покрывает ContractId, ContractId+CounterpartyId, ContractId+CounterpartyId+Role)
             b.HasIndex(cp => new { cp.ContractId, cp.CounterpartyId, cp.Role });
 
             // Связь с договором (используем Id как внешний ключ)
@@ -252,11 +229,8 @@ public class AppDbContext : DbContext
                 .HasForeignKey(cp => cp.CounterpartyId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Индексы
-            b.HasIndex(cp => cp.ContractId);
+            // Дополнительный индекс для обратного поиска по контрагенту
             b.HasIndex(cp => cp.CounterpartyId);
-            b.HasIndex(cp => cp.Role);
-            b.HasIndex(cp => cp.CreatedAt);
 
             // Ограничения
             b.Property(cp => cp.Role).HasMaxLength(50);
@@ -265,7 +239,7 @@ public class AppDbContext : DbContext
         // VkOrdCreativeMedia
         modelBuilder.Entity<VkOrdCreativeMedia>(b =>
         {
-            // Составной ключ
+            // Составной ключ (PK уже покрывает CreativeId)
             b.HasKey(cm => new { cm.CreativeId, cm.MediaId });
 
             // Связь с креативом
@@ -280,16 +254,14 @@ public class AppDbContext : DbContext
                 .HasForeignKey(cm => cm.MediaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Индексы
-            b.HasIndex(cm => cm.CreativeId);
+            // Дополнительный индекс для обратного поиска по медиа
             b.HasIndex(cm => cm.MediaId);
-            b.HasIndex(cm => cm.Order);
-            b.HasIndex(cm => cm.CreatedAt);
         });
 
         // VkOrdCreativeContract
         modelBuilder.Entity<VkOrdCreativeContract>(b =>
         {
+            // Составной ключ (PK уже покрывает CreativeId)
             b.HasKey(cc => new { cc.CreativeId, cc.ContractId });
 
             // Связь с креативом
@@ -304,10 +276,8 @@ public class AppDbContext : DbContext
                 .HasForeignKey(cc => cc.ContractId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Индексы
-            b.HasIndex(cc => cc.CreativeId);
+            // Дополнительный индекс для обратного поиска по договору
             b.HasIndex(cc => cc.ContractId);
-            b.HasIndex(cc => cc.CreatedAt);
         });
 
         // VkOrdInvoice
@@ -317,15 +287,11 @@ public class AppDbContext : DbContext
             b.HasKey(e => e.Id);
             b.Property(e => e.Id).ValueGeneratedOnAdd();
 
-            // Обычные индексы
-            b.HasIndex(i => i.SyncStatus);
-            b.HasIndex(i => i.IsDraft);
-            b.HasIndex(i => i.ContractExternalId);
-
             // Ограничения
             b.Property(i => i.ContractExternalId).HasMaxLength(255);
 
             // Связь с основным договором (опциональная)
+            // FK индекс создается автоматически EF Core
             b.HasOne(i => i.Contract)
                 .WithMany()
                 .HasForeignKey(i => new { i.LogicalAccountId, i.ContractExternalId })

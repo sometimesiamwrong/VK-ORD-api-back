@@ -35,6 +35,16 @@ public interface IVkOrdErirStatusRepository
         CancellationToken cancellationToken);
 
     /// <summary>
+    /// Получить все статусы для логического аккаунта (всех типов сущностей)
+    /// </summary>
+    /// <param name="logicalAccountId">ID логического аккаунта</param>
+    /// <param name="cancellationToken">Токен отмены</param>
+    /// <returns>Список статусов</returns>
+    Task<List<VkOrdErirStatus>> GetAllByLogicalAccount(
+        long logicalAccountId,
+        CancellationToken cancellationToken);
+
+    /// <summary>
     /// Создать или обновить статус
     /// </summary>
     /// <param name="status">Статус для сохранения</param>

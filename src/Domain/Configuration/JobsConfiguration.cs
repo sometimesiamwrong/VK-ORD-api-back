@@ -48,6 +48,7 @@ public class JobsConfiguration
     {
         return EnabledEntityTypes
             .Select(x => Enum.Parse<EntityType>(x, ignoreCase: true))
+            .Distinct()
             .ToList();
     }
 }

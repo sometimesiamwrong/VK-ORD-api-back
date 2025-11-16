@@ -162,7 +162,7 @@ var app = builder.Build();
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
     DashboardTitle = "VK ORD ERIR Sync Jobs",
-    StatsPollingInterval = 1000// 10 seconds
+    StatsPollingInterval = 10000// 10 seconds
 });
 
 
@@ -181,16 +181,26 @@ using (var scope = app.Services.CreateScope())
         {
             Log.Information("Attempting to register recurring jobs (attempt {Attempt}/{MaxRetries})", attempt, maxRetries);
             
+            // Используем правильное Cron выражение вместо устаревшего Cron.MinuteInterval
+            var cronExpression = config.ErirSyncIntervalMinutes == 1
+                ? Cron.Minutely()
+                : $"*/{config.ErirSyncIntervalMinutes} * * * *";
+
             RecurringJob.AddOrUpdate<SyncErirStatusesJob>(
                 "sync-erir-statuses",
                 job => job.Execute(),
-                Cron.MinuteInterval(config.ErirSyncIntervalMinutes),
+                cronExpression,
                 new RecurringJobOptions
                 {
                     TimeZone = TimeZoneInfo.Utc
                 });
 
-            Log.Information("Successfully configured ERIR sync job to run every {Interval} minutes", config.ErirSyncIntervalMinutes);
+            Log.Information("Successfully configured ERIR sync job to run every {Interval} minutes (cron: {Cron}, timezone: UTC)",
+                config.ErirSyncIntervalMinutes, cronExpression);
+
+            // Триггерим немедленное выполнение для проверки
+            RecurringJob.Trigger("sync-erir-statuses");
+            Log.Information("Triggered immediate execution of ERIR sync job for testing");
             break; // Success - exit retry loop
         }
         catch (Hangfire.PostgreSql.PostgreSqlDistributedLockException ex)

@@ -125,11 +125,12 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
         httpClient.DefaultRequestHeaders.Add("X-Client-Type", "WebApp");
         httpClient.DefaultRequestHeaders.Add("X-API-Route", apiContext.Route.ToString());
 
-        // Логируем настроенные заголовки для отладки
-        //_logger.LogDebug("VK ORD API client headers configured: User-Agent={UserAgent}, Accept={Accept}, Route={Route}",
-        //    "VK-ORD-API-Wrapper/1.0 (WebApp)", "application/json", apiContext.Route);
-        var accountId = credentialFromContext.LogicalAccountId;
-        _logger.LogDebug($"LogicalAccount: {accountId}", accountId);
+        // Логируем создание клиента с информацией о logical account
+        var accountId = credentialFromContext?.LogicalAccountId ?? 0;
+        var source = credentialFromContext != null ? "AsyncLocal" : "HttpContext";
+        _logger.LogDebug(
+            "Creating VK ORD API client for LogicalAccount: {LogicalAccountId}, Route: {Route}, Source: {Source}",
+            accountId, apiContext.Route, source);
 
         // Настраиваем сериализацию для Refit с поддержкой EnumMember
         var refitSettings = new RefitSettings
@@ -277,15 +278,36 @@ public class VkOrdApiClientFactory : IVkOrdApiClientFactory
     public IDisposable SetCredentialContext(ApiCredential credential)
     {
         _currentCredential.Value = credential;
-        return new CredentialContextScope();
+        _logger.LogDebug(
+            "Setting credential context for LogicalAccount: {LogicalAccountId}, CredentialId: {CredentialId}",
+            credential.LogicalAccountId, credential.Id);
+        return new CredentialContextScope(_logger, credential.LogicalAccountId);
     }
 
     private class CredentialContextScope : IDisposable
     {
+        private readonly ILogger<VkOrdApiClientFactory> _logger;
+        private readonly long _logicalAccountId;
+
+        public CredentialContextScope(ILogger<VkOrdApiClientFactory> logger, long logicalAccountId)
+        {
+            _logger = logger;
+            _logicalAccountId = logicalAccountId;
+        }
+
         public void Dispose()
         {
+            _logger.LogDebug("Clearing credential context for LogicalAccount: {LogicalAccountId}", _logicalAccountId);
             _currentCredential.Value = null;
         }
+    }
+
+    /// <summary>
+    /// Получить текущий LogicalAccountId из AsyncLocal (для логирования)
+    /// </summary>
+    public static long? GetCurrentLogicalAccountId()
+    {
+        return _currentCredential.Value?.LogicalAccountId;
     }
 
     /// <summary>
@@ -453,17 +475,22 @@ public class VkOrdApiHeaderHandler : DelegatingHandler
     {
         // Добавляем динамические заголовки для каждого запроса
         var timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var requestId = Guid.NewGuid().ToString("N")[..8];
         request.Headers.Add("X-Request-Timestamp", timestamp.ToString());
-        request.Headers.Add("X-Request-Id", Guid.NewGuid().ToString("N")[..8]);
-        
+        request.Headers.Add("X-Request-Id", requestId);
+
         // Добавляем заголовок для отслеживания запросов
         if (request.Content != null)
         {
             request.Headers.Add("X-Content-Type", request.Content.Headers.ContentType?.ToString() ?? "application/json");
         }
 
-        _logger.LogDebug("Added dynamic headers to VK ORD API request: {RequestId}, {Timestamp}", 
-            request.Headers.GetValues("X-Request-Id").FirstOrDefault(), timestamp);
+        // Получаем LogicalAccountId из AsyncLocal для логирования
+        var logicalAccountId = VkOrdApiClientFactory.GetCurrentLogicalAccountId();
+
+        _logger.LogDebug(
+            "Sending VK ORD API request: RequestId={RequestId}, Timestamp={Timestamp}, LogicalAccountId={LogicalAccountId}, Method={Method}, Path={Path}",
+            requestId, timestamp, logicalAccountId, request.Method, request.RequestUri?.PathAndQuery);
 
         return await base.SendAsync(request, cancellationToken);
     }

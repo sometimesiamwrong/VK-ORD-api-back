@@ -9,7 +9,14 @@
       "Bash(taskkill /F /PID 46436)",
       "Bash(powershell -Command \"Stop-Process -Id 46436 -Force\")",
       "Bash(Select-String -Pattern \"error|successfully\")",
-      "Bash(powershell -ExecutionPolicy Bypass -File test-mediatr-handlers.ps1)"
+      "Bash(powershell -ExecutionPolicy Bypass -File test-mediatr-handlers.ps1)",
+      "Bash(Select-Object FullName)",
+      "Bash(taskkill /F /PID 37116)",
+      "Bash(powershell -Command:*)",
+      "mcp__Dev_Vk_Ord_Postgree_Mcp__analyze_db_health",
+      "mcp__Dev_Vk_Ord_Postgree_Mcp__get_top_queries",
+      "mcp__Dev_Vk_Ord_Postgree_Mcp__analyze_workload_indexes",
+      "mcp__Dev_Vk_Ord_Postgree_Mcp__list_schemas"
     ],
     "deny": [],
     "ask": []
