@@ -441,6 +441,8 @@ main() {
     
     # Очистка старых процессов и портов
     cleanup_old_processes
+    sudo kill -9 `sudo lsof -t -i:5001`
+    sudo kill -9 `sudo lsof -t -i:5000`
     
     # Публикация проектов
     publish_project "WebApp" "$WEBAPP_PROJECT_PATH" "$WEBAPP_PUBLISH_DIR"
