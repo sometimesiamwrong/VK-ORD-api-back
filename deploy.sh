@@ -439,11 +439,6 @@ main() {
     check_root
     install_dotnet_if_needed
     
-    # Очистка старых процессов и портов
-    cleanup_old_processes
-    sudo kill -9 `sudo lsof -t -i:5001`
-    sudo kill -9 `sudo lsof -t -i:5000`
-    
     # Публикация проектов
     publish_project "WebApp" "$WEBAPP_PROJECT_PATH" "$WEBAPP_PUBLISH_DIR"
     publish_project "Jobs" "$JOBS_PROJECT_PATH" "$JOBS_PUBLISH_DIR"
@@ -472,6 +467,9 @@ main() {
         "$CLO_WEBAPP_SERVICE_NAME" \
         "$CLO_WEBAPP_PORT" \
         "CLO CloudPub tunnel for AdLawyer WebApp"
+        
+    # Очистка старых процессов и портов
+    cleanup_old_processes
     
     # Запуск служб
     start_services
