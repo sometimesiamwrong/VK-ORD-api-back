@@ -42,6 +42,11 @@ public class JobsConfiguration
     public bool ContinueOnError { get; set; } = true;
 
     /// <summary>
+    /// Включить объединение аккаунтов при совпадении креативов
+    /// </summary>
+    public bool EnableAccountMergeOnCreativeMatch { get; set; } = false;
+
+    /// <summary>
     /// Получить список включенных типов сущностей как enum
     /// </summary>
     public List<EntityType> GetEnabledEntityTypes()

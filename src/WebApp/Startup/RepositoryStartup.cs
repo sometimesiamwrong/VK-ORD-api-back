@@ -111,7 +111,8 @@ namespace WebApp.Startup
             services.AddScoped<IVkOrdService, VkOrdService>();
             services.AddScoped<IVkOrdApiClientFactory, VkOrdApiClientFactory>();
             services.AddScoped<IErirStatusSyncService, ErirStatusSyncService>();
-            
+            services.AddScoped<ILogicalAccountMergeService, LogicalAccountMergeService>();
+
             // VK ORD Data Service
             services.AddScoped(typeof(IVkOrdDataService<,>), typeof(VkOrdDataService<,>));
             

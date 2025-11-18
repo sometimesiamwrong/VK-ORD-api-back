@@ -85,7 +85,8 @@
     ],
     "BatchSize": 60000,
     "MaxConcurrency": 10,
-    "ContinueOnError": true
+    "ContinueOnError": true,
+    "EnableAccountMergeOnCreativeMatch": true
   },
   "AllowedHosts": "*"
 }

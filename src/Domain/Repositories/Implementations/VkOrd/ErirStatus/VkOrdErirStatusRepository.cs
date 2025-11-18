@@ -115,8 +115,8 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}publicId", Guid.NewGuid()));
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}logicalAccountId", status.LogicalAccountId));
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}externalId", status.ExternalId));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}entityType", status.EntityType));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}erirStatus", status.ErirStatus));
+            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}entityType", (int)status.EntityType));
+            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}erirStatus", (int)status.ErirStatus));
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}updatedByUserTs", status.UpdatedByUserTs));
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}finalizedTs", status.FinalizedTs ?? (object)DBNull.Value));
             parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}errorMessages", status.ErrorMessages ?? (object)DBNull.Value));
@@ -125,7 +125,7 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
         }
 
         var sql = $@"
-            INSERT INTO vk_ord_erir_statuses
+            INSERT INTO vk_ord_erir_status
                 (public_id, logical_account_id, external_id, entity_type, erir_status,
                  updated_by_user_ts, finalized_ts, error_messages, created_at, updated_at, is_deleted)
             VALUES

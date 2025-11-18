@@ -30,6 +30,7 @@ public class ErirStatusSyncService : IErirStatusSyncService
     private readonly IGetCreativeRepository _creativeRepository;
     private readonly IGetInvoiceRepository _invoiceRepository;
     private readonly IGetStatisticsByIdRepository _statisticsRepository;
+    private readonly ILogicalAccountMergeService _mergeService;
     private readonly ILogger<ErirStatusSyncService> _logger;
     private readonly JobsConfiguration _config;
 
@@ -42,6 +43,7 @@ public class ErirStatusSyncService : IErirStatusSyncService
         IGetCreativeRepository creativeRepository,
         IGetInvoiceRepository invoiceRepository,
         IGetStatisticsByIdRepository statisticsRepository,
+        ILogicalAccountMergeService mergeService,
         ILogger<ErirStatusSyncService> logger,
         IOptions<JobsConfiguration> config)
     {
@@ -53,6 +55,7 @@ public class ErirStatusSyncService : IErirStatusSyncService
         _creativeRepository = creativeRepository;
         _invoiceRepository = invoiceRepository;
         _statisticsRepository = statisticsRepository;
+        _mergeService = mergeService;
         _logger = logger;
         _config = config.Value;
     }
@@ -216,12 +219,21 @@ public class ErirStatusSyncService : IErirStatusSyncService
                     ? existingStatusesByType[entityType]
                     : new Dictionary<string, VkOrdErirStatus>();
 
-                var (processed, created, updated, statusesToUpsert) = await ProcessEntityTypeStatuses(
+                var (processed, created, updated, statusesToUpsert, accountMerged) = await ProcessEntityTypeStatuses(
                     logicalAccountId,
                     entityType,
                     statuses,
                     existingStatusMapForType,
                     cancellationToken);
+
+                // Если аккаунт был объединен, прекращаем обработку всех оставшихся entity types
+                if (accountMerged)
+                {
+                    _logger.LogInformation(
+                        "Account {LogicalAccountId} was merged. Stopping all further processing for this account",
+                        logicalAccountId);
+                    return; // Выход из метода, так как аккаунт больше не существует
+                }
 
                 // Собираем все статусы для batch операции
                 allStatusesToUpsert.AddRange(statusesToUpsert);
@@ -422,7 +434,8 @@ public class ErirStatusSyncService : IErirStatusSyncService
     /// <summary>
     /// Обрабатывает ERIR статусы для конкретного типа сущности
     /// </summary>
-    private async Task<(int Processed, int Created, int Updated, List<VkOrdErirStatus> StatusesToUpsert)> ProcessEntityTypeStatuses(
+    /// <returns>Tuple с результатами обработки и флагом AccountMerged, указывающим что аккаунт был объединен</returns>
+    private async Task<(int Processed, int Created, int Updated, List<VkOrdErirStatus> StatusesToUpsert, bool AccountMerged)> ProcessEntityTypeStatuses(
         long logicalAccountId,
         EntityType entityType,
         List<VkOrdApiErirStatusResponse> statuses,
@@ -440,6 +453,41 @@ public class ErirStatusSyncService : IErirStatusSyncService
             cancellationToken);
 
         var existingSet = new HashSet<string>(existingExternalIds);
+
+        // Проверка и объединение аккаунтов при совпадении креативов
+        if (_config.EnableAccountMergeOnCreativeMatch && entityType == EntityType.Creative)
+        {
+            var apiExternalIds = statuses.Select(s => s.ExternalId).ToList();
+
+            // Проверяем есть ли все креативы из API в другом аккаунте
+            var matchingAccountId = await _mergeService.FindAccountWithAllCreatives(
+                apiExternalIds,
+                logicalAccountId,
+                cancellationToken);
+
+            if (matchingAccountId.HasValue)
+            {
+                _logger.LogInformation(
+                    "Found matching account {MatchingAccountId} with identical creatives. Merging account {SourceAccountId}",
+                    matchingAccountId.Value, logicalAccountId);
+
+                // Объединяем аккаунты
+                await _mergeService.MergeAccounts(
+                    targetAccountId: matchingAccountId.Value,
+                    sourceAccountId: logicalAccountId,
+                    cancellationToken);
+
+                // Обновляем logicalAccountId для дальнейшей обработки
+                // После merge все сущности уже перенесены в target account
+                // Дальнейшая синхронизация не нужна для этого аккаунта
+                _logger.LogInformation(
+                    "Account {SourceAccountId} merged into {TargetAccountId}. Skipping further processing",
+                    logicalAccountId, matchingAccountId.Value);
+
+                // Возвращаем пустые результаты с флагом AccountMerged = true
+                return (statuses.Count, 0, 0, new List<VkOrdErirStatus>(), true);
+            }
+        }
 
         // Шаг 2: Разделяем статусы на "новые" и "существующие"
         var statusesToCreate = new List<VkOrdApiErirStatusResponse>();
@@ -486,7 +534,7 @@ public class ErirStatusSyncService : IErirStatusSyncService
                 cancellationToken);
         }
 
-        return (statuses.Count, created, updated, statusesToUpsert);
+        return (statuses.Count, created, updated, statusesToUpsert, false);
     }
 
     /// <summary>

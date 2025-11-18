@@ -16,7 +16,13 @@
       "mcp__Dev_Vk_Ord_Postgree_Mcp__analyze_db_health",
       "mcp__Dev_Vk_Ord_Postgree_Mcp__get_top_queries",
       "mcp__Dev_Vk_Ord_Postgree_Mcp__analyze_workload_indexes",
-      "mcp__Dev_Vk_Ord_Postgree_Mcp__list_schemas"
+      "mcp__Dev_Vk_Ord_Postgree_Mcp__list_schemas",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(Get-ChildItem -Path \"src\\Domain\\Migrations\")",
+      "Bash(Select-String -Pattern \"VkOrdErirStatus\")",
+      "Bash(dotnet ef database update:*)",
+      "Bash(dotnet ef migrations:*)"
     ],
     "deny": [],
     "ask": []

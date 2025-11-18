@@ -121,6 +121,7 @@ builder.Services.AddScoped<IGetCounterpartyByIdRepository, GetCounterpartyByIdRe
 builder.Services.AddScoped<IGetContractRepository, GetContractRepository>();
 builder.Services.AddScoped<IGetCreativeRepository, GetCreativeRepository>();
 builder.Services.AddScoped<IGetInvoiceRepository, GetInvoiceRepository>();
+builder.Services.AddScoped<ILogicalAccountMergeService, LogicalAccountMergeService>();
 builder.Services.AddScoped<IGetStatisticsByIdRepository, GetStatisticsByIdRepository>();
 builder.Services.AddScoped<IGetApiCredentialByGuidRepository, GetApiCredentialByGuidRepository>();
 
