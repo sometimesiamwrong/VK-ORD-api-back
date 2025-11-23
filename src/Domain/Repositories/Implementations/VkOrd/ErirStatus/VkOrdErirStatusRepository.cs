@@ -125,7 +125,7 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
         }
 
         var sql = $@"
-            INSERT INTO vk_ord_erir_status
+            INSERT INTO VkOrdErirStatuses
                 (public_id, logical_account_id, external_id, entity_type, erir_status,
                  updated_by_user_ts, finalized_ts, error_messages, created_at, updated_at, is_deleted)
             VALUES
