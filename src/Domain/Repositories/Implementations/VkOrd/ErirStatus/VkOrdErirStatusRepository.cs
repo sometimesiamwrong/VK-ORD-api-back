@@ -97,48 +97,47 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
         await using var context = _contextFactory();
         var now = DateTimeOffset.UtcNow;
 
-        // Используем PostgreSQL native UPSERT с bulk insert для максимальной производительности
-        // Собираем все VALUES в один SQL запрос вместо множества отдельных запросов
+        var logicalAccountIds = statuses.Select(s => s.LogicalAccountId).Distinct().ToList();
+        var entityTypes = statuses.Select(s => s.EntityType).Distinct().ToList();
 
-        var parameters = new List<Npgsql.NpgsqlParameter>();
-        var valuesClauses = new List<string>();
+        var existingStatuses = await context.VkOrdErirStatuses
+            .Where(e => logicalAccountIds.Contains(e.LogicalAccountId)
+                && entityTypes.Contains(e.EntityType)
+                && !e.IsDeleted)
+            .ToListAsync(cancellationToken);
 
-        for (int i = 0; i < statuses.Count; i++)
+        var externalIds = statuses.Select(s => s.ExternalId).Distinct().ToHashSet();
+        var filteredExisting = existingStatuses
+            .Where(e => externalIds.Contains(e.ExternalId))
+            .ToList();
+
+        var existingLookup = filteredExisting
+            .ToDictionary(e => (e.LogicalAccountId, e.EntityType, e.ExternalId));
+
+        foreach (var status in statuses)
         {
-            var status = statuses[i];
-            var paramPrefix = $"p{i}_";
+            var key = (status.LogicalAccountId, status.EntityType, status.ExternalId);
 
-            valuesClauses.Add($@"
-                (@{paramPrefix}publicId, @{paramPrefix}logicalAccountId, @{paramPrefix}externalId, @{paramPrefix}entityType, @{paramPrefix}erirStatus,
-                 @{paramPrefix}updatedByUserTs, @{paramPrefix}finalizedTs, @{paramPrefix}errorMessages, @{paramPrefix}createdAt, @{paramPrefix}updatedAt, false)");
-
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}publicId", Guid.NewGuid()));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}logicalAccountId", status.LogicalAccountId));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}externalId", status.ExternalId));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}entityType", (int)status.EntityType));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}erirStatus", (int)status.ErirStatus));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}updatedByUserTs", status.UpdatedByUserTs));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}finalizedTs", status.FinalizedTs ?? (object)DBNull.Value));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}errorMessages", status.ErrorMessages ?? (object)DBNull.Value));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}createdAt", now));
-            parameters.Add(new Npgsql.NpgsqlParameter($"@{paramPrefix}updatedAt", now));
+            if (existingLookup.TryGetValue(key, out var existing))
+            {
+                existing.ErirStatus = status.ErirStatus;
+                existing.UpdatedByUserTs = status.UpdatedByUserTs;
+                existing.FinalizedTs = status.FinalizedTs;
+                existing.ErrorMessages = status.ErrorMessages;
+                existing.UpdatedAt = now;
+                context.VkOrdErirStatuses.Update(existing);
+            }
+            else
+            {
+                status.PublicId = Guid.NewGuid();
+                status.CreatedAt = now;
+                status.UpdatedAt = now;
+                context.VkOrdErirStatuses.Add(status);
+                existingLookup[key] = status;
+            }
         }
 
-        var sql = $@"
-            INSERT INTO VkOrdErirStatuses
-                (PublicId, LogicalAccountId, ExternalId, EntityType, ErirStatus,
-                 UpdatedByUserTs, FinalizedTs, ErrorMessages, CreatedAt, UpdatedAt, IsDeleted)
-            VALUES
-                {string.Join(",", valuesClauses)}
-            ON CONFLICT (LogicalAccountId, EntityType, ExternalId)
-            DO UPDATE SET
-                ErirStatus = EXCLUDED.ErirStatus,
-                UpdatedByUserTs = EXCLUDED.UpdatedByUserTs,
-                FinalizedTs = EXCLUDED.FinalizedTs,
-                ErrorMessages = EXCLUDED.ErrorMessages,
-                UpdatedAt = EXCLUDED.UpdatedAt";
-
-        await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
+        await context.SaveChangesAsync(cancellationToken);
     }
 
     private async Task<VkOrdErirStatus?> GetByExternalIdInternal(
