@@ -126,17 +126,17 @@ public class VkOrdErirStatusRepository : IVkOrdErirStatusRepository
 
         var sql = $@"
             INSERT INTO VkOrdErirStatuses
-                (public_id, logical_account_id, external_id, entity_type, erir_status,
-                 updated_by_user_ts, finalized_ts, error_messages, created_at, updated_at, is_deleted)
+                (PublicId, LogicalAccountId, ExternalId, EntityType, ErirStatus,
+                 UpdatedByUserTs, FinalizedTs, ErrorMessages, CreatedAt, UpdatedAt, IsDeleted)
             VALUES
                 {string.Join(",", valuesClauses)}
-            ON CONFLICT (logical_account_id, entity_type, external_id)
+            ON CONFLICT (LogicalAccountId, EntityType, ExternalId)
             DO UPDATE SET
-                erir_status = EXCLUDED.erir_status,
-                updated_by_user_ts = EXCLUDED.updated_by_user_ts,
-                finalized_ts = EXCLUDED.finalized_ts,
-                error_messages = EXCLUDED.error_messages,
-                updated_at = EXCLUDED.updated_at";
+                ErirStatus = EXCLUDED.ErirStatus,
+                UpdatedByUserTs = EXCLUDED.UpdatedByUserTs,
+                FinalizedTs = EXCLUDED.FinalizedTs,
+                ErrorMessages = EXCLUDED.ErrorMessages,
+                UpdatedAt = EXCLUDED.UpdatedAt";
 
         await context.Database.ExecuteSqlRawAsync(sql, parameters, cancellationToken);
     }
