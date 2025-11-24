@@ -99,6 +99,7 @@ public sealed class VkOrdInvoiceAmount
 
 /// <summary>
 /// Детали суммы (используется для сервисов, комиссии и позиций)
+/// Поля могут быть null в зависимости от типа счета (с НДС/без НДС)
 /// </summary>
 public sealed class VkOrdInvoiceAmountDetails
 {
@@ -106,30 +107,31 @@ public sealed class VkOrdInvoiceAmountDetails
     /// Сумма без НДС (Scale2 decimal, >0)
     /// </summary>
     [JsonPropertyName("excluding_vat")]
-    public required string ExcludingVat { get; set; }
+    public string? ExcludingVat { get; set; }
 
     /// <summary>
     /// Ставка НДС (%, pattern: ^\d{1,2}(\.\d{1,2})? , max: 20)
     /// </summary>
     [JsonPropertyName("vat_rate")]
     [JsonConverter(typeof(DecimalToStringConverter))]
-    public required string VatRate { get; set; }
+    public string? VatRate { get; set; }
 
     /// <summary>
     /// Сумма НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("vat")]
-    public required string Vat { get; set; } = string.Empty;
+    public string? Vat { get; set; }
 
     /// <summary>
     /// Сумма с НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("including_vat")]
-    public required string IncludingVat { get; set; } = string.Empty;
+    public string? IncludingVat { get; set; }
 }
 
 /// <summary>
 /// Вознаграждение посреднику (commission) с дополнительными реквизитами
+/// Поля суммы могут быть null в зависимости от типа счета (с НДС/без НДС)
 /// </summary>
 public sealed class VkOrdInvoiceCommissionAmount
 {
@@ -137,26 +139,26 @@ public sealed class VkOrdInvoiceCommissionAmount
     /// Сумма без НДС (Scale2 decimal, >0)
     /// </summary>
     [JsonPropertyName("excluding_vat")]
-    public required string ExcludingVat { get; set; }
+    public string? ExcludingVat { get; set; }
 
     /// <summary>
     /// Ставка НДС (%, pattern: ^\d{1,2}(\.\d{1,2})? , max: 20)
     /// </summary>
     [JsonPropertyName("vat_rate")]
     [JsonConverter(typeof(DecimalToStringConverter))]
-    public required string VatRate { get; set; } = string.Empty;
+    public string? VatRate { get; set; }
 
     /// <summary>
     /// Сумма НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("vat")]
-    public required string Vat { get; set; } = string.Empty;
+    public string? Vat { get; set; }
 
     /// <summary>
     /// Сумма с НДС (Scale2 decimal)
     /// </summary>
     [JsonPropertyName("including_vat")]
-    public required string IncludingVat { get; set; } = string.Empty;
+    public string? IncludingVat { get; set; }
 
     /// <summary>
     /// Серийный номер договора комиссии (minLength 1, max 255, example: 123)

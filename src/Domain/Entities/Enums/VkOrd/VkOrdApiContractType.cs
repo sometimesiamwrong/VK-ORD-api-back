@@ -20,5 +20,11 @@ public enum VkOrdApiContractType
     /// Дополнительное соглашение. Требует заполнения поля parent_contract_external_id.
     /// </summary>
     [EnumMember(Value = "additional")]
-    Additional
+    Additional,
+
+    /// <summary>
+    /// Собственная промо-кампания (самопродвижение).
+    /// </summary>
+    [EnumMember(Value = "self_promotion")]
+    SelfPromotion
 }
