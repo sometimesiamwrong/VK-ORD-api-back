@@ -22,7 +22,9 @@
       "Bash(Get-ChildItem -Path \"src\\Domain\\Migrations\")",
       "Bash(Select-String -Pattern \"VkOrdErirStatus\")",
       "Bash(dotnet ef database update:*)",
-      "Bash(dotnet ef migrations:*)"
+      "Bash(dotnet ef migrations:*)",
+      "Bash(cat:*)",
+      "Bash($env:ASPNETCORE_ENVIRONMENT=\"Production\")"
     ],
     "deny": [],
     "ask": []

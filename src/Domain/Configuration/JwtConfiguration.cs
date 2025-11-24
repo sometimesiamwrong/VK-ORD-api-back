@@ -33,6 +33,6 @@ namespace WebApp.Configuration
         /// <summary>
         /// Имя cookie для refresh токена
         /// </summary>
-        public string RefreshCookieName { get; set; } = "refresh_token";
+        public string RefreshCookieName { get; set; } = "vk_ord_refresh_token";
     }
 }

@@ -14,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<DatabaseScript> DatabaseScripts { get; set; }
     public DbSet<FlowTemplate> FlowTemplates { get; set; }
+    public DbSet<DebugAccessToken> DebugAccessTokens { get; set; }
 
     // VK ORD  entities
     public DbSet<VkOrdCounterparty> VkOrdCounterparties { get; set; }
@@ -101,6 +102,33 @@ public class AppDbContext : DbContext
             b.HasIndex(f => new { f.ApiCredentialId, f.Name })
                 .IsUnique()
                 .HasFilter("\"IsDeleted\" = false");
+        });
+
+        // DebugAccessToken
+        modelBuilder.Entity<DebugAccessToken>(b =>
+        {
+            b.ConfigureEntityBase();
+
+            b.HasOne(d => d.User)
+                .WithMany()
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasOne(d => d.ApiCredential)
+                .WithMany()
+                .HasForeignKey(d => d.ApiCredentialId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Индексы
+            b.HasIndex(d => d.Token).IsUnique().HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(d => d.ExpiresAt).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(d => d.IsUsed).HasFilter("\"IsDeleted\" = false");
+            b.HasIndex(d => new { d.IsUsed, d.ExpiresAt }).HasFilter("\"IsDeleted\" = false");
+
+            // Ограничения
+            b.Property(d => d.Token).HasMaxLength(256).IsRequired();
+            b.Property(d => d.CreatedByIp).HasMaxLength(64);
+            b.Property(d => d.UsedByIp).HasMaxLength(64);
         });
 
         // VkOrdErirStatus
