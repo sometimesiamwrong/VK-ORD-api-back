@@ -67,6 +67,8 @@ builder.Services.Configure<RedisConfiguration>(
     builder.Configuration.GetSection(RedisConfiguration.SectionName));
 builder.Services.Configure<Jobs.Configuration.JobsConfiguration>(
     builder.Configuration.GetSection(Jobs.Configuration.JobsConfiguration.SectionName));
+builder.Services.Configure<DebugSettings>(
+    builder.Configuration.GetSection("DebugSettings"));
 
 // Регистрация HTTP клиентов и Refit
 var vkOrdConfig = builder.Configuration.GetSection(VkOrdConfiguration.SectionName).Get<VkOrdConfiguration>();
@@ -131,6 +133,7 @@ builder.Services.AddScoped<IFlowTemplateService, FlowTemplateService>();
 
 // Регистрация фильтров
 builder.Services.AddScoped<VkApiHeadersFilter>();
+builder.Services.AddScoped<DebugKeyAuthorizationFilter>();
 
 // Настройка кэширования
 builder.Services.AddMemoryCache();
@@ -211,6 +214,10 @@ builder.Services.AddScoped<Func<AppDbContext>>(serviceProvider => () => new AppD
 
 // Security services
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IDebugAccessService, DebugAccessService>();
+
+// Background services
+builder.Services.AddHostedService<WebApp.Services.DebugTokenCleanupService>();
 
 // Добавление контроллеров
 builder.Services.AddControllers()

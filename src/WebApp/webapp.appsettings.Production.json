@@ -87,6 +87,11 @@
     ],
     "Enrich": [ "FromLogContext", "WithMachineName", "WithThreadId" ]
   },
+  "DebugSettings": {
+    "SecretKey": "8d5a25892f2586d7424c53af5cfa203eec25d71c9387099f6b00dabf0884f252",
+    "TokenExpiryMinutes": 5,
+    "BaseUrl": "https://ad-lawyer.ru"
+  },
   "AllowedHosts": "*",
   "Kestrel": {
     "Endpoints": {

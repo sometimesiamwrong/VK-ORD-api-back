@@ -88,5 +88,10 @@
     "ContinueOnError": true,
     "EnableAccountMergeOnCreativeMatch": true
   },
+  "DebugSettings": {
+    "SecretKey": "your-debug-secret-key-change-this-in-production",
+    "TokenExpiryMinutes": 5,
+    "BaseUrl": "http://172.24.48.1:5173"
+  },
   "AllowedHosts": "*"
 }
